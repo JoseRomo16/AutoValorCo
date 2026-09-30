@@ -27,6 +27,18 @@ MIN_MODEL_YEAR: Final = 1950
 MAX_MILEAGE_KM: Final = 1_000_000
 """A million kilometres is already implausible for a private vehicle."""
 
+MIN_ENGINE_CC: Final = 50
+"""Smallest displacement worth treating as a motorcycle rather than a moped part."""
+
+MAX_ENGINE_CC: Final = 2_500
+"""Largest displacement for a motorcycle; above this the number is not an engine."""
+
+MIN_CAR_CC: Final = 600
+"""Cars advertise litres; below 0.6 L the number parsed out is not a displacement."""
+
+MAX_CAR_CC: Final = 8_000
+"""Eight litres covers every car sold in Colombia, with room to spare."""
+
 VEHICLE_TYPES: Final = ("car", "motorcycle")
 
 _LISTING_ID_PATTERN = r"^MCO-?\d+$"
@@ -119,6 +131,13 @@ GOLD_LISTINGS: Final = pa.DataFrameSchema(
         # Resolved from the title; "Desconocida" when no alias matched, never null.
         "brand": pa.Column(str, nullable=False),
         "model": pa.Column(str, nullable=True),
+        # Mined from the title, so frequently absent; the range covers both verticals.
+        "engine_cc": pa.Column(
+            "Int64",
+            nullable=True,
+            checks=[pa.Check.ge(MIN_ENGINE_CC), pa.Check.le(MAX_CAR_CC)],
+        ),
+        "is_quad": pa.Column(bool, nullable=False),
         "price_cop": pa.Column(
             "int64",
             nullable=False,
@@ -139,8 +158,21 @@ GOLD_LISTINGS: Final = pa.DataFrameSchema(
         "first_seen_at": pa.Column("datetime64[ns, UTC]", nullable=False),
         "last_seen_at": pa.Column("datetime64[ns, UTC]", nullable=False),
     },
+    checks=pa.Check(
+        lambda df: (
+            ~((df["vehicle_type"] == "motorcycle") & (df["engine_cc"] > MAX_ENGINE_CC)).fillna(
+                False
+            )
+        ),
+        name="motorcycle_displacement_in_range",
+        error=f"motorcycle engine_cc must not exceed {MAX_ENGINE_CC}",
+    ),
 )
-"""Gold is model-ready: one row per listing, every modeling column present."""
+"""Gold is model-ready: one row per listing, every modeling column present.
+
+The column-level range on ``engine_cc`` has to span both verticals, so the tighter
+motorcycle ceiling is enforced as a frame-level check.
+"""
 
 
 class LayerValidationError(ValueError):

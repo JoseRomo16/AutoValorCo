@@ -22,4 +22,8 @@ def test_thresholds_match_the_dbt_project() -> None:
         "max_price_cop": schemas.MAX_PRICE_COP,
         "min_model_year": schemas.MIN_MODEL_YEAR,
         "max_mileage_km": schemas.MAX_MILEAGE_KM,
+        "min_engine_cc": schemas.MIN_ENGINE_CC,
+        "max_engine_cc": schemas.MAX_ENGINE_CC,
+        "min_car_cc": schemas.MIN_CAR_CC,
+        "max_car_cc": schemas.MAX_CAR_CC,
     }

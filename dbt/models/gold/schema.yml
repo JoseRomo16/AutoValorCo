@@ -26,6 +26,18 @@ models:
           - not_null
       - name: model
         description: First token after the make; NULL when the title carries only a make.
+      - name: engine_cc
+        description: >
+          Displacement in cc, mined from the title. Cars advertise litres ("1.6"),
+          motorcycles advertise cc, sometimes inside the model name ("Xre 300").
+          NULL when the title does not carry it.
+      - name: is_quad
+        description: >
+          Quad, buggy or side-by-side listed inside the motorcycle vertical. A
+          different market, kept so F2 can segment it out rather than silently
+          dropping the rows.
+        data_tests:
+          - not_null
       - name: price_cop
         description: Asking price in Colombian pesos.
         data_tests:

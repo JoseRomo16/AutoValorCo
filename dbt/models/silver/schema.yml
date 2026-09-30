@@ -18,6 +18,22 @@ models:
               arguments:
                 values: ["car", "motorcycle"]
 
+  - name: stg_title_features
+    description: >
+      Make, model, engine size and the quad flag, all mined from the listing title
+      because the search card does not carry them as structured fields.
+    columns:
+      - name: listing_id
+        data_tests:
+          - not_null
+          - unique
+      - name: brand
+        data_tests:
+          - not_null
+      - name: is_quad
+        data_tests:
+          - not_null
+
   - name: silver_listings
     description: >
       One row per listing and asking price. Implausible rows are kept and flagged

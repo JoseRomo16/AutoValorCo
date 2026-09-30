@@ -64,6 +64,8 @@ def gold_frame(**overrides: object) -> pd.DataFrame:
         "title": "Hyundai Hb20 2026",
         "brand": "Hyundai",
         "model": "hb20",
+        "engine_cc": 1600,
+        "is_quad": False,
         "price_cop": 78_990_000,
         "log_price": 18.18,
         "model_year": 2019,
@@ -168,3 +170,18 @@ def test_gold_rejects_implausible_price() -> None:
 def test_gold_rejects_negative_age() -> None:
     with pytest.raises(LayerValidationError):
         validate_gold(gold_frame(vehicle_age_years=-1))
+
+
+def test_gold_rejects_car_sized_displacement_on_a_motorcycle() -> None:
+    """A title reading "4000cc" is a typo, not a motorcycle engine."""
+    with pytest.raises(LayerValidationError):
+        validate_gold(gold_frame(vehicle_type="motorcycle", engine_cc=4000))
+
+
+def test_gold_allows_car_sized_displacement_on_a_car() -> None:
+    assert len(validate_gold(gold_frame(engine_cc=4000))) == 1
+
+
+def test_gold_allows_a_missing_displacement() -> None:
+    """Most titles do not state the engine size, so absence must be fine."""
+    assert validate_gold(gold_frame(engine_cc=None))["engine_cc"].isna().all()

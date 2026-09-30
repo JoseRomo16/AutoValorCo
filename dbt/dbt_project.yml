@@ -17,6 +17,11 @@ vars:
   max_price_cop: 2000000000
   min_model_year: 1950
   max_mileage_km: 1000000
+  # Engine size, used to sanity-check what is mined out of the title.
+  min_engine_cc: 50
+  max_engine_cc: 2500
+  min_car_cc: 600
+  max_car_cc: 8000
 
 seeds:
   autovalor:
