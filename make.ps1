@@ -33,7 +33,7 @@ switch ($Target) {
         Write-Host 'AutoValor CO - available targets:'
         Write-Host '  setup          Install Python, browser and frontend dependencies'
         Write-Host '  scrape         Capture TuCarro listings into data/bronze'
-        Write-Host '  transform      Run dbt and the Pandera validations (F1)'
+        Write-Host '  transform      Run dbt (silver and gold) and the Pandera validations'
         Write-Host '  train          Train the models and log them to MLflow (F2)'
         Write-Host '  serve          Run the API locally with autoreload'
         Write-Host '  test           Run the test suite with coverage'
@@ -59,7 +59,12 @@ switch ($Target) {
         Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.cli',
         '--vehicle-type', 'all', '--pages', "$Pages"
     }
-    'transform' { Write-Host 'transform: not implemented yet (F1 - dbt/ + src/autovalor/quality)' }
+    'transform' {
+        Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.quality.cli', '--stage', 'bronze'
+        Invoke-Step 'uv', 'run', 'dbt', 'build', '--project-dir', 'dbt', '--profiles-dir', 'dbt'
+        Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.quality.cli',
+        '--stage', 'silver', '--stage', 'gold'
+    }
     'train' { Write-Host 'train: not implemented yet (F2 - src/autovalor/models/train.py)' }
     'serve' {
         Invoke-Step 'uv', 'run', 'uvicorn', 'autovalor.api.main:app', '--reload',

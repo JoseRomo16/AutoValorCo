@@ -1,0 +1,32 @@
+---
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Immutable captures written by src/autovalor/ingest. Read straight from Parquet
+      instead of being loaded, so the lake stays the source of truth and dbt never
+      writes to bronze.
+    meta:
+      external_location: >
+        read_parquet(
+          '{{ env_var("AUTOVALOR_BRONZE_GLOB", "data/bronze/**/*.parquet") }}',
+          union_by_name = true
+        )
+    tables:
+      - name: listings
+        description: One row per listing per capture.
+        columns:
+          - name: listing_id
+            description: Publisher identifier, e.g. MCO-1686772601.
+            data_tests:
+              - not_null
+          - name: captured_at
+            description: Capture instant, UTC.
+            data_tests:
+              - not_null
+          - name: vehicle_type
+            data_tests:
+              - accepted_values:
+                  arguments:
+                    values: ["car", "motorcycle"]

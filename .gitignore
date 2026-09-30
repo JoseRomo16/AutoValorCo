@@ -36,6 +36,7 @@ mlartifacts/
 dbt/target/
 dbt/dbt_packages/
 dbt/logs/
+dbt/.user.yml
 logs/
 *.duckdb
 *.duckdb.wal

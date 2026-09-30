@@ -28,7 +28,9 @@ scrape: ## Capture listings into data/bronze
 	$(RUN) python -m autovalor.ingest.cli --vehicle-type all --pages $(PAGES)
 
 transform: ## Run dbt (silver and gold) and the Pandera validations
-	@echo "make transform: not implemented yet (F1 - dbt/ + src/autovalor/quality)"
+	$(RUN) python -m autovalor.quality.cli --stage bronze
+	$(RUN) dbt build --project-dir dbt --profiles-dir dbt
+	$(RUN) python -m autovalor.quality.cli --stage silver --stage gold
 
 train: ## Train the models and log them to MLflow
 	@echo "make train: not implemented yet (F2 - src/autovalor/models/train.py)"

@@ -1,0 +1,40 @@
+---
+version: 2
+
+models:
+  - name: gold_listings
+    description: >
+      Model-ready listings: plausible rows only, one row per listing, with the
+      derived columns the valuation models consume.
+    columns:
+      - name: listing_id
+        description: Publisher identifier; unique in this table.
+        data_tests:
+          - not_null
+          - unique
+      - name: vehicle_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["car", "motorcycle"]
+      - name: price_cop
+        description: Asking price in Colombian pesos.
+        data_tests:
+          - not_null
+      - name: log_price
+        description: Modeling target.
+        data_tests:
+          - not_null
+      - name: model_year
+        data_tests:
+          - not_null
+      - name: vehicle_age_years
+        data_tests:
+          - not_null
+      - name: mileage_km
+        data_tests:
+          - not_null
+      - name: km_per_year
+        data_tests:
+          - not_null

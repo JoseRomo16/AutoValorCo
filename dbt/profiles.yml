@@ -1,0 +1,10 @@
+---
+# Paths are relative to the working directory, and dbt is always invoked from the
+# repository root (see the `transform` target in the Makefile).
+autovalor:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('AUTOVALOR_DUCKDB_PATH', 'data/autovalor.duckdb') }}"
+      threads: 4

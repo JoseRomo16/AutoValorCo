@@ -1,0 +1,54 @@
+---
+version: 2
+
+models:
+  - name: stg_tucarro_listings
+    description: Bronze strings parsed into typed columns, one row per capture.
+    columns:
+      - name: listing_id
+        data_tests:
+          - not_null
+      - name: captured_at
+        data_tests:
+          - not_null
+      - name: vehicle_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["car", "motorcycle"]
+
+  - name: silver_listings
+    description: >
+      One row per listing and asking price. Implausible rows are kept and flagged
+      through is_valid / invalid_reason rather than dropped.
+    columns:
+      - name: listing_id
+        data_tests:
+          - not_null
+      - name: vehicle_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["car", "motorcycle"]
+      - name: capture_count
+        data_tests:
+          - not_null
+      - name: is_valid
+        data_tests:
+          - not_null
+      - name: invalid_reason
+        data_tests:
+          - accepted_values:
+              arguments:
+                values:
+                - price_missing
+                - price_too_low
+                - price_too_high
+                - currency_not_cop
+                - model_year_missing
+                - model_year_too_old
+                - model_year_in_future
+                - mileage_missing
+                - mileage_too_high

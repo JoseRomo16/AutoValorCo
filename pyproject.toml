@@ -119,6 +119,7 @@ module = [
     "shap.*",
     "sklearn.*",
     "statsmodels.*",
+    "yaml.*",
 ]
 ignore_missing_imports = true
 

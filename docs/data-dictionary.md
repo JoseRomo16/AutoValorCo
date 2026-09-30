@@ -1,6 +1,9 @@
 # Data dictionary / Diccionario de datos
 
-Status: bronze documented (F1). Silver, gold and the feature table follow as dbt lands.
+Status: bronze, silver and gold documented (F1). Fasecolda benchmark tables follow.
+
+Contracts live in `src/autovalor/quality/schemas.py` (Pandera) and are checked by
+`make transform`, which validates bronze, runs dbt, and then validates silver and gold.
 
 ## Layers / Capas
 
@@ -53,11 +56,65 @@ over-represents that region. Later pages (`_Desde_N`) are national. Captures sho
 sweep explicit location slugs (`--location bogota-dc --location medellin ...`) so the
 sample is not tied to where the scraper happens to run.
 
-## Features (planned)
+## Silver — `main_silver.silver_listings`
 
-| Feature       | Source                          | Notes                                    |
-| ------------- | ------------------------------- | ---------------------------------------- |
-| `vehicle_age` | `features/age.vehicle_age`      | `captured_at.year - model_year`, min 0   |
+Built by `dbt/models/silver/`. One row per **listing and asking price**: a listing
+re-captured unchanged collapses into one row, while a price change becomes a new row,
+which is what the monthly price index needs.
 
-`valor_fasecolda` is a benchmark only and is never used as a model feature
-(information leakage).
+Implausible rows are **kept and flagged**, not dropped, so data quality stays
+measurable over time.
+
+| Column              | Type      | Notes                                                    |
+| ------------------- | --------- | -------------------------------------------------------- |
+| `listing_id`        | varchar   | Publisher id                                             |
+| `source`            | varchar   | Site the listing came from                               |
+| `source_url`        | varchar   | Canonical listing URL                                    |
+| `vehicle_type`      | varchar   | `car` or `motorcycle`                                    |
+| `title`             | varchar   | Trimmed title, `NULL` when empty                         |
+| `price_cop`         | bigint    | Parsed from the card's aria-label, price text as fallback |
+| `model_year`        | bigint    | Parsed model year                                        |
+| `mileage_km`        | bigint    | `86.000 Km` → `86000`                                    |
+| `city`              | varchar   | First half of `location_raw`                             |
+| `department`        | varchar   | Second half of `location_raw`                            |
+| `is_official_store` | boolean   | Seller is an official store                              |
+| `first_seen_at`     | timestamp | Earliest capture at this price                           |
+| `last_seen_at`      | timestamp | Latest capture at this price                             |
+| `capture_count`     | bigint    | Captures seen at this price                              |
+| `is_valid`          | boolean   | True exactly when `invalid_reason` is `NULL`              |
+| `invalid_reason`    | varchar   | See below                                                |
+
+`invalid_reason` values: `price_missing`, `price_too_low`, `price_too_high`,
+`currency_not_cop`, `model_year_missing`, `model_year_too_old`, `model_year_in_future`,
+`mileage_missing`, `mileage_too_high`.
+
+Thresholds (defined once in `schemas.py`, mirrored as dbt vars): price between
+1.000.000 and 2.000.000.000 COP, model year from 1950 to next calendar year, mileage up
+to 1.000.000 km.
+
+## Gold — `main_gold.gold_listings`
+
+Built by `dbt/models/gold/`. Plausible rows only, **one row per listing** (its latest
+asking price), with everything the models consume.
+
+| Column              | Type      | Notes                                                  |
+| ------------------- | --------- | ------------------------------------------------------ |
+| `listing_id`        | varchar   | Unique in this table                                   |
+| `source_url`        | varchar   |                                                        |
+| `vehicle_type`      | varchar   | Cars and motorcycles are modeled separately            |
+| `title`             | varchar   |                                                        |
+| `price_cop`         | bigint    | Asking price                                           |
+| `log_price`         | double    | **Modeling target**                                    |
+| `model_year`        | bigint    |                                                        |
+| `vehicle_age_years` | bigint    | `year(last_seen_at) - model_year`, floored at 0         |
+| `mileage_km`        | bigint    |                                                        |
+| `km_per_year`       | double    | Divides by at least one year, so new vehicles read as  |
+|                     |           | "kilometres so far" instead of exploding               |
+| `city`              | varchar   |                                                        |
+| `department`        | varchar   |                                                        |
+| `is_official_store` | boolean   |                                                        |
+| `first_seen_at`     | timestamp |                                                        |
+| `last_seen_at`      | timestamp |                                                        |
+
+`valor_fasecolda` is a benchmark only and is never joined into gold or used as a model
+feature (information leakage).
