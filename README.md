@@ -143,11 +143,13 @@ docker compose --profile ml up -d mlflow    # UI de MLflow en http://localhost:5
 
 ### Roadmap
 
+Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs/STATUS.md)**.
+
 | Fase   | Objetivo    | Criterio de cierre                                                                                    | Estado      |
 | ------ | ----------- | ----------------------------------------------------------------------------------------------------- | ----------- |
-| **F0** | Requisitos  | Repo inicial, estructura, Makefile y CI en verde                                                      | en curso    |
-| **F1** | Datos       | Piloto de 1.000 anuncios para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa | pendiente   |
-| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | pendiente   |
+| **F0** | Requisitos  | Repo inicial, estructura, Makefile y CI en verde                                                      | cerrada     |
+| **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada (7.207 / 3.765) |
+| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | siguiente   |
 | **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda                        | pendiente   |
 | **F4** | Producto    | API (`/predict`, `/explain`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render     | pendiente   |
 
@@ -205,11 +207,13 @@ is implemented.
 
 ### Roadmap
 
+Detailed status, open decisions and how to resume: **[`docs/STATUS.md`](docs/STATUS.md)**.
+
 | Phase  | Goal        | Exit criteria                                                                                              | Status      |
 | ------ | ----------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
-| **F0** | Requirements| Initial repo, structure, Makefile and green CI                                                             | in progress |
-| **F1** | Data        | 1,000-listing pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on | pending     |
-| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | pending     |
+| **F0** | Requirements| Initial repo, structure, Makefile and green CI                                                             | closed      |
+| **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed (7,207 / 3,765) |
+| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | next        |
 | **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, Fasecolda comparison                                        | pending     |
 | **F4** | Product     | API (`/predict`, `/explain`, `/health`, `/model-info`), Next.js app, Docker, Render deployment              | pending     |
 
