@@ -1,0 +1,31 @@
+---
+version: 2
+
+seeds:
+  - name: vehicle_brands
+    description: >
+      Make aliases as they appear in listing titles, mapped to a canonical make.
+      Several aliases per make are expected ("vw" and "volkswagen"); the longest
+      match wins, so "mercedes benz" is not shadowed by "mercedes".
+
+      A few entries are model names rather than makes ("dominar" -> Bajaj,
+      "gixxer" -> Suzuki). Listings often name the model without the make, and these
+      were frequent enough in the F1 pilot to be worth the small risk of a false
+      positive. Two-letter aliases were deliberately left out for that reason.
+    columns:
+      - name: alias
+        description: Lowercase alias, matched against the title on word boundaries.
+        data_tests:
+          - not_null
+          - unique
+      - name: brand
+        description: Canonical make.
+        data_tests:
+          - not_null
+      - name: applies_to
+        description: Which vertical the alias is valid for.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["car", "motorcycle", "both"]

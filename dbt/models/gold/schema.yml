@@ -18,6 +18,14 @@ models:
           - accepted_values:
               arguments:
                 values: ["car", "motorcycle"]
+      - name: brand
+        description: >
+          Canonical make, resolved from the title against the vehicle_brands seed.
+          "Desconocida" when no alias matched.
+        data_tests:
+          - not_null
+      - name: model
+        description: First token after the make; NULL when the title carries only a make.
       - name: price_cop
         description: Asking price in Colombian pesos.
         data_tests:

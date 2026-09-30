@@ -62,6 +62,8 @@ def gold_frame(**overrides: object) -> pd.DataFrame:
         "source_url": "https://articulo.tucarro.com.co/MCO-1686772601-hb20-_JM",
         "vehicle_type": "car",
         "title": "Hyundai Hb20 2026",
+        "brand": "Hyundai",
+        "model": "hb20",
         "price_cop": 78_990_000,
         "log_price": 18.18,
         "model_year": 2019,

@@ -1,0 +1,101 @@
+alias,brand,applies_to
+chevrolet,Chevrolet,car
+chevy,Chevrolet,car
+renault,Renault,car
+mazda,Mazda,car
+toyota,Toyota,car
+kia,Kia,car
+hyundai,Hyundai,car
+nissan,Nissan,car
+ford,Ford,car
+volkswagen,Volkswagen,car
+vw,Volkswagen,car
+suzuki,Suzuki,both
+mitsubishi,Mitsubishi,car
+jeep,Jeep,car
+subaru,Subaru,car
+peugeot,Peugeot,car
+citroen,Citroen,car
+citroën,Citroen,car
+fiat,Fiat,car
+dodge,Dodge,car
+ram,RAM,car
+chery,Chery,car
+changan,Changan,car
+jac,JAC,car
+byd,BYD,car
+haval,Haval,car
+great wall,GWM,car
+mg,MG,car
+volvo,Volvo,car
+land rover,Land Rover,car
+range rover,Land Rover,car
+lexus,Lexus,car
+porsche,Porsche,car
+mini,Mini,car
+isuzu,Isuzu,car
+ssangyong,SsangYong,car
+foton,Foton,car
+dfsk,DFSK,car
+skoda,Skoda,car
+seat,Seat,car
+opel,Opel,car
+tesla,Tesla,car
+gmc,GMC,car
+chrysler,Chrysler,car
+audi,Audi,car
+mercedes,Mercedes-Benz,car
+mercedes benz,Mercedes-Benz,car
+mercedes-benz,Mercedes-Benz,car
+yamaha,Yamaha,motorcycle
+honda,Honda,both
+bajaj,Bajaj,motorcycle
+akt,AKT,motorcycle
+auteco,Auteco,motorcycle
+ktm,KTM,motorcycle
+benelli,Benelli,motorcycle
+kawasaki,Kawasaki,motorcycle
+ducati,Ducati,motorcycle
+bmw,BMW,both
+harley,Harley-Davidson,motorcycle
+harley davidson,Harley-Davidson,motorcycle
+harley-davidson,Harley-Davidson,motorcycle
+royal enfield,Royal Enfield,motorcycle
+tvs,TVS,motorcycle
+hero,Hero,motorcycle
+victory,Victory,motorcycle
+kymco,Kymco,motorcycle
+vespa,Vespa,motorcycle
+piaggio,Piaggio,motorcycle
+cfmoto,CFMoto,motorcycle
+cf moto,CFMoto,motorcycle
+husqvarna,Husqvarna,motorcycle
+triumph,Triumph,motorcycle
+aprilia,Aprilia,motorcycle
+sym,SYM,motorcycle
+um,UM,motorcycle
+keeway,Keeway,motorcycle
+italika,Italika,motorcycle
+starker,Starker,motorcycle
+ayco,Ayco,motorcycle
+zontes,Zontes,motorcycle
+qj motor,QJ Motor,motorcycle
+fantic,Fantic,motorcycle
+can-am,Can-Am,motorcycle
+can am,Can-Am,motorcycle
+polaris,Polaris,motorcycle
+mv agusta,MV Agusta,motorcycle
+vento,Vento,motorcycle
+kgm,KGM,car
+cupra,Cupra,car
+cadillac,Cadillac,car
+alfa romeo,Alfa Romeo,car
+jetour,Jetour,car
+gwm,GWM,car
+pulsar,Bajaj,motorcycle
+dominar,Bajaj,motorcycle
+boxer,Bajaj,motorcycle
+gixxer,Suzuki,motorcycle
+nmax,Yamaha,motorcycle
+xpulse,Hero,motorcycle
+apache,TVS,motorcycle

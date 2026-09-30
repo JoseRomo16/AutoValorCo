@@ -5,6 +5,7 @@ config-version: 2
 profile: autovalor
 
 model-paths: ["models"]
+seed-paths: ["seeds"]
 test-paths: ["tests"]
 target-path: "target"
 clean-targets: ["target", "dbt_packages"]
@@ -16,6 +17,15 @@ vars:
   max_price_cop: 2000000000
   min_model_year: 1950
   max_mileage_km: 1000000
+
+seeds:
+  autovalor:
+    +schema: seeds
+    vehicle_brands:
+      +column_types:
+        alias: varchar
+        brand: varchar
+        applies_to: varchar
 
 models:
   autovalor:

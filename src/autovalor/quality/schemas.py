@@ -116,6 +116,9 @@ GOLD_LISTINGS: Final = pa.DataFrameSchema(
         "source_url": pa.Column(str, nullable=False),
         "vehicle_type": pa.Column(str, nullable=False, checks=pa.Check.isin(VEHICLE_TYPES)),
         "title": pa.Column(str, nullable=True),
+        # Resolved from the title; "Desconocida" when no alias matched, never null.
+        "brand": pa.Column(str, nullable=False),
+        "model": pa.Column(str, nullable=True),
         "price_cop": pa.Column(
             "int64",
             nullable=False,
