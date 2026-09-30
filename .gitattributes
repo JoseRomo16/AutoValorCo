@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+# GNU make and shell scripts break with CRLF.
+Makefile text eol=lf
+*.sh text eol=lf
+
+# PowerShell is happier with CRLF on Windows.
+*.ps1 text eol=crlf
+
+# Binary / generated
+*.parquet binary
+*.duckdb binary
+*.png binary
+*.jpg binary
+uv.lock -diff linguist-generated=true
