@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     scraper_max_delay_seconds: float = 6.0
     scraper_max_pages: int = 50
     scraper_respect_robots: bool = True
+    # Verify TLS against the OS certificate store instead of certifi. Needed on
+    # networks that inspect TLS (corporate proxies, some antivirus suites).
+    use_system_certs: bool = False
 
     # API
     # Binds all interfaces so the container is reachable from the host.
