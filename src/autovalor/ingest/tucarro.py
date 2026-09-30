@@ -17,6 +17,7 @@ import re
 from collections.abc import Iterator
 from datetime import UTC, datetime
 
+import httpx
 from bs4 import BeautifulSoup, Tag
 
 from autovalor.ingest.polite import PoliteClient
@@ -29,6 +30,9 @@ BASE_URLS: dict[VehicleType, str] = {
 
 RESULTS_PER_PAGE = 48
 """Cards per search page; the offset in ``_Desde_N`` is 1-based."""
+
+END_OF_RESULTS_STATUS = 404
+"""An offset past the end of a result set 404s instead of returning an empty page."""
 
 CARD_SELECTOR = "li.ui-search-layout__item"
 TITLE_SELECTOR = "a.poly-component__title"
@@ -106,8 +110,13 @@ def scrape_search(
 ) -> list[RawListing]:
     """Scrape ``pages`` search pages and return the listings found, deduplicated.
 
-    Stops early when a page returns no cards, which is how the last page announces
-    itself once the result set is exhausted.
+    Stops early once the result set is exhausted, which the site signals in two ways:
+    a page with no cards, or a 404 on an offset beyond the last result. A 404 on the
+    *first* page is not an ending but a wrong URL — a bad location slug, say — so it
+    propagates instead of quietly returning nothing.
+
+    Raises:
+        httpx.HTTPStatusError: For a failing first page, or any non-404 error.
     """
     moment = captured_at if captured_at is not None else datetime.now(UTC)
     owned = client is None
@@ -116,11 +125,14 @@ def scrape_search(
     try:
         for page in range(1, pages + 1):
             url = search_url(vehicle_type, page=page, location=location)
-            found = parse_search_page(
-                http.get(url).text,
-                vehicle_type=vehicle_type,
-                captured_at=moment,
-            )
+            try:
+                html = http.get(url).text
+            except httpx.HTTPStatusError as exc:
+                if page > 1 and exc.response.status_code == END_OF_RESULTS_STATUS:
+                    break
+                raise
+
+            found = parse_search_page(html, vehicle_type=vehicle_type, captured_at=moment)
             if not found:
                 break
             for listing in found:

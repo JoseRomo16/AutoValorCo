@@ -156,6 +156,35 @@ def test_scrapes_several_pages_and_deduplicates() -> None:
     assert ids == ["MCO-1686772601", "MCO-2084746289", "MCO-4336714534", "MCO-4430904096"]
 
 
+def test_treats_a_404_past_the_last_page_as_the_end() -> None:
+    """Observed live: an offset beyond the result set 404s instead of returning nothing."""
+    cars_html = (FIXTURES / "tucarro_cars.html").read_text(encoding="utf-8")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /")
+        if request.url.path == "/carros-camionetas":
+            return httpx.Response(200, text=cars_html)
+        return httpx.Response(404, text="not found")
+
+    with build_client(handler) as client:
+        listings = scrape_search(VehicleType.CAR, pages=4, client=client)
+
+    assert len(listings) == 2
+
+
+def test_a_404_on_the_first_page_is_an_error() -> None:
+    """A bad location slug must fail loudly, not look like an empty result set."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /")
+        return httpx.Response(404, text="not found")
+
+    with build_client(handler) as client, pytest.raises(httpx.HTTPStatusError):
+        scrape_search(VehicleType.CAR, pages=3, location="no-such-place", client=client)
+
+
 def test_stops_when_a_page_is_empty() -> None:
     cars_html = (FIXTURES / "tucarro_cars.html").read_text(encoding="utf-8")
     visited: list[str] = []

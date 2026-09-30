@@ -3,6 +3,8 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
+import httpx
+import pandas as pd
 import pytest
 
 from autovalor.ingest import cli
@@ -99,3 +101,46 @@ def test_reports_failure_when_nothing_is_captured(
 ) -> None:
     monkeypatch.setattr(cli, "scrape_search", lambda *args, **kwargs: [])
     assert cli.main(["--vehicle-type", "car", "--data-dir", str(tmp_path)]) == 1
+
+
+def test_one_failing_location_does_not_lose_the_others(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Losing a department must not cost the whole capture, but must still be visible."""
+
+    def scrape_search(
+        vehicle_type: VehicleType,
+        *,
+        pages: int,
+        location: str | None = None,
+        client: object = None,
+        captured_at: datetime | None = None,
+    ) -> list[RawListing]:
+        if location == "atlantico":
+            request = httpx.Request("GET", "https://motos.tucarro.com.co/motos-atlantico")
+            raise httpx.HTTPStatusError(
+                "404", request=request, response=httpx.Response(404, request=request)
+            )
+        return [make_listing(f"MCO-{location}", vehicle_type)]
+
+    monkeypatch.setattr(cli, "scrape_search", scrape_search)
+
+    exit_code = cli.main(
+        [
+            "--vehicle-type",
+            "car",
+            "--location",
+            "bogota-dc",
+            "--location",
+            "atlantico",
+            "--location",
+            "santander",
+            "--data-dir",
+            str(tmp_path),
+        ]
+    )
+
+    written = pd.read_parquet(next(tmp_path.rglob("*.parquet")))
+    assert sorted(written["listing_id"]) == ["MCO-bogota-dc", "MCO-santander"]
+    assert exit_code == 1

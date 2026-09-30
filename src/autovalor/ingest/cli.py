@@ -10,10 +10,13 @@ import logging
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import NamedTuple
+
+import httpx
 
 from autovalor.config import get_settings
 from autovalor.ingest.bronze import write_capture
-from autovalor.ingest.polite import PoliteClient
+from autovalor.ingest.polite import PoliteClient, RetryableStatusError, RobotsDisallowedError
 from autovalor.ingest.records import RawListing, VehicleType
 from autovalor.ingest.tucarro import scrape_search
 
@@ -65,6 +68,13 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+class CaptureResult(NamedTuple):
+    """Listings collected for one vertical, plus the locations that could not be read."""
+
+    listings: list[RawListing]
+    failed_locations: list[str]
+
+
 def capture(
     vehicle_type: VehicleType,
     *,
@@ -72,26 +82,40 @@ def capture(
     locations: Sequence[str | None],
     client: PoliteClient,
     captured_at: datetime,
-) -> list[RawListing]:
-    """Scrape every requested location for one vertical, deduplicated by listing id."""
+) -> CaptureResult:
+    """Scrape every requested location for one vertical, deduplicated by listing id.
+
+    A location that fails is logged and skipped rather than aborting the run: losing
+    one department is much better than losing the whole capture, and the failure is
+    reported back so the caller can still exit non-zero.
+    """
     found: dict[str, RawListing] = {}
+    failed: list[str] = []
     for location in locations:
-        listings = scrape_search(
-            vehicle_type,
-            pages=pages,
-            location=location,
-            client=client,
-            captured_at=captured_at,
-        )
-        logger.info(
-            "%s / %s: %d listings",
-            vehicle_type.value,
-            location or "nacional",
-            len(listings),
-        )
+        label = location or "nacional"
+        try:
+            listings = scrape_search(
+                vehicle_type,
+                pages=pages,
+                location=location,
+                client=client,
+                captured_at=captured_at,
+            )
+        except (httpx.HTTPError, RetryableStatusError, RobotsDisallowedError) as exc:
+            logger.error(
+                "%s / %s: skipped after %s: %s",
+                vehicle_type.value,
+                label,
+                type(exc).__name__,
+                exc,
+            )
+            failed.append(label)
+            continue
+
+        logger.info("%s / %s: %d listings", vehicle_type.value, label, len(listings))
         for listing in listings:
             found.setdefault(listing.listing_id, listing)
-    return list(found.values())
+    return CaptureResult(list(found.values()), failed)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -109,13 +133,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     exit_code = 0
     with PoliteClient() as client:
         for vehicle in vehicles:
-            listings = capture(
+            listings, failed_locations = capture(
                 vehicle,
                 pages=args.pages,
                 locations=locations,
                 client=client,
                 captured_at=captured_at,
             )
+            if failed_locations:
+                # The data that was collected is still written; the exit code is what
+                # makes the partial failure visible.
+                exit_code = 1
             if not listings:
                 logger.error("%s: no listings captured", vehicle.value)
                 exit_code = 1
