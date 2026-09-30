@@ -128,6 +128,12 @@ En redes que inspeccionan TLS (proxy corporativo, algunos antivirus) hay que pon
 `AUTOVALOR_USE_SYSTEM_CERTS=true` en el `.env` para validar contra el almacén de
 certificados del sistema.
 
+**Captura semanal.** El workflow `.github/workflows/capture.yml` corre los lunes a las
+07:00 UTC (02:00 en Colombia), barre seis departamentos, transforma y valida, y sube el
+resultado como artefacto del run. La retención de artefactos es de 90 días; el paso a
+almacenamiento de objetos está documentado en
+[ADR 0002](docs/adr/0002-weekly-capture-storage.md).
+
 Con Docker:
 
 ```bash

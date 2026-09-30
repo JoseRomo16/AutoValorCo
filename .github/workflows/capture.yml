@@ -1,0 +1,95 @@
+---
+name: Weekly capture
+
+on:
+  schedule:
+    # Mondays 07:00 UTC = 02:00 in Colombia, when the site is quiet.
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      pages:
+        description: Search pages per location and vertical
+        required: false
+        default: "10"
+      locations:
+        description: Space-separated location slugs
+        required: false
+        default: >-
+          bogota-dc antioquia valle-del-cauca atlantico santander cundinamarca
+
+concurrency:
+  # Never let two captures hit the site at the same time.
+  group: capture
+  cancel-in-progress: false
+
+env:
+  UV_FROZEN: "1"
+  PAGES: ${{ inputs.pages || '10' }}
+  LOCATIONS: >-
+    ${{ inputs.locations ||
+    'bogota-dc antioquia valle-del-cauca atlantico santander cundinamarca' }}
+
+jobs:
+  capture:
+    name: capture and transform
+    runs-on: ubuntu-latest
+    # Polite scraping means randomized pauses between requests, so a full sweep
+    # takes a while by design.
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Capture listings into bronze
+        run: |
+          args=()
+          for slug in $LOCATIONS; do
+            args+=(--location "$slug")
+          done
+          uv run python -m autovalor.ingest.cli \
+            --vehicle-type all \
+            --pages "$PAGES" \
+            "${args[@]}"
+
+      - name: Validate bronze
+        run: uv run python -m autovalor.quality.cli --stage bronze
+
+      - name: Build silver and gold
+        run: uv run dbt build --project-dir dbt --profiles-dir dbt
+
+      - name: Validate silver and gold
+        run: uv run python -m autovalor.quality.cli --stage silver --stage gold
+
+      - name: Report capture size
+        run: |
+          uv run python - <<'PY'
+          import duckdb
+
+          with duckdb.connect("data/autovalor.duckdb", read_only=True) as con:
+              rows = con.sql(
+                  "select vehicle_type, count(*) from main_gold.gold_listings group by 1"
+              ).fetchall()
+          for vehicle_type, count in sorted(rows):
+              print(f"{vehicle_type}: {count} model-ready listings")
+          PY
+
+      - name: Upload capture
+        uses: actions/upload-artifact@v4
+        with:
+          name: capture-${{ github.run_id }}
+          path: |
+            data/bronze
+            data/autovalor.duckdb
+          retention-days: 90
+          if-no-files-found: error
