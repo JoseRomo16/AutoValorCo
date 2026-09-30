@@ -14,7 +14,8 @@ param(
     [string]$Target = 'help',
 
     [string]$ApiHost = '127.0.0.1',
-    [int]$Port = 8000
+    [int]$Port = 8000,
+    [int]$Pages = 10
 )
 
 $ErrorActionPreference = 'Stop'
@@ -31,7 +32,7 @@ switch ($Target) {
     'help' {
         Write-Host 'AutoValor CO - available targets:'
         Write-Host '  setup          Install Python, browser and frontend dependencies'
-        Write-Host '  scrape         Capture listings into data/bronze (F1)'
+        Write-Host '  scrape         Capture TuCarro listings into data/bronze'
         Write-Host '  transform      Run dbt and the Pandera validations (F1)'
         Write-Host '  train          Train the models and log them to MLflow (F2)'
         Write-Host '  serve          Run the API locally with autoreload'
@@ -54,7 +55,10 @@ switch ($Target) {
             Write-Host 'frontend/ not created yet (F4), skipping npm install'
         }
     }
-    'scrape' { Write-Host 'scrape: not implemented yet (F1 - src/autovalor/ingest)' }
+    'scrape' {
+        Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.cli',
+        '--vehicle-type', 'all', '--pages', "$Pages"
+    }
     'transform' { Write-Host 'transform: not implemented yet (F1 - dbt/ + src/autovalor/quality)' }
     'train' { Write-Host 'train: not implemented yet (F2 - src/autovalor/models/train.py)' }
     'serve' {

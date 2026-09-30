@@ -103,12 +103,30 @@ Copy-Item .env.example .env
 | Comando          | Qué hace                                             | Disponible |
 | ---------------- | ---------------------------------------------------- | ---------- |
 | `make setup`     | Instala dependencias de Python, navegador y frontend | F0         |
-| `make scrape`    | Captura anuncios en `data/bronze`                    | F1         |
+| `make scrape`    | Captura anuncios de TuCarro en `data/bronze`         | F1         |
 | `make transform` | Corre dbt (silver y gold) + validaciones Pandera     | F1         |
 | `make train`     | Entrena y registra modelos en MLflow                 | F2         |
 | `make serve`     | Levanta la API en local (`:8000`)                    | F0         |
 | `make test`      | pytest con cobertura (mínimo 70 %)                   | F0         |
 | `make lint`      | ruff + mypy                                          | F0         |
+
+La captura también se puede afinar desde el CLI:
+
+```bash
+# Barrido nacional, 10 páginas por vertical
+uv run python -m autovalor.ingest.cli --vehicle-type all --pages 10
+
+# Por ciudad (la primera página del sitio está geolocalizada por IP)
+uv run python -m autovalor.ingest.cli --vehicle-type car \
+  --location bogota-dc --location medellin --pages 20
+
+# Ver cuántos anuncios saldrían, sin escribir en bronze
+uv run python -m autovalor.ingest.cli --vehicle-type car --pages 1 --dry-run
+```
+
+En redes que inspeccionan TLS (proxy corporativo, algunos antivirus) hay que poner
+`AUTOVALOR_USE_SYSTEM_CERTS=true` en el `.env` para validar contra el almacén de
+certificados del sistema.
 
 Con Docker:
 

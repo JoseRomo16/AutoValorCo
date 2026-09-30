@@ -5,6 +5,7 @@ UV ?= uv
 RUN := $(UV) run
 HOST ?= 127.0.0.1
 PORT ?= 8000
+PAGES ?= 10
 
 .DEFAULT_GOAL := help
 .PHONY: help setup scrape transform train serve test lint format docker-build docker-up clean
@@ -24,7 +25,7 @@ setup: ## Install Python, browser and frontend dependencies
 	fi
 
 scrape: ## Capture listings into data/bronze
-	@echo "make scrape: not implemented yet (F1 - src/autovalor/ingest)"
+	$(RUN) python -m autovalor.ingest.cli --vehicle-type all --pages $(PAGES)
 
 transform: ## Run dbt (silver and gold) and the Pandera validations
 	@echo "make transform: not implemented yet (F1 - dbt/ + src/autovalor/quality)"
