@@ -33,7 +33,7 @@ transform: ## Run dbt (silver and gold) and the Pandera validations
 	$(RUN) python -m autovalor.quality.cli --stage silver --stage gold
 
 train: ## Train the models and log them to MLflow
-	@echo "make train: not implemented yet (F2 - src/autovalor/models/train.py)"
+	uv run python -m autovalor.models.train
 
 serve: ## Run the API locally with autoreload
 	$(RUN) uvicorn autovalor.api.main:app --reload --host $(HOST) --port $(PORT)
