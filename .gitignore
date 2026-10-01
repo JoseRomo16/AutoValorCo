@@ -33,6 +33,10 @@ mlruns/
 mlartifacts/
 mlflow.db
 
+# --- CatBoost -------------------------------------------------------------- #
+# Fits pass allow_writing_files=False, so this is only a safety net.
+catboost_info/
+
 # --- dbt ------------------------------------------------------------------- #
 dbt/target/
 dbt/dbt_packages/
