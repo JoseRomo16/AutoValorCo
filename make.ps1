@@ -65,7 +65,7 @@ switch ($Target) {
         Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.quality.cli',
         '--stage', 'silver', '--stage', 'gold'
     }
-    'train' { Write-Host 'train: not implemented yet (F2 - src/autovalor/models/train.py)' }
+    'train' { Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.models.train' }
     'serve' {
         Invoke-Step 'uv', 'run', 'uvicorn', 'autovalor.api.main:app', '--reload',
         '--host', $ApiHost, '--port', "$Port"

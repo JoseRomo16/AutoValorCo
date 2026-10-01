@@ -1,6 +1,6 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-09-30** · Fase actual: **F1 cerrada, F2 sin empezar**
+Última actualización: **2026-10-01** · Fase actual: **F2 en curso (pasos 1 y 2 hechos)**
 
 Este documento es el punto de retorno: dice qué funciona, qué falta, qué está decidido y
 qué no. Se actualiza al cerrar cada bloque de trabajo.
@@ -10,8 +10,9 @@ qué no. Se actualiza al cerrar cada bloque de trabajo.
 ## Resumen en una línea
 
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
-validado— con 7.207 carros y 3.765 motos listos para modelar. **No hay ningún modelo
-entrenado todavía.**
+validado— con 7.207 carros y 3.765 motos. El hedónico OLS ya está entrenado y medido
+**fuera de muestra**: carros **15,3 % MAPE**, motos **47,8 %**. Falta todo lo que viene
+después de la línea base.
 
 ---
 
@@ -75,23 +76,56 @@ Cobertura de features sacadas del título, sin peticiones extra:
 | Carros | 99,2 % | 86,0 % | 47 | 498 |
 | Motos | 81,0 % | 80,6 % | 31 | 764 |
 
+### F2 — Modelación (en curso)
+
+Pasos 1 y 2 cerrados: existe una partición honesta y la línea base está medida contra
+ella. `make train` ya corre.
+
+| Entregable | Estado |
+| --- | --- |
+| `models/dataset.py` — partición train/test, estrategias `random` y `temporal` | hecho |
+| `models/metrics.py` — error en pesos, más métricas de intervalo para P10–P90 | hecho |
+| `models/hedonic.py` — pipeline OLS, dos conjuntos de features | hecho |
+| `models/train.py` — `make train`, registra cada corrida en MLflow | hecho |
+| 54 tests nuevos; cobertura 96 %, ruff y mypy limpios | hecho |
+
+---
+
+## Línea base: primeros números fuera de muestra
+
+Holdout del 20 %, `make train` del 2026-10-01. Estos **sí** se pueden citar.
+
+| Vertical | Features | MAPE fuera | MAPE dentro | σ (log) | R² | ±10 % |
+| --- | --- | --- | --- | --- | --- | --- |
+| Carros | edad + km + depto | 48,8 % | 46,8 % | 0,580 | 0,316 | 14,5 % |
+| Carros | + marca + modelo + cc | **15,3 %** | 14,0 % | 0,222 | 0,900 | 49,3 % |
+| Motos | edad + km + depto | 101,0 % | 97,9 % | 0,995 | 0,102 | 6,1 % |
+| Motos | + marca + modelo + cc | **47,8 %** | 41,5 % | 0,579 | 0,697 | 23,8 % |
+
+Tres cosas que salieron de aquí:
+
+- **Carros quedaron a 0,3 puntos de la meta de F2 con un modelo lineal.** La hipótesis de
+  17,5 % que arrastraba F1 era pesimista por la forma funcional, no por el volumen:
+  agregar edad² y log(km) explica casi toda la diferencia.
+- **La brecha dentro/fuera de muestra es de ~1,3 puntos en carros y ~6 en motos.** No hay
+  sobreajuste grave; el problema de motos es de señal, no de varianza.
+- **Había fuga por reposteos.** El mismo vehículo reaparece con otro `listing_id`: 521
+  filas de carros (7,2 %) y 72 de motos. Con split por filas los gemelos caían a ambos
+  lados y carros marcaba 14,3 %. La partición agrupa por (título, año, km) y mueve grupos
+  completos; el punto de diferencia era fuga.
+
 ---
 
 ## Lo que falta
 
-### F2 — Modelación (siguiente)
+### F2 — lo que queda
 
-Nada empezado. `src/autovalor/models/` solo tiene el `__init__.py`.
-
-1. **Partición y métricas honestas.** Split train/test con validación temporal
-   (`captured_at` existe, y el índice mensual exige que el modelo no vea el futuro).
-   Define el número contra el que se compara todo lo demás.
-2. **Hedónico OLS como línea base**, en `models/train.py`, registrado en MLflow.
 3. **LightGBM y CatBoost con Optuna**, modelos separados por vertical, target
-   `log(precio)`. Criterio: deben superar al hedónico en MAPE. Meta **MAPE ≤ 15 %**.
+   `log(precio)`. Criterio: deben superar al hedónico en MAPE —el listón ya no es una
+   hipótesis, es 15,3 % y 47,8 %. Meta **MAPE ≤ 15 %**.
 4. **Intervalos P10–P90.** Requisito de producto, no un extra: la clasificación
    ganga/justo/caro depende de dónde cae el precio pedido. Sale de regresión cuantílica,
-   no de la desviación del error.
+   no de la desviación del error. `metrics.interval_report` ya mide cobertura y ancho.
 5. **SHAP**, para `/explain`.
 
 ### F3 — Resultados
@@ -106,19 +140,18 @@ Métricas por segmento, curvas de depreciación, índice mensual, comparación c
 
 ---
 
-## Dónde quedó el modelo base (y por qué no es un resultado)
+## Las cifras del piloto de F1 (ya superadas)
 
-**Todos los σ y MAPE medidos hasta ahora son en muestra**: un OLS ajustado y evaluado
-sobre las mismas filas. Fuera de muestra serán peores. No citar como rendimiento logrado.
+Los números de [`f1-pilot.md`](f1-pilot.md) son **en muestra**: un OLS ajustado y evaluado
+sobre las mismas filas. Quedan como registro del piloto, no como rendimiento. La tabla de
+arriba los reemplaza.
 
 | Vertical | Features | σ (log) | R² | MAPE en muestra |
 | --- | --- | --- | --- | --- |
 | Carros | edad + km + depto | 0,580 | 0,331 | 55,9 % |
-| Carros | + marca + modelo + cc | **0,244** | 0,885 | 17,5 % |
+| Carros | + marca + modelo + cc | 0,244 | 0,885 | 17,5 % |
 | Motos | edad + km + depto | 0,970 | 0,104 | 113,8 % |
-| Motos | + marca + modelo + cc | **0,541** | 0,730 | 43,7 % |
-
-Detalle completo en [`f1-pilot.md`](f1-pilot.md).
+| Motos | + marca + modelo + cc | 0,541 | 0,730 | 43,7 % |
 
 ### Las dos lecciones que orientan F2
 
@@ -143,8 +176,13 @@ extra por anuncio**. Con las pausas educadas son ~4 h para los 11.000 actuales. 
 el workflow semanal de minutos en horas.
 
 Recomendación: pasada incremental con presupuesto por corrida, enriqueciendo solo
-anuncios sin detalle, en vez de un barrido monolítico. Y decidirlo **después** del paso 1
-de F2, con números fuera de muestra en la mano: los carros podrían cumplir sin esto.
+anuncios sin detalle, en vez de un barrido monolítico.
+
+Ya hay números fuera de muestra para decidir, y apuntan a **enriquecer solo motos**:
+carros están a 0,3 puntos de la meta con un lineal, así que los ensambles probablemente
+cierran la brecha sin pedir una sola petición extra. Motos a 47,8 % no se arreglan con un
+modelo mejor. Eso baja el costo de ~4 h a ~1,3 h (3.765 anuncios) y deja el presupuesto
+semanal en algo manejable.
 
 ### 2. Fasecolda — bloqueada
 
@@ -169,6 +207,15 @@ feature del modelo; se vuelve necesaria en F3.
 - **Las tarjetas patrocinadas se filtran entre regiones**, así que `department` no es un
   marco de muestreo limpio.
 - **GitHub desactiva los workflows programados** tras 60 días sin actividad en el repo.
+- **La validación temporal todavía no se puede hacer.** Todo el gold viene de una sola
+  ventana de captura (2026-09-29 21:48 → 2026-09-30 01:01), así que `--split temporal`
+  falla a propósito hasta que haya 14 días de histórico. Con la captura semanal activa eso
+  llega solo; conviene repetir la medición con `temporal` cuando llegue, porque es la
+  partición que exige el índice mensual.
+- **MLflow 3 rechaza el backend de archivos.** `file:./mlruns` quedó en modo
+  mantenimiento y lanza excepción; el tracking pasó a `sqlite:///mlflow.db` en
+  `config.py`, `.env.example` y `docker-compose.yml`. Si existía un `mlruns/` viejo, se
+  migra con `mlflow migrate-filestore`.
 
 ---
 
@@ -180,9 +227,16 @@ feature del modelo; se vuelve necesaria en F3.
 #  2. la red intercepta TLS: uv necesita --system-certs, y el scraping
 #     necesita AUTOVALOR_USE_SYSTEM_CERTS=true
 #  3. no hay make ni docker en Windows: usar .\make.ps1
-.\make.ps1 test          # 83 tests, cobertura 96 %
+.\make.ps1 test          # 137 tests, cobertura 96 %
 .\make.ps1 lint          # ruff + mypy
 .\make.ps1 transform     # valida bronze, corre dbt, valida silver y gold
+.\make.ps1 train         # hedónico OLS, registra las corridas en MLflow
+```
+
+Para ver solo los números, sin escribir en MLflow:
+
+```powershell
+uv run python -m autovalor.models.train --no-mlflow
 ```
 
 Los datos de `data/` no están en git. Si el lago está vacío, se reconstruye con:
