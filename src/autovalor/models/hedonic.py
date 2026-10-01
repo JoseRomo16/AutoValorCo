@@ -241,3 +241,43 @@ def predict_log_price(pipeline: Pipeline, frame: pd.DataFrame, spec: FeatureSpec
         warnings.filterwarnings("ignore", message="Found unknown categories", category=UserWarning)
         prediction: np.ndarray = pipeline.predict(prepare(add_derived(frame), spec))
     return prediction
+
+
+@dataclass(frozen=True)
+class HedonicModel:
+    """The fitted baseline behind the same interface the tree models expose.
+
+    Lets :mod:`autovalor.models.train` score every model the same way instead of
+    branching on which one it is holding.
+
+    Attributes:
+        pipeline: The fitted pipeline.
+        spec: Columns it was fitted on.
+    """
+
+    pipeline: Pipeline
+    spec: FeatureSpec
+
+    def predict_log_price(self, frame: pd.DataFrame) -> np.ndarray:
+        """Predict ``log(price)`` for a gold-shaped frame."""
+        return predict_log_price(self.pipeline, frame, self.spec)
+
+
+def fit_hedonic_model(
+    train: pd.DataFrame,
+    *,
+    feature_set: FeatureSet,
+    vehicle_type: VehicleType,
+) -> HedonicModel:
+    """Fit the baseline and wrap it in :class:`HedonicModel`.
+
+    Args:
+        train: Training rows from gold.
+        feature_set: ``basic`` or ``full``.
+        vehicle_type: Vertical being modeled.
+
+    Returns:
+        The fitted model.
+    """
+    pipeline, spec = fit_hedonic(train, feature_set=feature_set, vehicle_type=vehicle_type)
+    return HedonicModel(pipeline=pipeline, spec=spec)

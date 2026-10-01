@@ -32,8 +32,8 @@ transform: ## Run dbt (silver and gold) and the Pandera validations
 	$(RUN) dbt build --project-dir dbt --profiles-dir dbt
 	$(RUN) python -m autovalor.quality.cli --stage silver --stage gold
 
-train: ## Train the models and log them to MLflow
-	uv run python -m autovalor.models.train
+train: ## Train the models and log them to MLflow (TRIALS=N to set the Optuna budget)
+	$(RUN) python -m autovalor.models.train $(if $(TRIALS),--trials $(TRIALS),)
 
 serve: ## Run the API locally with autoreload
 	$(RUN) uvicorn autovalor.api.main:app --reload --host $(HOST) --port $(PORT)

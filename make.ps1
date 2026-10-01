@@ -15,7 +15,10 @@ param(
 
     [string]$ApiHost = '127.0.0.1',
     [int]$Port = 8000,
-    [int]$Pages = 10
+    [int]$Pages = 10,
+    # Optuna budget per tree model and vertical. Zero skips the search; -1 leaves the
+    # per-model defaults in place (LightGBM 40, CatBoost 20).
+    [int]$Trials = -1
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,7 +37,7 @@ switch ($Target) {
         Write-Host '  setup          Install Python, browser and frontend dependencies'
         Write-Host '  scrape         Capture TuCarro listings into data/bronze'
         Write-Host '  transform      Run dbt (silver and gold) and the Pandera validations'
-        Write-Host '  train          Train the models and log them to MLflow (F2)'
+        Write-Host '  train          Train the models and log them to MLflow (-Trials N)'
         Write-Host '  serve          Run the API locally with autoreload'
         Write-Host '  test           Run the test suite with coverage'
         Write-Host '  lint           Run ruff (lint + format check) and mypy'
@@ -65,7 +68,11 @@ switch ($Target) {
         Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.quality.cli',
         '--stage', 'silver', '--stage', 'gold'
     }
-    'train' { Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.models.train' }
+    'train' {
+        $trainCommand = @('uv', 'run', 'python', '-m', 'autovalor.models.train')
+        if ($Trials -ge 0) { $trainCommand += @('--trials', "$Trials") }
+        Invoke-Step $trainCommand
+    }
     'serve' {
         Invoke-Step 'uv', 'run', 'uvicorn', 'autovalor.api.main:app', '--reload',
         '--host', $ApiHost, '--port', "$Port"
