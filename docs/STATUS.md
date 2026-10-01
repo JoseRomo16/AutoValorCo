@@ -1,6 +1,6 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-01** · Fase actual: **F2 en curso (pasos 1 y 2 hechos)**
+Última actualización: **2026-10-01** · Fase actual: **F2 en curso (pasos 1, 2 y 3 hechos)**
 
 Este documento es el punto de retorno: dice qué funciona, qué falta, qué está decidido y
 qué no. Se actualiza al cerrar cada bloque de trabajo.
@@ -10,9 +10,9 @@ qué no. Se actualiza al cerrar cada bloque de trabajo.
 ## Resumen en una línea
 
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
-validado— con 7.207 carros y 3.765 motos. El hedónico OLS ya está entrenado y medido
-**fuera de muestra**: carros **15,3 % MAPE**, motos **47,8 %**. Falta todo lo que viene
-después de la línea base.
+validado— con 7.207 carros y 3.765 motos. Tres modelos entrenados y medidos **fuera de
+muestra**: el mejor es LightGBM con **11,5 % MAPE en carros** y **26,7 % en motos**.
+Carros cumple la meta de F2 (≤ 15 %); motos no. Faltan los intervalos P10–P90 y SHAP.
 
 ---
 
@@ -78,41 +78,62 @@ Cobertura de features sacadas del título, sin peticiones extra:
 
 ### F2 — Modelación (en curso)
 
-Pasos 1 y 2 cerrados: existe una partición honesta y la línea base está medida contra
-ella. `make train` ya corre.
+Pasos 1, 2 y 3 cerrados: hay partición honesta, línea base y ensambles afinados.
+`make train` corre los tres modelos.
 
 | Entregable | Estado |
 | --- | --- |
 | `models/dataset.py` — partición train/test, estrategias `random` y `temporal` | hecho |
 | `models/metrics.py` — error en pesos, más métricas de intervalo para P10–P90 | hecho |
 | `models/hedonic.py` — pipeline OLS, dos conjuntos de features | hecho |
-| `models/train.py` — `make train`, registra cada corrida en MLflow | hecho |
-| 54 tests nuevos; cobertura 96 %, ruff y mypy limpios | hecho |
+| `models/trees.py` — LightGBM y CatBoost con categóricas crudas | hecho |
+| `models/tuning.py` — Optuna sobre CV agrupada, objetivo MAPE en pesos | hecho |
+| `models/train.py` — `make train`, `--model`, `--trials`, una corrida MLflow por modelo | hecho |
+| 137 tests nuevos en total; cobertura 96 %, ruff y mypy limpios | hecho |
+| [ADR 0003](adr/0003-tree-model-validation.md) — encoding y protocolo de validación | hecho |
 
 ---
 
-## Línea base: primeros números fuera de muestra
+## Resultados fuera de muestra
 
 Holdout del 20 %, `make train` del 2026-10-01. Estos **sí** se pueden citar.
 
-| Vertical | Features | MAPE fuera | MAPE dentro | σ (log) | R² | ±10 % |
-| --- | --- | --- | --- | --- | --- | --- |
-| Carros | edad + km + depto | 48,8 % | 46,8 % | 0,580 | 0,316 | 14,5 % |
-| Carros | + marca + modelo + cc | **15,3 %** | 14,0 % | 0,222 | 0,900 | 49,3 % |
-| Motos | edad + km + depto | 101,0 % | 97,9 % | 0,995 | 0,102 | 6,1 % |
-| Motos | + marca + modelo + cc | **47,8 %** | 41,5 % | 0,579 | 0,697 | 23,8 % |
+| Vertical | Modelo | CV MAPE | MAPE fuera | MAPE dentro | σ (log) | R² | vs base |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Carros | hedónico, edad + km + depto | — | 48,8 % | 46,8 % | 0,580 | 0,316 | +33,5 pt |
+| Carros | hedónico, + marca/modelo/cc | — | 15,3 % | 14,0 % | 0,222 | 0,900 | base |
+| Carros | **LightGBM** | 11,8 % | **11,5 %** | 5,9 % | 0,177 | 0,936 | −3,8 pt |
+| Carros | CatBoost | 13,5 % | 13,1 % | 9,1 % | 0,204 | 0,915 | −2,2 pt |
+| Motos | hedónico, edad + km + depto | — | 101,0 % | 97,9 % | 0,995 | 0,102 | +53,2 pt |
+| Motos | hedónico, + marca/modelo/cc | — | 47,8 % | 41,5 % | 0,579 | 0,697 | base |
+| Motos | **LightGBM** | 27,2 % | **26,7 %** | 14,5 % | 0,410 | 0,847 | −21,1 pt |
+| Motos | CatBoost | 28,9 % | 26,8 % | 19,4 % | 0,411 | 0,847 | −21,0 pt |
 
-Tres cosas que salieron de aquí:
+**Carros cumple la meta de F2** (≤ 15 %) con 3,5 puntos de margen. Motos no, pero mejoró
+21 puntos.
 
-- **Carros quedaron a 0,3 puntos de la meta de F2 con un modelo lineal.** La hipótesis de
-  17,5 % que arrastraba F1 era pesimista por la forma funcional, no por el volumen:
-  agregar edad² y log(km) explica casi toda la diferencia.
-- **La brecha dentro/fuera de muestra es de ~1,3 puntos en carros y ~6 en motos.** No hay
-  sobreajuste grave; el problema de motos es de señal, no de varianza.
+Cuatro cosas que salieron de aquí:
+
+- **Los ensambles ganan y la ventaja es el tratamiento de categóricas.** El hedónico tiene
+  que agrupar niveles raros antes del one-hot; los árboles parten sobre la categoría cruda.
+  Esa diferencia vale 3,8 puntos en carros y 21 en motos.
+- **Las motos no eran solo falta de señal.** La lectura de F1 —que el problema era la
+  versión faltante y no la capacidad del modelo— era **demasiado pesimista**: el mismo
+  feature set rinde 26,7 % con un ensamble. La versión sigue faltando, pero ya no es la
+  explicación dominante.
+- **La búsqueda no se sobreajustó a los folds.** La brecha entre CV y holdout es de 0,3 a
+  2,1 puntos en los cuatro casos, con el holdout a veces *mejor*. Bajar a 3 folds para
+  recortar el costo no distorsionó el ranking.
 - **Había fuga por reposteos.** El mismo vehículo reaparece con otro `listing_id`: 521
   filas de carros (7,2 %) y 72 de motos. Con split por filas los gemelos caían a ambos
-  lados y carros marcaba 14,3 %. La partición agrupa por (título, año, km) y mueve grupos
-  completos; el punto de diferencia era fuga.
+  lados y el hedónico marcaba 14,3 %. La partición agrupa por (título, año, km) y mueve
+  grupos completos, y la CV de tuning hace lo mismo; el punto de diferencia era fuga.
+
+### Costo de la corrida
+
+~48 min en la máquina de desarrollo. LightGBM 40 trials por vertical, CatBoost 20, CV de
+3 folds — presupuesto asimétrico porque un ajuste de CatBoost cuesta de 3 a 9 veces uno de
+LightGBM. Detalle y razones en [ADR 0003](adr/0003-tree-model-validation.md).
 
 ---
 
@@ -120,13 +141,20 @@ Tres cosas que salieron de aquí:
 
 ### F2 — lo que queda
 
-3. **LightGBM y CatBoost con Optuna**, modelos separados por vertical, target
-   `log(precio)`. Criterio: deben superar al hedónico en MAPE —el listón ya no es una
-   hipótesis, es 15,3 % y 47,8 %. Meta **MAPE ≤ 15 %**.
 4. **Intervalos P10–P90.** Requisito de producto, no un extra: la clasificación
    ganga/justo/caro depende de dónde cae el precio pedido. Sale de regresión cuantílica,
    no de la desviación del error. `metrics.interval_report` ya mide cobertura y ancho.
+   El modelo sobre el que montarlos es LightGBM, que gana en las dos verticales.
 5. **SHAP**, para `/explain`.
+
+Además, dos cosas que la corrida dejó pendientes:
+
+- **Elegir el modelo servido.** LightGBM gana en ambas verticales y es ~5 veces más rápido
+  de ajustar que CatBoost. En motos la diferencia con CatBoost es de 0,1 puntos, que es
+  ruido; en carros son 1,6 puntos reales. Falta decidir si CatBoost se mantiene como
+  comparación o se retira.
+- **Motos a 26,7 % todavía no sirve para el producto.** Decidir entre enriquecer con
+  páginas de detalle (ver decisiones abiertas) o limitar el alcance de la vertical.
 
 ### F3 — Resultados
 
@@ -164,6 +192,10 @@ filas contra 0,352 con 1.468. Volumen y features se necesitan mutuamente.
 versión y pesa más que en carros; el 19 % de títulos no resuelve marca (contra 0,8 % en
 carros); y el token `model` es más ruidoso (764 valores distintos para 3.765 anuncios).
 
+Matiz del paso 3 de F2: el tercer punto resultó ser menos grave de lo que parecía. Los
+árboles parten sobre el token crudo sin necesidad de agrupar niveles raros, y eso solo
+valió 21 puntos de MAPE en motos.
+
 ---
 
 ## Decisiones abiertas (del usuario, no mías)
@@ -178,11 +210,20 @@ el workflow semanal de minutos en horas.
 Recomendación: pasada incremental con presupuesto por corrida, enriqueciendo solo
 anuncios sin detalle, en vez de un barrido monolítico.
 
-Ya hay números fuera de muestra para decidir, y apuntan a **enriquecer solo motos**:
-carros están a 0,3 puntos de la meta con un lineal, así que los ensambles probablemente
-cierran la brecha sin pedir una sola petición extra. Motos a 47,8 % no se arreglan con un
-modelo mejor. Eso baja el costo de ~4 h a ~1,3 h (3.765 anuncios) y deja el presupuesto
-semanal en algo manejable.
+Con los ensambles medidos, la decisión es **solo sobre motos** y ya no es obvia:
+
+- **Carros quedaron fuera del debate.** 11,5 % con LightGBM, 3,5 puntos bajo la meta, sin
+  una sola petición extra. Enriquecerlos no se justifica por rendimiento.
+- **Motos mejoraron 21 puntos sin datos nuevos**, de 47,8 % a 26,7 %. Eso debilita el
+  argumento de que la versión era el cuello de botella: parte de lo que parecía falta de
+  señal era falta de capacidad del modelo. Cuánto queda por ganar con la versión ya no se
+  puede estimar desde el hedónico.
+- Pero **26,7 % sigue sin servir para el producto.** Un intervalo honesto a ese nivel de
+  error será demasiado ancho para que la etiqueta ganga/justo/caro diga algo.
+
+Enriquecer solo motos cuesta ~1,3 h (3.765 anuncios) en vez de ~4 h. La alternativa es
+acotar el alcance: publicar motos con una advertencia de precisión, o dejarlas fuera del
+clasificador y solo estimar carros.
 
 ### 2. Fasecolda — bloqueada
 
@@ -212,6 +253,11 @@ feature del modelo; se vuelve necesaria en F3.
   falla a propósito hasta que haya 14 días de histórico. Con la captura semanal activa eso
   llega solo; conviene repetir la medición con `temporal` cuando llegue, porque es la
   partición que exige el índice mensual.
+- **CatBoost se exploró con la mitad del presupuesto que LightGBM** (20 trials contra 40),
+  porque cuesta de 3 a 9 veces más por ajuste. Que pierda es evidencia más débil que si
+  hubiera perdido con el mismo presupuesto; tenerlo en cuenta antes de retirarlo.
+- **Quedan corridas `hedonic_ols-*` en MLflow** del nombre anterior al refactor del paso 3.
+  No molestan, pero al filtrar por nombre de modelo hay que contar con ellas.
 - **MLflow 3 rechaza el backend de archivos.** `file:./mlruns` quedó en modo
   mantenimiento y lanza excepción; el tracking pasó a `sqlite:///mlflow.db` en
   `config.py`, `.env.example` y `docker-compose.yml`. Si existía un `mlruns/` viejo, se
@@ -227,16 +273,18 @@ feature del modelo; se vuelve necesaria en F3.
 #  2. la red intercepta TLS: uv necesita --system-certs, y el scraping
 #     necesita AUTOVALOR_USE_SYSTEM_CERTS=true
 #  3. no hay make ni docker en Windows: usar .\make.ps1
-.\make.ps1 test          # 137 tests, cobertura 96 %
+.\make.ps1 test          # 166 tests, cobertura 96 %
 .\make.ps1 lint          # ruff + mypy
 .\make.ps1 transform     # valida bronze, corre dbt, valida silver y gold
-.\make.ps1 train         # hedónico OLS, registra las corridas en MLflow
+.\make.ps1 train         # los tres modelos, ~48 min, registra todo en MLflow
 ```
 
-Para ver solo los números, sin escribir en MLflow:
+Para ver solo los números rápido, sin búsqueda y sin escribir en MLflow:
 
 ```powershell
-uv run python -m autovalor.models.train --no-mlflow
+uv run python -m autovalor.models.train --trials 0 --no-mlflow
+# o un modelo y una vertical:
+uv run python -m autovalor.models.train --model lightgbm --vehicle-type car --trials 5 --no-mlflow
 ```
 
 Los datos de `data/` no están en git. Si el lago está vacío, se reconstruye con:
