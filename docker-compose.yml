@@ -14,11 +14,13 @@ services:
         required: false
     environment:
       AUTOVALOR_DATA_DIR: /app/data
-      AUTOVALOR_MLFLOW_TRACKING_URI: file:/app/mlruns
+      # MLflow 3 rejects the filesystem backend, so tracking lives in a SQLite file.
+      AUTOVALOR_MLFLOW_TRACKING_URI: sqlite:////app/mlflow.db
     volumes:
       # Read-only: the API consumes the gold layer, it never writes to the lake.
       - ./data:/app/data:ro
-      - ./mlruns:/app/mlruns:ro
+      - ./mlflow.db:/app/mlflow.db:ro
+      - ./mlartifacts:/app/mlartifacts:ro
     restart: unless-stopped
 
   # Optional MLflow UI, reusing the API image (mlflow is a runtime dependency).
@@ -37,9 +39,10 @@ services:
       - --port
       - "5000"
       - --backend-store-uri
-      - file:/app/mlruns
+      - sqlite:////app/mlflow.db
     ports:
       - "5000:5000"
     volumes:
-      - ./mlruns:/app/mlruns
+      - ./mlflow.db:/app/mlflow.db
+      - ./mlartifacts:/app/mlartifacts
     restart: unless-stopped

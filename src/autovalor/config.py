@@ -26,8 +26,10 @@ class Settings(BaseSettings):
     data_dir: Path = PROJECT_ROOT / "data"
     duckdb_path: Path = PROJECT_ROOT / "data" / "autovalor.duckdb"
 
-    # MLflow
-    mlflow_tracking_uri: str = "file:./mlruns"
+    # MLflow. A SQLite file rather than ``file:./mlruns``: MLflow 3 put the filesystem
+    # tracking backend in maintenance mode and refuses it outright. SQLite keeps the
+    # setup local and serverless while being a supported database backend.
+    mlflow_tracking_uri: str = "sqlite:///mlflow.db"
     mlflow_experiment: str = "autovalor-baseline"
 
     # Scraping
