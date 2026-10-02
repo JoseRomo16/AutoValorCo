@@ -9,6 +9,7 @@ from autovalor.models.dataset import split_listings
 from autovalor.models.train import (
     MODEL_KINDS,
     build_parser,
+    format_interval_table,
     format_table,
     main,
     run,
@@ -138,6 +139,49 @@ def test_a_tuned_tree_reports_its_cv_score(gold_cars: pd.DataFrame) -> None:
     assert result.metrics()["cv_mape"] == result.cv_mape
 
 
+def test_the_winning_model_gets_a_band(gold_cars: pd.DataFrame) -> None:
+    result = train_model(split_listings(gold_cars), "lightgbm", n_trials=0)
+
+    assert result.interval is not None
+    assert result.interval_model is not None
+    metrics = result.metrics()
+    assert "test_interval_coverage" in metrics
+    assert "interval_widening_log" in metrics
+
+
+def test_the_band_can_be_skipped(gold_cars: pd.DataFrame) -> None:
+    result = train_model(split_listings(gold_cars), "lightgbm", n_trials=0, intervals=False)
+
+    assert result.interval is None
+    assert result.interval_model is None
+    assert "test_interval_coverage" not in result.metrics()
+
+
+def test_only_the_interval_model_gets_a_band(gold_cars: pd.DataFrame) -> None:
+    # The band is fitted on LightGBM alone: it won both verticals, and wiring CatBoost's
+    # quantile objective in only pays off if CatBoost ever becomes the served model.
+    split = split_listings(gold_cars)
+
+    assert train_model(split, "hedonic").interval is None
+    assert train_model(split, "catboost", n_trials=0).interval is None
+
+
+def test_the_band_table_is_empty_without_a_band(gold_cars: pd.DataFrame) -> None:
+    results = [train_model(split_listings(gold_cars), "hedonic")]
+
+    assert format_interval_table(results) == ""
+
+
+def test_the_band_table_reports_coverage_and_stays_ascii(gold_cars: pd.DataFrame) -> None:
+    results = [train_model(split_listings(gold_cars), "lightgbm", n_trials=0)]
+
+    table = format_interval_table(results)
+
+    table.encode("cp1252")
+    assert "coverage" in table
+    assert "widening" in table
+
+
 def test_the_table_marks_how_far_each_model_sits_from_the_baseline(
     gold_cars: pd.DataFrame,
 ) -> None:
@@ -234,6 +278,7 @@ def test_the_parser_defaults_to_everything_and_tracking_on() -> None:
     assert args.feature_set is None
     # None, not a number: the budget then comes from the per-model defaults.
     assert args.trials is None
+    assert args.no_intervals is False
     assert args.no_mlflow is False
     assert args.split == "random"
 

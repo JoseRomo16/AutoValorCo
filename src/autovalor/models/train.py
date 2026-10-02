@@ -8,6 +8,10 @@ those as performance was the mistake this command exists to stop.
 The tree models are tuned with Optuna against grouped folds of the training rows only;
 the holdout is scored once, at the end. See :mod:`autovalor.models.tuning`.
 
+The winning model also gets a P10-P90 band from three quantile models, reported in its own
+table because a band is judged on coverage and width together. See
+:mod:`autovalor.models.quantiles`.
+
 Examples:
     uv run python -m autovalor.models.train
     uv run python -m autovalor.models.train --model lightgbm --vehicle-type car --trials 5
@@ -44,7 +48,13 @@ from autovalor.models.hedonic import (
     HedonicModel,
     fit_hedonic_model,
 )
-from autovalor.models.metrics import RegressionReport, regression_report
+from autovalor.models.metrics import (
+    IntervalReport,
+    RegressionReport,
+    interval_report,
+    regression_report,
+)
+from autovalor.models.quantiles import NOMINAL_COVERAGE, FittedInterval, fit_interval
 from autovalor.models.trees import DEFAULT_PARAMS, FittedTree, TreeModel, fit_tree
 from autovalor.models.tuning import DEFAULT_TRIALS, search, trials_for
 
@@ -60,6 +70,14 @@ BASELINE_VARIANT: Final = "full"
 
 Declared ``Final`` so a comparison against them narrows ``ModelKind`` down to the two tree
 models, which is what lets the dispatch below stay type-safe without a cast.
+"""
+
+INTERVAL_KIND: Final = "lightgbm"
+"""The only model the P10-P90 band is fitted on.
+
+LightGBM won both verticals in F2 step 3 and supports the quantile objective directly.
+CatBoost can do quantile regression too; wiring it in is only worth it if CatBoost ever
+becomes the served model.
 """
 
 SKOPS_TRUSTED_TYPES = ["numpy.dtype"]
@@ -95,6 +113,8 @@ class ModelResult:
         model: The fitted model.
         cv_mape: Cross-validated MAPE from the search, when one ran.
         trials: One row per Optuna trial, when a search ran.
+        interval: Held-out quality of the P10-P90 band, when one was fitted.
+        interval_model: The fitted quantile models behind that band.
     """
 
     vehicle_type: VehicleType
@@ -106,6 +126,8 @@ class ModelResult:
     model: FittedModel
     cv_mape: float | None = None
     trials: pd.DataFrame | None = None
+    interval: IntervalReport | None = None
+    interval_model: FittedInterval | None = None
 
     @property
     def run_name(self) -> str:
@@ -125,6 +147,14 @@ class ModelResult:
         }
         if self.cv_mape is not None:
             metrics["cv_mape"] = self.cv_mape
+        if self.interval is not None:
+            metrics.update(
+                {f"test_interval_{key}": value for key, value in self.interval.as_dict().items()}
+            )
+        if self.interval_model is not None:
+            metrics["interval_widening_log"] = self.interval_model.widening
+            metrics["interval_crossing_rate"] = self.interval_model.crossing_rate
+            metrics["interval_n_calibration"] = float(self.interval_model.n_calibration)
         return metrics
 
 
@@ -135,6 +165,7 @@ def train_model(
     feature_set: FeatureSet = BASELINE_VARIANT,
     n_trials: int | None = None,
     seed: int = DEFAULT_SEED,
+    intervals: bool = True,
 ) -> ModelResult:
     """Fit one model on a partition and score both sides of it.
 
@@ -146,9 +177,12 @@ def train_model(
             :data:`autovalor.models.tuning.DEFAULT_TRIALS`. ``0`` skips the search and
             uses :data:`autovalor.models.trees.DEFAULT_PARAMS`.
         seed: Seed for the search and the models.
+        intervals: Whether to also fit the P10-P90 band. Only applies to
+            :data:`INTERVAL_KIND`, and reuses that model's tuned parameters.
 
     Returns:
-        The fitted model together with its in-sample and held-out error.
+        The fitted model together with its in-sample and held-out error, plus the band
+        when one was fitted.
 
     Raises:
         ValueError: If ``model_kind`` is not recognised.
@@ -162,6 +196,8 @@ def train_model(
     extra: dict[str, object] = {}
     cv_mape: float | None = None
     trials: pd.DataFrame | None = None
+    band: FittedInterval | None = None
+    band_report: IntervalReport | None = None
 
     if model_kind == BASELINE_KIND:
         variant = feature_set
@@ -198,6 +234,19 @@ def train_model(
         model = tree
         extra.update({f"param_{key}": value for key, value in best_params.items()})
 
+        if intervals and tree_kind == INTERVAL_KIND:
+            # The band reuses the point model's tuned parameters rather than running its
+            # own search. Three more fits instead of three more searches, and whether it
+            # was good enough is answered empirically by the coverage below.
+            band = fit_interval(
+                dataset.train,
+                vehicle_type=dataset.vehicle_type,
+                params=best_params,
+                seed=seed,
+            )
+            bounds = band.predict_log_bounds(dataset.test)
+            band_report = interval_report(dataset.test[TARGET], bounds[:, 0], bounds[:, 2])
+
     train_report = regression_report(dataset.train[TARGET], model.predict_log_price(dataset.train))
     test_report = regression_report(dataset.test[TARGET], model.predict_log_price(dataset.test))
 
@@ -215,6 +264,14 @@ def train_model(
         variant,
         test_report.summary(),
     )
+    if band_report is not None:
+        logger.info(
+            "%s / %s band — coverage %.1f%% (nominal 80%%), mean width %.0f%% of the estimate",
+            dataset.vehicle_type,
+            model_kind,
+            band_report.coverage * 100,
+            band_report.mean_relative_width * 100,
+        )
     return ModelResult(
         vehicle_type=dataset.vehicle_type,
         model_kind=model_kind,
@@ -225,6 +282,8 @@ def train_model(
         model=model,
         cv_mape=cv_mape,
         trials=trials,
+        interval=band_report,
+        interval_model=band,
     )
 
 
@@ -270,6 +329,14 @@ def log_to_mlflow(result: ModelResult) -> None:
         elif isinstance(result.model, FittedTree):
             flavor = mlflow.lightgbm if result.model.model_kind == "lightgbm" else mlflow.catboost
             flavor.log_model(result.model.estimator, name=result.model_kind)
+
+        # The band's three models go in next to the point model: /predict needs all four to
+        # return an estimate with its interval.
+        if result.interval_model is not None:
+            for quantile, quantile_model in result.interval_model.models.items():
+                mlflow.lightgbm.log_model(
+                    quantile_model.estimator, name=f"quantile_p{int(quantile * 100):02d}"
+                )
 
         # The whole search as one artifact rather than one run per trial: 40 trials across
         # four model-and-vertical combinations would leave 160 runs and an unusable UI.
@@ -322,6 +389,49 @@ def format_table(results: Sequence[ModelResult]) -> str:
     return "\n".join(lines)
 
 
+def format_interval_table(results: Sequence[ModelResult]) -> str:
+    """Render the P10-P90 bands as their own table.
+
+    Kept separate from the point-estimate table because a band is judged on two numbers at
+    once: coverage has to approach the nominal 80 %, and the width has to stay narrow
+    enough for the bargain / fair / expensive label to mean something. Eighty per cent
+    coverage reached by quoting "between 10 and 200 million" tells a user nothing.
+
+    Args:
+        results: Fits to display; those without a band are skipped.
+
+    Returns:
+        The table, or an empty string when no result carries a band.
+    """
+    if all(result.interval is None for result in results):
+        return ""
+
+    header = (
+        f"{'vertical':<12} {'model':<10} {'n test':>7} {'coverage':>9} {'width':>8} "
+        f"{'bargain':>8} {'expensive':>10} {'widening':>9} {'crossed':>8}"
+    )
+    lines = [
+        f"P10-P90 band, conformalized (nominal coverage {NOMINAL_COVERAGE:.0%})",
+        header,
+        "-" * len(header),
+    ]
+    for result in results:
+        band = result.interval
+        if band is None:
+            continue
+        widening = "-"
+        crossed = "-"
+        if result.interval_model is not None:
+            widening = f"{result.interval_model.widening:+.3f}"
+            crossed = f"{result.interval_model.crossing_rate:.1%}"
+        lines.append(
+            f"{result.vehicle_type:<12} {result.model_kind:<10} {band.n:>7} "
+            f"{band.coverage:>8.1%} {band.mean_relative_width:>7.0%} "
+            f"{band.below_rate:>7.1%} {band.above_rate:>9.1%} {widening:>9} {crossed:>8}"
+        )
+    return "\n".join(lines)
+
+
 def run(
     *,
     vehicle_types: Sequence[VehicleType] = VEHICLE_TYPES,
@@ -331,6 +441,7 @@ def run(
     test_size: float = DEFAULT_TEST_SIZE,
     seed: int = DEFAULT_SEED,
     n_trials: int | None = None,
+    intervals: bool = True,
     duckdb_path: Path | None = None,
     track: bool = True,
 ) -> list[ModelResult]:
@@ -345,6 +456,7 @@ def run(
         seed: Seed for the split, the search and the models.
         n_trials: Optuna budget per tree model and vertical; ``None`` uses the per-model
             defaults.
+        intervals: Whether to fit the P10-P90 band on :data:`INTERVAL_KIND`.
         duckdb_path: Database written by dbt. Defaults to the configured path.
         track: Whether to record each fit as an MLflow run.
 
@@ -373,6 +485,7 @@ def run(
                     feature_set=feature_set,
                     n_trials=n_trials,
                     seed=seed,
+                    intervals=intervals,
                 )
                 if track:
                     log_to_mlflow(result)
@@ -449,6 +562,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Database written by dbt (default: the configured AUTOVALOR_DUCKDB_PATH).",
     )
     parser.add_argument(
+        "--no-intervals",
+        action="store_true",
+        help=(
+            f"Skip the P10-P90 band, which is otherwise fitted on {INTERVAL_KIND} as three "
+            "extra quantile models reusing its tuned parameters."
+        ),
+    )
+    parser.add_argument(
         "--no-mlflow",
         action="store_true",
         help="Skip MLflow tracking; useful for a quick look at the numbers.",
@@ -480,6 +601,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             test_size=args.test_size,
             seed=args.seed,
             n_trials=args.trials,
+            intervals=not args.no_intervals,
             duckdb_path=args.duckdb_path,
             track=not args.no_mlflow,
         )
@@ -488,6 +610,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     sys.stdout.write(format_table(results) + "\n")
+    bands = format_interval_table(results)
+    if bands:
+        sys.stdout.write("\n" + bands + "\n")
     return 0
 
 
