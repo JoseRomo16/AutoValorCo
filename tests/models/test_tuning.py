@@ -30,6 +30,20 @@ def test_the_folds_never_split_a_vehicle_group() -> None:
         assert fit_groups & score_groups == set()
 
 
+def test_every_row_is_scored_once_and_never_by_a_model_fitted_on_it() -> None:
+    # The within-search counterpart of the holdout guarantee: a fold must never score a
+    # row it trained on, and the folds together have to cover the input exactly once.
+    frame = make_gold_frame(400)
+    groups = group_keys(frame)
+    scored: list[int] = []
+
+    for fit_index, score_index in GroupKFold(n_splits=DEFAULT_FOLDS).split(frame, groups=groups):
+        assert set(fit_index) & set(score_index) == set()
+        scored.extend(int(index) for index in score_index)
+
+    assert sorted(scored) == list(range(len(frame)))
+
+
 def test_cross_validated_mape_returns_a_usable_rate(gold_cars: pd.DataFrame) -> None:
     score = cross_validated_mape(
         gold_cars,
