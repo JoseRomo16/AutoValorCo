@@ -121,12 +121,16 @@ def _as_lightgbm(
     holdout lands outside the categories and becomes missing, which LightGBM routes down
     its missing branch. Without this the same value could be encoded as a different
     integer at fit and at predict time.
+
+    Unknown values are mapped to missing explicitly, before the cast. Letting pandas do it
+    implicitly — by handing it values outside the categories — works today but is
+    deprecated and raises in a future version.
     """
     prepared = matrix.copy()
     for column in spec.categorical:
-        prepared[column] = pd.Categorical(
-            prepared[column].astype("string"), categories=levels[column]
-        )
+        values = prepared[column].astype("string")
+        known = values.where(values.isin(levels[column]))
+        prepared[column] = pd.Categorical(known, categories=levels[column])
     return prepared
 
 
