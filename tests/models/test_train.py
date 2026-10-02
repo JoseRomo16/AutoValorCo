@@ -1,8 +1,10 @@
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import pytest
 
+from autovalor.models import train as train_module
 from autovalor.models.dataset import split_listings
 from autovalor.models.train import (
     MODEL_KINDS,
@@ -13,6 +15,7 @@ from autovalor.models.train import (
     train_baseline,
     train_model,
 )
+from autovalor.models.tuning import SearchResult
 
 
 def test_a_baseline_reports_both_sides_of_the_split(gold_cars: pd.DataFrame) -> None:
@@ -95,6 +98,35 @@ def test_a_tree_without_a_search_reports_no_cv_score(gold_cars: pd.DataFrame) ->
     assert result.cv_mape is None
     assert result.trials is None
     assert "cv_mape" not in result.metrics()
+
+
+def test_the_search_never_sees_the_holdout(
+    gold_cars: pd.DataFrame, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The central claim of the tuning protocol, and the one nothing else would catch:
+    # a holdout used to choose hyperparameters is a second training set, and the reported
+    # MAPE goes back to being in-sample. Spy on the search to pin down what it receives.
+    split = split_listings(gold_cars)
+    received: list[pd.DataFrame] = []
+
+    def spy(train: pd.DataFrame, **kwargs: Any) -> SearchResult:
+        received.append(train)
+        return SearchResult(
+            model_kind=kwargs["model_kind"],
+            vehicle_type=kwargs["vehicle_type"],
+            best_params={"n_estimators": 20},
+            cv_mape=0.2,
+            n_trials=1,
+            trials=pd.DataFrame({"number": [0]}),
+        )
+
+    monkeypatch.setattr(train_module, "search", spy)
+    train_model(split, "lightgbm", n_trials=1)
+
+    assert len(received) == 1
+    passed = set(received[0]["listing_id"])
+    assert passed == set(split.train["listing_id"])
+    assert passed & set(split.test["listing_id"]) == set()
 
 
 def test_a_tuned_tree_reports_its_cv_score(gold_cars: pd.DataFrame) -> None:
