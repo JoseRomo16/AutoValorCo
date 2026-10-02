@@ -1,6 +1,6 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-01** · Fase actual: **F2 en curso (pasos 1, 2 y 3 hechos)**
+Última actualización: **2026-10-01** · Fase actual: **F2 en curso (pasos 1 a 4 hechos)**
 
 Este documento es el punto de retorno: dice qué funciona, qué falta, qué está decidido y
 qué no. Se actualiza al cerrar cada bloque de trabajo.
@@ -12,7 +12,8 @@ qué no. Se actualiza al cerrar cada bloque de trabajo.
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
 validado— con 7.207 carros y 3.765 motos. Tres modelos entrenados y medidos **fuera de
 muestra**: el mejor es LightGBM con **11,5 % MAPE en carros** y **26,7 % en motos**.
-Carros cumple la meta de F2 (≤ 15 %); motos no. Faltan los intervalos P10–P90 y SHAP.
+Carros cumple la meta de F2 (≤ 15 %); motos no. La banda P10–P90 ya existe y está
+calibrada. Falta SHAP.
 
 ---
 
@@ -78,8 +79,8 @@ Cobertura de features sacadas del título, sin peticiones extra:
 
 ### F2 — Modelación (en curso)
 
-Pasos 1, 2 y 3 cerrados: hay partición honesta, línea base y ensambles afinados.
-`make train` corre los tres modelos.
+Pasos 1 a 4 cerrados: partición honesta, línea base, ensambles afinados y banda P10–P90
+calibrada. `make train` corre los tres modelos y la banda.
 
 | Entregable | Estado |
 | --- | --- |
@@ -88,8 +89,9 @@ Pasos 1, 2 y 3 cerrados: hay partición honesta, línea base y ensambles afinado
 | `models/hedonic.py` — pipeline OLS, dos conjuntos de features | hecho |
 | `models/trees.py` — LightGBM y CatBoost con categóricas crudas | hecho |
 | `models/tuning.py` — Optuna sobre CV agrupada, objetivo MAPE en pesos | hecho |
-| `models/train.py` — `make train`, `--model`, `--trials`, una corrida MLflow por modelo | hecho |
-| 137 tests nuevos en total; cobertura 96 %, ruff y mypy limpios | hecho |
+| `models/quantiles.py` — banda P10–P90 conformalizada, y la etiqueta ganga/justo/caro | hecho |
+| `models/train.py` — `make train`, `--model`, `--trials`, `--no-intervals`, MLflow | hecho |
+| 162 tests nuevos en total; cobertura 96 %, ruff y mypy limpios | hecho |
 | [ADR 0003](adr/0003-tree-model-validation.md) — encoding y protocolo de validación | hecho |
 
 ---
@@ -131,9 +133,35 @@ Cuatro cosas que salieron de aquí:
 
 ### Costo de la corrida
 
-~48 min en la máquina de desarrollo. LightGBM 40 trials por vertical, CatBoost 20, CV de
+~50 min en la máquina de desarrollo. LightGBM 40 trials por vertical, CatBoost 20, CV de
 3 folds — presupuesto asimétrico porque un ajuste de CatBoost cuesta de 3 a 9 veces uno de
 LightGBM. Detalle y razones en [ADR 0003](adr/0003-tree-model-validation.md).
+
+---
+
+## La banda P10–P90
+
+Solo LightGBM la lleva, por ser el ganador en ambas verticales. Mismo holdout, mismos
+parámetros afinados que el modelo puntual.
+
+| Vertical | Cobertura | Ancho medio | Ganga | Caro | Ensanche (log) | Cruzados |
+| --- | --- | --- | --- | --- | --- | --- |
+| Carros | 76,5 % | **38 %** | 13,0 % | 10,5 % | +0,029 | 5,8 % |
+| Motos | 76,8 % | **94 %** | 12,1 % | 11,2 % | +0,061 | 8,4 % |
+
+**Sin conformalizar la banda no servía.** Los tres modelos cuantílicos ajustados y usados
+directamente cubrían **67,2 % en carros y 63,2 % en motos** contra un nominal de 80 %: los
+árboles pegan los cuantiles al train y la banda sale angosta en filas nuevas. Una banda
+anunciada al 80 % que sostiene 63 % es peor que no tener banda, porque la etiqueta "ganga"
+se dispararía en anuncios normales. `models/quantiles.py` aparta el 25 % del train, mide
+ahí el error de la propia banda y ensancha por el cuantil que restituye la cobertura
+(Romano, Patterson & Candès, 2019). El split interno reutiliza el splitter agrupado, porque
+un reposteo en las dos mitades sesgaría el ensanche hacia abajo.
+
+**El ancho es el problema de motos, no la cobertura.** 94 % del estimado significa que la
+banda va de aproximadamente la mitad al doble del precio: la etiqueta ganga/justo/caro no
+dice nada ahí. Carros a 38 % sí es utilizable. Afinar los hiperparámetros apretó carros de
+44 % a 38 %; motos no se movió.
 
 ---
 
@@ -141,20 +169,19 @@ LightGBM. Detalle y razones en [ADR 0003](adr/0003-tree-model-validation.md).
 
 ### F2 — lo que queda
 
-4. **Intervalos P10–P90.** Requisito de producto, no un extra: la clasificación
-   ganga/justo/caro depende de dónde cae el precio pedido. Sale de regresión cuantílica,
-   no de la desviación del error. `metrics.interval_report` ya mide cobertura y ancho.
-   El modelo sobre el que montarlos es LightGBM, que gana en las dos verticales.
-5. **SHAP**, para `/explain`.
+5. **SHAP**, para `/explain`. Sobre LightGBM. Es lo único que queda de F2.
 
-Además, dos cosas que la corrida dejó pendientes:
+Además, tres cosas que las corridas dejaron pendientes:
 
 - **Elegir el modelo servido.** LightGBM gana en ambas verticales y es ~5 veces más rápido
   de ajustar que CatBoost. En motos la diferencia con CatBoost es de 0,1 puntos, que es
   ruido; en carros son 1,6 puntos reales. Falta decidir si CatBoost se mantiene como
   comparación o se retira.
-- **Motos a 26,7 % todavía no sirve para el producto.** Decidir entre enriquecer con
-  páginas de detalle (ver decisiones abiertas) o limitar el alcance de la vertical.
+- **Motos a 26,7 % todavía no sirve para el producto**, y la banda lo confirma: 94 % de
+  ancho. Decidir entre enriquecer con páginas de detalle (ver decisiones abiertas) o
+  limitar el alcance de la vertical.
+- **La cobertura de la banda queda ~3 puntos corta** del nominal. Ver deuda conocida; no
+  bloquea, pero hay que decidir si se arregla antes de exponer la etiqueta en la API.
 
 ### F3 — Resultados
 
@@ -253,6 +280,19 @@ feature del modelo; se vuelve necesaria en F3.
   falla a propósito hasta que haya 14 días de histórico. Con la captura semanal activa eso
   llega solo; conviene repetir la medición con `temporal` cuando llegue, porque es la
   partición que exige el índice mensual.
+- **La cobertura de la banda queda corta: 76,5 % y 76,8 % contra el nominal de 80 %.** Son
+  ~3 puntos, demasiado para ser ruido de muestreo con n=1441 (±1 punto). La causa probable
+  es que la conformalización supone filas **intercambiables** y estos datos están agrupados
+  por vehículo reposteado, así que el cuantil empírico subestima. El arreglo es conformal
+  consciente de grupos o una calibración anidada. **No** subir el nivel hasta que el
+  holdout cuadre: eso sería ajustar contra el holdout y devolvería la cobertura a ser una
+  cifra en muestra.
+- **Los cuantiles se cruzan en 5,8 % de carros y 8,4 % de motos.** Se ordenan por fila, que
+  es correcto, pero un cruce alto significa que los tres niveles no concuerdan sobre la
+  forma de la superficie de precios. Ajustar los tres con un objetivo multicuantil, o con
+  monotonicidad impuesta, lo reduciría.
+- **La banda entrena con 25 % menos filas** que el modelo puntual, porque esa parte se
+  aparta para calibrar. El modelo puntual no paga ese costo; la banda sí.
 - **CatBoost se exploró con la mitad del presupuesto que LightGBM** (20 trials contra 40),
   porque cuesta de 3 a 9 veces más por ajuste. Que pierda es evidencia más débil que si
   hubiera perdido con el mismo presupuesto; tenerlo en cuenta antes de retirarlo.
@@ -273,18 +313,19 @@ feature del modelo; se vuelve necesaria en F3.
 #  2. la red intercepta TLS: uv necesita --system-certs, y el scraping
 #     necesita AUTOVALOR_USE_SYSTEM_CERTS=true
 #  3. no hay make ni docker en Windows: usar .\make.ps1
-.\make.ps1 test          # 166 tests, cobertura 96 %
+.\make.ps1 test          # 191 tests, cobertura 96 %
 .\make.ps1 lint          # ruff + mypy
 .\make.ps1 transform     # valida bronze, corre dbt, valida silver y gold
-.\make.ps1 train         # los tres modelos, ~48 min, registra todo en MLflow
+.\make.ps1 train         # los tres modelos y la banda, ~50 min, todo a MLflow
 ```
 
 Para ver solo los números rápido, sin búsqueda y sin escribir en MLflow:
 
 ```powershell
 uv run python -m autovalor.models.train --trials 0 --no-mlflow
-# o un modelo y una vertical:
-uv run python -m autovalor.models.train --model lightgbm --vehicle-type car --trials 5 --no-mlflow
+# o un modelo y una vertical, sin banda:
+uv run python -m autovalor.models.train --model lightgbm --vehicle-type car `
+    --trials 5 --no-intervals --no-mlflow
 ```
 
 Los datos de `data/` no están en git. Si el lago está vacío, se reconstruye con:
