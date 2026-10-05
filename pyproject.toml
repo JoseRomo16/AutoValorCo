@@ -41,7 +41,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/joseluis/autovalor-co"
+Homepage = "https://github.com/JoseRomo16/AutoValorCo"
 
 [dependency-groups]
 dev = [

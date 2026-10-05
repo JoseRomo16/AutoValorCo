@@ -3,9 +3,9 @@
 **Valoración de carros y motos usados en Colombia** ·
 _Used car and motorcycle valuation for the Colombian market_
 
-[![CI](https://github.com/joseluis/autovalor-co/actions/workflows/ci.yml/badge.svg)](https://github.com/joseluis/autovalor-co/actions/workflows/ci.yml)
+[![CI](https://github.com/JoseRomo16/AutoValorCo/actions/workflows/ci.yml/badge.svg)](https://github.com/JoseRomo16/AutoValorCo/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
-![Status](https://img.shields.io/badge/fase-F0%20requisitos-lightgrey)
+![Status](https://img.shields.io/badge/fase-F2%20modelaci%C3%B3n-blue)
 
 ---
 
@@ -83,8 +83,8 @@ docs/          # ADRs y diccionario de datos
 Requisitos: Python 3.12 y [uv](https://docs.astral.sh/uv/).
 
 ```bash
-git clone https://github.com/joseluis/autovalor-co.git
-cd autovalor-co
+git clone https://github.com/JoseRomo16/AutoValorCo.git
+cd AutoValorCo
 cp .env.example .env     # ajusta lo que necesites
 make setup               # uv sync + playwright + pre-commit (+ npm en F4)
 make test
@@ -149,7 +149,7 @@ Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs
 | ------ | ----------- | ----------------------------------------------------------------------------------------------------- | ----------- |
 | **F0** | Requisitos  | Repo inicial, estructura, Makefile y CI en verde                                                      | cerrada     |
 | **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada (7.207 / 3.765) |
-| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | siguiente   |
+| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | en curso    |
 | **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda                        | pendiente   |
 | **F4** | Producto    | API (`/predict`, `/explain`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render     | pendiente   |
 
@@ -194,8 +194,8 @@ a Next.js + Tailwind frontend. See the Spanish diagram above.
 Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-git clone https://github.com/joseluis/autovalor-co.git
-cd autovalor-co
+git clone https://github.com/JoseRomo16/AutoValorCo.git
+cd AutoValorCo
 cp .env.example .env
 make setup      # on Windows: .\make.ps1 setup
 make test
@@ -213,7 +213,7 @@ Detailed status, open decisions and how to resume: **[`docs/STATUS.md`](docs/STA
 | ------ | ----------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
 | **F0** | Requirements| Initial repo, structure, Makefile and green CI                                                             | closed      |
 | **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed (7,207 / 3,765) |
-| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | next        |
+| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | in progress |
 | **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, Fasecolda comparison                                        | pending     |
 | **F4** | Product     | API (`/predict`, `/explain`, `/health`, `/model-info`), Next.js app, Docker, Render deployment              | pending     |
 
