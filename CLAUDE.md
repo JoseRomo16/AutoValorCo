@@ -55,9 +55,9 @@ docs/          # ADRs y diccionario de datos
 
 ## Fases y criterios de cierre
 
-- F0 Requisitos: repo inicial, CI verde, estructura y Makefile. (actual)
-- F1 Datos: piloto de 1.000 anuncios para medir σ del error; cierre con ≥ 6.000 carros y ≥ 2.600 motos limpios (captura bruta ~7.500 y ~3.500). Captura semanal activa desde aquí.
-- F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %.
+- F0 Requisitos: repo inicial, CI verde, estructura y Makefile. (cerrada)
+- F1 Datos: piloto de 1.000 anuncios para medir σ del error; cierre con ≥ 6.000 carros y ≥ 2.600 motos limpios (captura bruta ~7.500 y ~3.500). Captura semanal activa desde aquí. (cerrada)
+- F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (actual)
 - F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda.
 - F4 Producto: API (/predict, /explain, /health, /model-info), app Next.js, Docker, despliegue en Render.
 
