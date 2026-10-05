@@ -158,6 +158,26 @@ class FittedTree:
     estimator: object
     levels: dict[str, pd.Index] = field(default_factory=dict)
 
+    def design_matrix(self, frame: pd.DataFrame) -> pd.DataFrame:
+        """Return the features exactly as the fitted estimator sees them.
+
+        Args:
+            frame: Rows to prepare, straight from gold.
+
+        Returns:
+            The prepared matrix: numerics and booleans cast, categoricals in the shape
+            this model's library wants, columns in fitting order.
+
+        Attributing a prediction means attributing *this* matrix rather than the gold
+        frame it came from — the frozen category codes are what the trees split on — so
+        the preparation has to be reachable from outside this module. See
+        :mod:`autovalor.models.explain`.
+        """
+        matrix = _model_matrix(frame, self.spec)
+        if self.model_kind == "lightgbm":
+            return _as_lightgbm(matrix, self.spec, self.levels)
+        return _as_catboost(matrix, self.spec)
+
     def predict_log_price(self, frame: pd.DataFrame) -> npt.NDArray[np.float64]:
         """Predict ``log(price)`` for a gold-shaped frame.
 
@@ -167,12 +187,7 @@ class FittedTree:
         Returns:
             Predicted ``log(price)``, one value per row.
         """
-        matrix = _model_matrix(frame, self.spec)
-        if self.model_kind == "lightgbm":
-            prepared = _as_lightgbm(matrix, self.spec, self.levels)
-        else:
-            prepared = _as_catboost(matrix, self.spec)
-        prediction = self.estimator.predict(prepared)  # type: ignore[attr-defined]
+        prediction = self.estimator.predict(self.design_matrix(frame))  # type: ignore[attr-defined]
         return np.asarray(prediction, dtype=np.float64)
 
 

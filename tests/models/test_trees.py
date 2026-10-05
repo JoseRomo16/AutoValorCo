@@ -118,6 +118,34 @@ def test_fitting_catboost_writes_no_log_directory(
     assert list(tmp_path.iterdir()) == []
 
 
+@pytest.mark.parametrize("model_kind", TREE_MODELS)
+def test_the_design_matrix_carries_the_fitted_columns_in_order(
+    model_kind: TreeModel, gold_cars: pd.DataFrame
+) -> None:
+    # Explaining a prediction attributes this matrix, so it has to be the same shape the
+    # estimator was fitted on — same columns, same order.
+    model = fit_tree(gold_cars, model_kind=model_kind, vehicle_type="car", params=FAST[model_kind])
+
+    matrix = model.design_matrix(gold_cars.head(5))
+
+    assert list(matrix.columns) == list(tree_spec("car").columns)
+    assert len(matrix) == 5
+
+
+def test_the_lightgbm_design_matrix_turns_an_unseen_level_into_missing(
+    gold_cars: pd.DataFrame,
+) -> None:
+    # The frozen levels are what make an unseen make land on the missing branch rather
+    # than on some other make's code.
+    model = fit_tree(gold_cars, model_kind="lightgbm", vehicle_type="car", params=FAST["lightgbm"])
+    unseen = gold_cars.head(3).copy()
+    unseen["brand"] = "Marca Nueva"
+
+    matrix = model.design_matrix(unseen)
+
+    assert matrix["brand"].isna().all()
+
+
 def test_fit_tree_rejects_an_unknown_model(gold_cars: pd.DataFrame) -> None:
     with pytest.raises(ValueError, match="unknown tree model"):
         fit_tree(gold_cars, model_kind="xgboost", vehicle_type="car")  # type: ignore[arg-type]
