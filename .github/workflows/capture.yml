@@ -85,6 +85,11 @@ jobs:
           PY
 
       - name: Upload capture
+        # A capture that loses one department exits non-zero but has already written
+        # bronze, and a dbt or Pandera failure leaves bronze untouched. Skipping the
+        # upload in those cases threw away the only copy of the data, so this runs
+        # whenever the job was not cancelled. Earlier failures still fail the job.
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: capture-${{ github.run_id }}
