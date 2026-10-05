@@ -1,14 +1,17 @@
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from autovalor.models import train as train_module
 from autovalor.models.dataset import split_listings
+from autovalor.models.explain import global_importance
 from autovalor.models.train import (
     MODEL_KINDS,
     build_parser,
+    format_importance_table,
     format_interval_table,
     format_table,
     main,
@@ -164,6 +167,63 @@ def test_only_the_interval_model_gets_a_band(gold_cars: pd.DataFrame) -> None:
 
     assert train_model(split, "hedonic").interval is None
     assert train_model(split, "catboost", n_trials=0).interval is None
+
+
+def test_the_explained_model_reports_its_shap_importance(gold_cars: pd.DataFrame) -> None:
+    result = train_model(split_listings(gold_cars), "lightgbm", n_trials=0)
+
+    assert result.importance is not None
+    assert list(result.importance.columns) == ["feature", "mean_abs_phi", "mean_abs_pct"]
+    # One metric per feature, so the ranking is comparable across runs in MLflow.
+    assert "shap_mean_abs_vehicle_age_years" in result.metrics()
+
+
+def test_the_shap_importance_can_be_skipped(gold_cars: pd.DataFrame) -> None:
+    result = train_model(split_listings(gold_cars), "lightgbm", n_trials=0, explain=False)
+
+    assert result.importance is None
+    assert not [key for key in result.metrics() if key.startswith("shap_")]
+
+
+def test_only_lightgbm_is_explained(gold_cars: pd.DataFrame) -> None:
+    # CatBoost needs its own attribution path and is not the served model.
+    split = split_listings(gold_cars)
+
+    assert train_model(split, "hedonic").importance is None
+    assert train_model(split, "catboost", n_trials=0).importance is None
+
+
+def test_the_importance_is_measured_on_the_holdout(gold_cars: pd.DataFrame) -> None:
+    # Read off the training rows the trees already memorised, the ranking would overstate
+    # whatever they overfitted, so it has to come from the held-out rows.
+    split = split_listings(gold_cars)
+
+    result = train_model(split, "lightgbm", n_trials=0)
+
+    assert result.importance is not None
+    expected = global_importance(result.model, split.test)  # type: ignore[arg-type]
+    assert result.importance["feature"].tolist() == expected["feature"].tolist()
+    assert np.allclose(result.importance["mean_abs_phi"], expected["mean_abs_phi"])
+
+
+def test_the_importance_table_is_empty_without_an_explained_model(
+    gold_cars: pd.DataFrame,
+) -> None:
+    results = [train_model(split_listings(gold_cars), "hedonic")]
+
+    assert format_importance_table(results) == ""
+
+
+def test_the_importance_table_ranks_the_driver_first_and_stays_ascii(
+    gold_cars: pd.DataFrame,
+) -> None:
+    results = [train_model(split_listings(gold_cars), "lightgbm", n_trials=0)]
+
+    table = format_importance_table(results)
+
+    table.encode("cp1252")
+    assert "mean |phi|" in table
+    assert table.splitlines()[2].split()[1] == "vehicle_age_years"
 
 
 def test_the_band_table_is_empty_without_a_band(gold_cars: pd.DataFrame) -> None:
