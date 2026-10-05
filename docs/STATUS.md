@@ -267,9 +267,10 @@ feature del modelo; se vuelve necesaria en F3.
 - **`vehicle_age` está implementado dos veces**: `features/age.py` en Python y como SQL en
   `gold_listings`. Decidir la fuente de verdad antes de que divergan.
 - **Docker nunca se ha construido ni corrido.** No hay docker en la máquina de desarrollo.
-- **Las capturas expiran.** Los artefactos de Actions se retienen 90 días; el paso a
-  almacenamiento de objetos está en [ADR 0002](adr/0002-weekly-capture-storage.md) y ese
-  plazo es una fecha límite real.
+- **Las capturas expiran.** Los artefactos de Actions se retienen 90 días; el destino
+  definitivo está planteado en [ADR 0004](adr/0004-capture-history-storage.md) —rama
+  `data` contra Cloudflare R2, **sin decidir**— y el plazo es real: el artefacto de la
+  primera captura programada vence alrededor del 2027-01-03.
 - **Cuatrimotos, buggies y side-by-sides** viven en la vertical de motos (121 anuncios).
   Marcados con `is_quad` para que F2 los segmente, no eliminados.
 - **Las tarjetas patrocinadas se filtran entre regiones**, así que `department` no es un
