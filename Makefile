@@ -8,7 +8,8 @@ PORT ?= 8000
 PAGES ?= 10
 
 .DEFAULT_GOAL := help
-.PHONY: help setup scrape transform train serve test lint format docker-build docker-up clean
+.PHONY: help setup scrape pull-history push-history transform train serve test lint \
+	format docker-build docker-up clean
 
 help: ## Show the available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -26,6 +27,12 @@ setup: ## Install Python, browser and frontend dependencies
 
 scrape: ## Capture listings into data/bronze
 	$(RUN) python -m autovalor.ingest.cli --vehicle-type all --pages $(PAGES)
+
+pull-history: ## Bring the published captures from the data branch into data/bronze
+	$(RUN) python -m autovalor.ingest.history pull
+
+push-history: ## Publish the local captures in data/bronze to the data branch
+	$(RUN) python -m autovalor.ingest.history push
 
 transform: ## Run dbt (silver and gold) and the Pandera validations
 	$(RUN) python -m autovalor.quality.cli --stage bronze

@@ -9,8 +9,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('help', 'setup', 'scrape', 'transform', 'train', 'serve', 'test',
-        'lint', 'format', 'docker-build', 'docker-up', 'clean')]
+    [ValidateSet('help', 'setup', 'scrape', 'pull-history', 'push-history', 'transform',
+        'train', 'serve', 'test', 'lint', 'format', 'docker-build', 'docker-up', 'clean')]
     [string]$Target = 'help',
 
     [string]$ApiHost = '127.0.0.1',
@@ -36,6 +36,8 @@ switch ($Target) {
         Write-Host 'AutoValor CO - available targets:'
         Write-Host '  setup          Install Python, browser and frontend dependencies'
         Write-Host '  scrape         Capture TuCarro listings into data/bronze'
+        Write-Host '  pull-history   Bring the published captures into data/bronze'
+        Write-Host '  push-history   Publish the local captures to the data branch'
         Write-Host '  transform      Run dbt (silver and gold) and the Pandera validations'
         Write-Host '  train          Train the models and log them to MLflow (-Trials N)'
         Write-Host '  serve          Run the API locally with autoreload'
@@ -61,6 +63,12 @@ switch ($Target) {
     'scrape' {
         Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.cli',
         '--vehicle-type', 'all', '--pages', "$Pages"
+    }
+    'pull-history' {
+        Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.history', 'pull'
+    }
+    'push-history' {
+        Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.history', 'push'
     }
     'transform' {
         Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.quality.cli', '--stage', 'bronze'
