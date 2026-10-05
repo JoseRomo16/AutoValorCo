@@ -60,7 +60,11 @@ Componentes:
   cilindrada, flag de cuatrimoto), `silver_listings` (dedup + flags), `gold_listings`
   (filtrado + features). Seed `vehicle_brands`. **41/41 tests dbt en verde.**
 - **`.github/workflows/capture.yml`** — captura semanal, lunes 07:00 UTC, barre seis
-  departamentos, valida y sube el resultado como artefacto.
+  departamentos, valida, **publica bronze en la rama `data`** y sube el resultado como
+  artefacto.
+- **`ingest/history.py`** — mueve capturas entre `data/bronze` y la rama `data`. Una sola
+  implementación para el workflow, `make pull-history` y el sembrado manual. Nunca
+  sobrescribe y solo mueve bronze.
 
 ### Estado de los datos
 
@@ -267,10 +271,14 @@ feature del modelo; se vuelve necesaria en F3.
 - **`vehicle_age` está implementado dos veces**: `features/age.py` en Python y como SQL en
   `gold_listings`. Decidir la fuente de verdad antes de que divergan.
 - **Docker nunca se ha construido ni corrido.** No hay docker en la máquina de desarrollo.
-- **Las capturas expiran.** Los artefactos de Actions se retienen 90 días; el destino
-  definitivo está planteado en [ADR 0004](adr/0004-capture-history-storage.md) —rama
-  `data` contra Cloudflare R2, **sin decidir**— y el plazo es real: el artefacto de la
-  primera captura programada vence alrededor del 2027-01-03.
+- **La captura semanal sigue construyendo silver y gold solo con su propia corrida**, no
+  con el histórico acumulado. Eso basta para validar que la captura salió bien, pero el
+  `gold_listings` del workflow no es el lago completo; el acumulado se arma en local con
+  `pull-history` + `transform`. Si el índice mensual de F3 va a correr en CI, el workflow
+  tendrá que traer el histórico antes de dbt.
+- **La rama `data` crece para siempre.** 944 KB hoy, ~25 MB al año. Quitar una captura
+  publicada por error exige reescribir la rama. Los disparadores para pasar a R2 están en
+  [ADR 0004](adr/0004-capture-history-storage.md).
 - **Cuatrimotos, buggies y side-by-sides** viven en la vertical de motos (121 anuncios).
   Marcados con `is_quad` para que F2 los segmente, no eliminados.
 - **Las tarjetas patrocinadas se filtran entre regiones**, así que `department` no es un
@@ -314,7 +322,7 @@ feature del modelo; se vuelve necesaria en F3.
 #  2. la red intercepta TLS: uv necesita --system-certs, y el scraping
 #     necesita AUTOVALOR_USE_SYSTEM_CERTS=true
 #  3. no hay make ni docker en Windows: usar .\make.ps1
-.\make.ps1 test          # 191 tests, cobertura 96 %
+.\make.ps1 test          # 205 tests, cobertura 95,8 %
 .\make.ps1 lint          # ruff + mypy
 .\make.ps1 transform     # valida bronze, corre dbt, valida silver y gold
 .\make.ps1 train         # los tres modelos y la banda, ~50 min, todo a MLflow
@@ -329,7 +337,36 @@ uv run python -m autovalor.models.train --model lightgbm --vehicle-type car `
     --trials 5 --no-intervals --no-mlflow
 ```
 
-Los datos de `data/` no están en git. Si el lago está vacío, se reconstruye con:
+### El lago se reconstruye desde la rama `data`
+
+`data/` no está en git, pero **las capturas sí**, en la rama huérfana `data`
+([ADR 0004](adr/0004-capture-history-storage.md)). Ya no hace falta volver a raspar para
+tener el lago:
+
+```powershell
+.\make.ps1 pull-history   # trae los Parquet publicados a data/bronze, sin sobrescribir
+.\make.ps1 transform      # reconstruye silver y gold desde ahí
+```
+
+Estado de la rama hoy: **8 capturas, 944 KB**, dos commits de backfill. Solo viaja bronze;
+silver y gold se derivan. `pull-history` nunca sobrescribe un archivo local —bronze es
+inmutable y el nombre lleva el instante UTC, así que una colisión es la misma captura— y
+correrlo dos veces no hace nada la segunda vez.
+
+A partir de ahora la captura semanal publica sola: `capture.yml` corre
+`autovalor.ingest.history push` con `contents: write`, y lo hace con `if: !cancelled()`
+por la misma razón que la subida del artefacto —la captura es la parte irremplazable—. El
+artefacto sigue subiéndose como red de seguridad; los dos caminos son independientes a
+propósito.
+
+**Ojo con los números al reconstruir.** El lago local tiene solo las **6 capturas del
+2026-09-30** (10.972 filas de gold), que es donde se midieron el 11,5 % y el 26,7 %. La
+rama tiene 8: incluye la captura programada del 2026-10-05, que deliberadamente no se
+incorporó al lago local para no invalidar las cifras de F2 a mitad de camino. Si corres
+`pull-history` + `transform`, gold crece y **las métricas de F2 hay que volver a medirlas**
+sobre ese gold más grande.
+
+Si de verdad hace falta raspar de nuevo:
 
 ```powershell
 $env:AUTOVALOR_USE_SYSTEM_CERTS = 'true'
