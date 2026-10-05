@@ -1,6 +1,7 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-01** · Fase actual: **F2 en curso (pasos 1 a 4 hechos)**
+Última actualización: **2026-10-05** · Fase actual: **F2, los cinco pasos hechos**
+(la meta de MAPE ≤ 15 % se cumple en carros, no en motos)
 
 Este documento es el punto de retorno: dice qué funciona, qué falta, qué está decidido y
 qué no. Se actualiza al cerrar cada bloque de trabajo.
@@ -12,8 +13,10 @@ qué no. Se actualiza al cerrar cada bloque de trabajo.
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
 validado— con 7.207 carros y 3.765 motos. Tres modelos entrenados y medidos **fuera de
 muestra**: el mejor es LightGBM con **11,5 % MAPE en carros** y **26,7 % en motos**.
-Carros cumple la meta de F2 (≤ 15 %); motos no. La banda P10–P90 ya existe y está
-calibrada. Falta SHAP.
+Carros cumple la meta de F2 (≤ 15 %); motos no. La banda P10–P90 está calibrada y SHAP ya
+explica cada predicción, con lo que **los cinco pasos de F2 están hechos**. Lo que SHAP
+dejó claro es por qué motos falla: el modelo pesa identidad (marca, cilindrada, modelo) y
+casi no pesa estado (edad, kilometraje).
 
 ---
 
@@ -77,10 +80,10 @@ Cobertura de features sacadas del título, sin peticiones extra:
 | Carros | 99,2 % | 86,0 % | 47 | 498 |
 | Motos | 81,0 % | 80,6 % | 31 | 764 |
 
-### F2 — Modelación (en curso)
+### F2 — Modelación (cerrada)
 
-Pasos 1 a 4 cerrados: partición honesta, línea base, ensambles afinados y banda P10–P90
-calibrada. `make train` corre los tres modelos y la banda.
+Los cinco pasos están cerrados: partición honesta, línea base, ensambles afinados, banda
+P10–P90 calibrada y SHAP. `make train` corre los tres modelos, la banda y la importancia.
 
 | Entregable | Estado |
 | --- | --- |
@@ -90,8 +93,9 @@ calibrada. `make train` corre los tres modelos y la banda.
 | `models/trees.py` — LightGBM y CatBoost con categóricas crudas | hecho |
 | `models/tuning.py` — Optuna sobre CV agrupada, objetivo MAPE en pesos | hecho |
 | `models/quantiles.py` — banda P10–P90 conformalizada, y la etiqueta ganga/justo/caro | hecho |
-| `models/train.py` — `make train`, `--model`, `--trials`, `--no-intervals`, MLflow | hecho |
-| 162 tests nuevos en total; cobertura 96 %, ruff y mypy limpios | hecho |
+| `models/explain.py` — SHAP sobre LightGBM: factores `exp(φ)`, importancia global, top drivers | hecho |
+| `models/train.py` — `make train`, `--model`, `--trials`, `--no-intervals`, `--no-explain`, MLflow | hecho |
+| 214 tests en total; cobertura 95,9 %, ruff y mypy limpios | hecho |
 | [ADR 0003](adr/0003-tree-model-validation.md) — encoding y protocolo de validación | hecho |
 
 ---
@@ -165,28 +169,70 @@ dice nada ahí. Carros a 38 % sí es utilizable. Afinar los hiperparámetros apr
 
 ---
 
+## Qué mueve el estimado (SHAP)
+
+Sobre LightGBM, medido **en el holdout** del `make train` del 2026-10-05 —no en train, que
+sobreestimaría lo que los árboles memorizaron. El modelo predice `log(precio)`, así que las
+contribuciones son aditivas en logaritmo y **multiplicativas en pesos**: `exp(φ)` es un
+factor exacto sobre el precio. La columna "tirón típico" es `exp(media |φ|) − 1`, es decir
+cuánto mueve esa variable el precio en una fila cualquiera, sin su signo.
+
+| Variable | Carros | Motos |
+| --- | --- | --- |
+| `model` | **31,0 %** | 22,2 % |
+| `vehicle_age_years` | **25,3 %** | 8,5 % |
+| `brand` | 14,5 % | **42,6 %** |
+| `mileage_km` | 9,6 % | 6,5 % |
+| `engine_cc` | 8,5 % | **40,9 %** |
+| `city` | 1,9 % | 9,0 % |
+| `km_per_year` | 1,6 % | 2,1 % |
+| `department` | 0,2 % | 0,8 % |
+| `is_official_store` | 0,1 % | 0,5 % |
+| `is_quad` | — | 0,6 % |
+
+**El hallazgo: en motos el modelo pesa identidad y casi no pesa estado.** Marca, cilindrada
+y modelo suman un tirón de 105 puntos; edad y kilometraje suman 15. En carros la relación
+es la inversa —edad es el segundo factor (25,3 %) y el estado pesa 35 puntos—. Dicho de
+otra forma, el modelo de motos funciona como un catálogo: sabe cuánto vale una Pulsar 180,
+pero no cuánto descontarle por tener diez años y 60.000 km. Eso explica a la vez el 26,7 %
+de MAPE y los 94 % de ancho de banda: dentro de una celda (marca, cilindrada, modelo) le
+queda poca información para separar un ejemplar barato de uno caro.
+
+Dos matices antes de usar esto para decidir:
+
+- La media de |φ| mide **cuánta varianza de precio explica** la variable, no si la relación
+  es correcta. Que la edad pese poco en motos puede ser que de verdad importe menos, o que
+  marca y modelo ya la estén absorbiendo. No se distingue con esta tabla.
+- `engine_cc` pesa 40,9 % en motos y 8,5 % en carros porque el rango real es distinto: de
+  50 cc a 1.200 cc son dos órdenes de magnitud de precio; de 1,0 L a 3,0 L no.
+
+Esto reordena la discusión sobre páginas de detalle: versión y transmisión agregan **más
+identidad**, que es justo lo que a motos no le falta. Lo que falta es señal de estado, y
+eso no está en la tabla de atributos.
+
+---
+
 ## Lo que falta
 
-### F2 — lo que queda
+### F2 — los cinco pasos hechos
 
-5. **SHAP**, para `/explain`. Sobre LightGBM. Es lo único que queda de F2.
-
-Además, tres cosas que las corridas dejaron pendientes:
+Queda abierto el criterio de cierre en sí: **motos no llega a la meta de 15 %**. Lo que las
+corridas dejaron pendiente:
 
 - **Elegir el modelo servido.** LightGBM gana en ambas verticales y es ~5 veces más rápido
   de ajustar que CatBoost. En motos la diferencia con CatBoost es de 0,1 puntos, que es
   ruido; en carros son 1,6 puntos reales. Falta decidir si CatBoost se mantiene como
   comparación o se retira.
 - **Motos a 26,7 % todavía no sirve para el producto**, y la banda lo confirma: 94 % de
-  ancho. Decidir entre enriquecer con páginas de detalle (ver decisiones abiertas) o
-  limitar el alcance de la vertical.
+  ancho. SHAP acota el diagnóstico: falta señal de estado, no de identidad.
 - **La cobertura de la banda queda ~3 puntos corta** del nominal. Ver deuda conocida; no
   bloquea, pero hay que decidir si se arregla antes de exponer la etiqueta en la API.
 
 ### F3 — Resultados
 
 Métricas por segmento, curvas de depreciación, índice mensual, comparación con Fasecolda
-(bloqueada, ver abajo).
+(bloqueada, ver abajo). La importancia global ya está; lo que falta de SHAP en F3 es
+desagregarla por segmento.
 
 ### F4 — Producto
 
@@ -297,6 +343,12 @@ feature del modelo; se vuelve necesaria en F3.
 - **CatBoost se exploró con la mitad del presupuesto que LightGBM** (20 trials contra 40),
   porque cuesta de 3 a 9 veces más por ajuste. Que pierda es evidencia más débil que si
   hubiera perdido con el mismo presupuesto; tenerlo en cuenta antes de retirarlo.
+- **El gráfico de barras de SHAP no está.** Dibujarlo exige importar matplotlib directo, y
+  hoy llega solo como dependencia transitiva de `shap`; declararlo pide regenerar
+  `uv.lock`, que esta máquina no pudo hacer (pypi.org no resolvía) y CI corre con
+  `UV_FROZEN=1`, así que un `pyproject` en desacuerdo con el lock rompe el build. El CSV y
+  las métricas por variable en MLflow llevan la misma información. F3 declara matplotlib
+  de todos modos para las curvas de depreciación.
 - **Quedan corridas `hedonic_ols-*` en MLflow** del nombre anterior al refactor del paso 3.
   No molestan, pero al filtrar por nombre de modelo hay que contar con ellas.
 - **MLflow 3 rechaza el backend de archivos.** `file:./mlruns` quedó en modo
@@ -314,7 +366,7 @@ feature del modelo; se vuelve necesaria en F3.
 #  2. la red intercepta TLS: uv necesita --system-certs, y el scraping
 #     necesita AUTOVALOR_USE_SYSTEM_CERTS=true
 #  3. no hay make ni docker en Windows: usar .\make.ps1
-.\make.ps1 test          # 191 tests, cobertura 96 %
+.\make.ps1 test          # 214 tests, cobertura 95,9 %
 .\make.ps1 lint          # ruff + mypy
 .\make.ps1 transform     # valida bronze, corre dbt, valida silver y gold
 .\make.ps1 train         # los tres modelos y la banda, ~50 min, todo a MLflow
