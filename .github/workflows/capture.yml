@@ -33,6 +33,9 @@ jobs:
   capture:
     name: capture and transform
     runs-on: ubuntu-latest
+    permissions:
+      # The capture publishes its bronze files to the data branch (ADR 0004).
+      contents: write
     # Polite scraping means randomized pauses between requests, so a full sweep
     # takes a while by design.
     timeout-minutes: 120
@@ -83,6 +86,17 @@ jobs:
           for vehicle_type, count in sorted(rows):
               print(f"{vehicle_type}: {count} model-ready listings")
           PY
+
+      - name: Publish bronze to the data branch
+        # Runs even after a failed validation, for the same reason the upload does: the
+        # capture itself is the irreplaceable part. Only bronze is published; silver and
+        # gold are rebuilt from it with dbt. See docs/adr/0004-capture-history-storage.md.
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          uv run python -m autovalor.ingest.history push \
+            --message "bronze from run ${{ github.run_id }}"
 
       - name: Upload capture
         # A capture that loses one department exits non-zero but has already written
