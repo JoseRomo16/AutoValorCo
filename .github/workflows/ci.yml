@@ -44,3 +44,24 @@ jobs:
 
       - name: Tests with coverage
         run: uv run pytest --cov-report=xml
+
+  docker:
+    name: api image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build the API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: autovalor-api:ci
+          # There is no Docker on the development machine, so CI is the only place
+          # the image is ever built. The layer cache keeps that cheap.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
