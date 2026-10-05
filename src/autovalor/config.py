@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # Scraping
     scraper_user_agent: str = (
-        "AutoValorCO/0.1 (+https://github.com/joseluis/autovalor-co; research project)"
+        "AutoValorCO/0.1 (+https://github.com/JoseRomo16/AutoValorCo; research project)"
     )
     scraper_min_delay_seconds: float = 2.0
     scraper_max_delay_seconds: float = 6.0
