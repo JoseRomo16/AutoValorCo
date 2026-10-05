@@ -1,6 +1,6 @@
 # ADR 0004 - Where the accumulated capture history lives
 
-- Status: **proposed** — awaiting a decision
+- Status: accepted
 - Date: 2026-10-05
 
 ## Context
@@ -54,44 +54,55 @@ plus a dependency that nothing else in the project needs today.
 
 ## Decision
 
-**Not taken yet.** This ADR exists so the trade-off is on the record before the artifact
-retention window forces the choice.
+**A, the `data` branch.** It is in place with no account and no secrets, 25 MB/year is
+negligible against the deadline it removes, and a visible capture history is worth
+something in a project meant to be read. **Cloudflare R2 stays the documented upgrade
+path**, and the mechanism is built so that taking it is a small change rather than a
+rewrite: `AUTOVALOR_BRONZE_GLOB` already points dbt at the bronze layer through a single
+glob, and DuckDB reads `s3://` directly, so the read side becomes a change of variable.
 
-The recommendation is **A, the `data` branch**, on the grounds that it can be in place this
-week with no account and no secrets, that 25 MB/year is negligible against the deadline it
-removes, and that a visible capture history is worth something in a project meant to be
-read. R2 stays the documented upgrade path.
-
-One condition flips it: **if detail-page enrichment is approved, choose B.** Enrichment
-multiplies the per-capture size and makes a permanently growing git history the wrong
-container. The two decisions should therefore be taken in that order — enrichment first,
-storage second.
+Detail-page enrichment was approved in the same decision, which is the condition this ADR
+had flagged as a reason to prefer R2 from the start. It does not reverse the choice, for
+two reasons that only became visible once the enrichment was scoped: it is **incremental
+and motorcycle-only**, so it adds one row of parsed attributes per listing rather than
+multiplying the capture, and the detail rows are stored parsed rather than as HTML. The
+threshold to revisit is therefore a size one, recorded below, not the enrichment itself.
 
 ## Consequences
 
-If **A** is chosen:
+Chosen — **A**:
 
 - The weekly workflow gains a commit step and `contents: write`; the token is the
   workflow's own `GITHUB_TOKEN`, scoped to this repository.
 - `data/` stays in `.gitignore` for the working tree; the captures live only on the orphan
   branch, so a normal clone does not pay for them (`git clone --single-branch` by default
   fetches only the default branch).
-- Rebuilding the lake becomes `git fetch origin data` plus a checkout into `data/bronze/`,
-  which keeps the capture filenames and therefore bronze immutability intact.
+- Rebuilding the lake is `make pull-history`, which copies the published Parquet into
+  `data/bronze/` without overwriting anything, so the capture filenames and therefore
+  bronze immutability survive the round trip. Silver and gold are rebuilt from there with
+  `make transform`; only bronze is ever published.
 - A capture committed by mistake can only be removed by rewriting the branch.
+- One mechanism — `autovalor.ingest.history` — serves the workflow, the Makefile and a
+  manual seed, so there is a single place where this can be wrong.
 
-If **B** is chosen:
+The upgrade to **B** costs, when the time comes:
 
 - Four secrets (account id, access key id, secret access key, bucket) and a documented
   rotation step.
 - `AUTOVALOR_BRONZE_GLOB` points at `s3://<bucket>/bronze/**/*.parquet` and dbt needs the
-  DuckDB `httpfs` extension plus credentials in its profile; the write side needs an
-  upload step in the workflow.
+  DuckDB `httpfs` extension plus credentials in its profile; the write side replaces the
+  publish step.
 - Bucket versioning or a write-once policy has to be configured deliberately, because an
   object store will happily overwrite a key — git would not.
 
-Either way:
+**When to revisit.** Three triggers, in the order they are likely to arrive: the branch
+passes ~500 MB; a weekly capture stops fitting in a commit that is cheap to clone; or the
+detail enrichment is extended beyond motorcycles and starts carrying per-listing HTML-sized
+payloads rather than parsed rows.
 
-- The artifact upload stays as a safety net, so a storage outage does not lose a capture.
-- The deadline is real: whatever is chosen has to be running before **2027-01-03**, when
-  the first scheduled capture's artifact expires.
+Regardless:
+
+- The artifact upload stays as a safety net, so a failure to publish does not lose a
+  capture. The two paths are independent on purpose.
+- The deadline was real and is now met: the branch is seeded ahead of **2027-01-03**, when
+  the first scheduled capture's artifact would have expired.
