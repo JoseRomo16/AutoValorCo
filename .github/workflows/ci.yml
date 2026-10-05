@@ -52,16 +52,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
+      # Plain docker build on the runner's pre-installed Docker: no third-party
+      # actions, nothing to keep pinned, and the image is small enough that a layer
+      # cache is not worth the extra moving parts.
       - name: Build the API image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: false
-          tags: autovalor-api:ci
-          # There is no Docker on the development machine, so CI is the only place
-          # the image is ever built. The layer cache keeps that cheap.
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        run: docker build --tag autovalor-api:ci .
