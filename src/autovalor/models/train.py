@@ -41,6 +41,7 @@ from autovalor.models.dataset import (
     VehicleType,
     load_split,
 )
+from autovalor.models.explain import EXPLAINED_KIND, global_importance
 from autovalor.models.hedonic import (
     FEATURE_SETS,
     TARGET,
@@ -115,6 +116,8 @@ class ModelResult:
         trials: One row per Optuna trial, when a search ran.
         interval: Held-out quality of the P10-P90 band, when one was fitted.
         interval_model: The fitted quantile models behind that band.
+        importance: Mean absolute SHAP contribution per feature, measured on the holdout,
+            when the model is the one that gets explained.
     """
 
     vehicle_type: VehicleType
@@ -128,6 +131,7 @@ class ModelResult:
     trials: pd.DataFrame | None = None
     interval: IntervalReport | None = None
     interval_model: FittedInterval | None = None
+    importance: pd.DataFrame | None = None
 
     @property
     def run_name(self) -> str:
@@ -155,6 +159,16 @@ class ModelResult:
             metrics["interval_widening_log"] = self.interval_model.widening
             metrics["interval_crossing_rate"] = self.interval_model.crossing_rate
             metrics["interval_n_calibration"] = float(self.interval_model.n_calibration)
+        if self.importance is not None:
+            # One metric per feature, so the ranking is queryable in MLflow without
+            # opening the artifact.
+            features, values = _importance_pairs(self.importance)
+            metrics.update(
+                {
+                    f"shap_mean_abs_{feature}": value
+                    for feature, value in zip(features, values, strict=True)
+                }
+            )
         return metrics
 
 
@@ -166,6 +180,7 @@ def train_model(
     n_trials: int | None = None,
     seed: int = DEFAULT_SEED,
     intervals: bool = True,
+    explain: bool = True,
 ) -> ModelResult:
     """Fit one model on a partition and score both sides of it.
 
@@ -179,6 +194,8 @@ def train_model(
         seed: Seed for the search and the models.
         intervals: Whether to also fit the P10-P90 band. Only applies to
             :data:`INTERVAL_KIND`, and reuses that model's tuned parameters.
+        explain: Whether to measure SHAP importance on the holdout. Only applies to
+            :data:`autovalor.models.explain.EXPLAINED_KIND`.
 
     Returns:
         The fitted model together with its in-sample and held-out error, plus the band
@@ -198,6 +215,7 @@ def train_model(
     trials: pd.DataFrame | None = None
     band: FittedInterval | None = None
     band_report: IntervalReport | None = None
+    importance: pd.DataFrame | None = None
 
     if model_kind == BASELINE_KIND:
         variant = feature_set
@@ -247,6 +265,11 @@ def train_model(
             bounds = band.predict_log_bounds(dataset.test)
             band_report = interval_report(dataset.test[TARGET], bounds[:, 0], bounds[:, 2])
 
+        if explain and tree_kind == EXPLAINED_KIND:
+            # Measured on the holdout, not on train: an importance ranking read off the
+            # rows the trees already memorised would overstate whatever they overfitted.
+            importance = global_importance(tree, dataset.test)
+
     train_report = regression_report(dataset.train[TARGET], model.predict_log_price(dataset.train))
     test_report = regression_report(dataset.test[TARGET], model.predict_log_price(dataset.test))
 
@@ -272,6 +295,17 @@ def train_model(
             band_report.coverage * 100,
             band_report.mean_relative_width * 100,
         )
+    if importance is not None:
+        features, values = _importance_pairs(importance.head(3))
+        logger.info(
+            "%s / %s drivers — %s",
+            dataset.vehicle_type,
+            model_kind,
+            ", ".join(
+                f"{feature} {value:+.3f} log"
+                for feature, value in zip(features, values, strict=True)
+            ),
+        )
     return ModelResult(
         vehicle_type=dataset.vehicle_type,
         model_kind=model_kind,
@@ -284,6 +318,7 @@ def train_model(
         trials=trials,
         interval=band_report,
         interval_model=band,
+        importance=importance,
     )
 
 
@@ -345,6 +380,51 @@ def log_to_mlflow(result: ModelResult) -> None:
                 path = Path(directory) / f"{result.run_name}-trials.csv"
                 result.trials.to_csv(path, index=False)
                 mlflow.log_artifact(str(path), artifact_path="search")
+
+        # The importance ranking also goes in as one metric per feature, above, so it can
+        # be compared across runs without opening this artifact.
+        if result.importance is not None:
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / f"{result.run_name}-shap.csv"
+                result.importance.to_csv(path, index=False)
+                mlflow.log_artifact(str(path), artifact_path="explain")
+
+
+def format_importance_table(results: Sequence[ModelResult]) -> str:
+    """Render the SHAP importance of every explained fit as one text table.
+
+    Args:
+        results: Fits to report; those without an importance table are skipped.
+
+    Returns:
+        The table, or an empty string when nothing was explained.
+    """
+    explained = [
+        (result.vehicle_type, result.importance)
+        for result in results
+        if result.importance is not None
+    ]
+    if not explained:
+        return ""
+
+    header = f"{'vertical':<12} {'feature':<20} {'mean |phi|':>11} {'typical pull':>13}"
+    lines = [header, "-" * len(header)]
+    for vehicle_type, importance in explained:
+        features, values = _importance_pairs(importance)
+        for feature, value in zip(features, values, strict=True):
+            # expm1 of the mean |phi|: the typical size of this feature's pull on the
+            # price, with its direction dropped.
+            pull = float(np.expm1(value)) * 100
+            lines.append(f"{vehicle_type:<12} {feature:<20} {value:>11.4f} {pull:>12.1f}%")
+        lines.append("")
+    return "\n".join(lines).rstrip()
+
+
+def _importance_pairs(importance: pd.DataFrame) -> tuple[list[str], list[float]]:
+    """Split an importance table into plain Python lists, in ranked order."""
+    features = [str(feature) for feature in importance["feature"].tolist()]
+    values = [float(value) for value in importance["mean_abs_phi"].tolist()]
+    return features, values
 
 
 def format_table(results: Sequence[ModelResult]) -> str:
@@ -442,6 +522,7 @@ def run(
     seed: int = DEFAULT_SEED,
     n_trials: int | None = None,
     intervals: bool = True,
+    explain: bool = True,
     duckdb_path: Path | None = None,
     track: bool = True,
 ) -> list[ModelResult]:
@@ -457,6 +538,8 @@ def run(
         n_trials: Optuna budget per tree model and vertical; ``None`` uses the per-model
             defaults.
         intervals: Whether to fit the P10-P90 band on :data:`INTERVAL_KIND`.
+        explain: Whether to measure SHAP importance on the holdout for
+            :data:`autovalor.models.explain.EXPLAINED_KIND`.
         duckdb_path: Database written by dbt. Defaults to the configured path.
         track: Whether to record each fit as an MLflow run.
 
@@ -486,6 +569,7 @@ def run(
                     n_trials=n_trials,
                     seed=seed,
                     intervals=intervals,
+                    explain=explain,
                 )
                 if track:
                     log_to_mlflow(result)
@@ -570,6 +654,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--no-explain",
+        action="store_true",
+        help=(
+            f"Skip the SHAP importance, which is otherwise measured on the holdout for "
+            f"{EXPLAINED_KIND}."
+        ),
+    )
+    parser.add_argument(
         "--no-mlflow",
         action="store_true",
         help="Skip MLflow tracking; useful for a quick look at the numbers.",
@@ -602,6 +694,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             seed=args.seed,
             n_trials=args.trials,
             intervals=not args.no_intervals,
+            explain=not args.no_explain,
             duckdb_path=args.duckdb_path,
             track=not args.no_mlflow,
         )
@@ -613,6 +706,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     bands = format_interval_table(results)
     if bands:
         sys.stdout.write("\n" + bands + "\n")
+    drivers = format_importance_table(results)
+    if drivers:
+        sys.stdout.write("\n" + drivers + "\n")
     return 0
 
 
