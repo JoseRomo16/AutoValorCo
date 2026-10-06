@@ -36,6 +36,7 @@ import numpy.typing as npt
 import pandas as pd
 
 from autovalor.models.dataset import DEFAULT_SEED, VehicleType, split_listings
+from autovalor.models.metrics import IntervalReport
 from autovalor.models.trees import DEFAULT_PARAMS, FittedTree, fit_tree
 
 logger = logging.getLogger("autovalor.models")
@@ -63,6 +64,26 @@ Label = Literal["bargain", "fair", "expensive"]
 BARGAIN: Label = "bargain"
 FAIR: Label = "fair"
 EXPENSIVE: Label = "expensive"
+
+MIN_LABEL_COVERAGE = 0.78
+MAX_LABEL_COVERAGE = 0.82
+"""Coverage window the band must land in before its label may be published.
+
+Two-sided on purpose. Under-coverage is the obvious failure — a band advertised as 80 %
+that holds 76 % calls ordinary listings bargains. Over-coverage is a failure too: it means
+the conformal step widened past what the data asked for, so "fair" absorbs listings that
+are genuinely mispriced and the label stops discriminating. Either way the number stops
+meaning what the product says it means, so the rule is a window and not a floor.
+"""
+
+MAX_LABEL_RELATIVE_WIDTH = 0.60
+"""Widest band, as a share of the estimate, that still carries a usable label.
+
+Measured as ``(upper - lower) / estimate`` in pesos. At 60 % the band runs roughly from
+three quarters to one and a third of the estimate, which still separates a bargain from an
+ordinary price. The motorcycle band of F2 step 4 sat at 94 %, i.e. from about half to
+double: every honest listing lands inside it and the label says nothing.
+"""
 
 
 @dataclass(frozen=True)
@@ -278,3 +299,121 @@ def classify(
         else:
             labels.append(FAIR)
     return labels
+
+
+@dataclass(frozen=True)
+class LabelPolicy:
+    """Whether a vertical has earned the right to show the bargain/fair/expensive label.
+
+    The label is a claim about where a price sits inside a band, so it is only worth as
+    much as the band. Two measured properties decide it, and both have to hold:
+
+    * **Coverage** inside ``[MIN_LABEL_COVERAGE, MAX_LABEL_COVERAGE]`` — the band holds
+      what it says it holds.
+    * **Mean relative width** at or below :data:`MAX_LABEL_RELATIVE_WIDTH` — the band is
+      narrow enough that falling outside it means something.
+
+    When either fails the vertical still ships: an estimated price and the range, with
+    :attr:`precision_notice` explaining what is missing. Dropping the vertical would be an
+    overreaction; showing a label the measurement does not support would be a false claim.
+
+    The gate reads a held-out :class:`~autovalor.models.metrics.IntervalReport`, never a
+    training one. Deciding on in-sample coverage would wave through exactly the bands this
+    exists to stop.
+
+    Attributes:
+        vehicle_type: Vertical the decision applies to.
+        coverage: Held-out share of asking prices that fell inside the band.
+        mean_relative_width: Held-out mean of ``(upper - lower) / estimate``, in pesos.
+        n: Rows both figures were measured on.
+        failures: One message per rule that failed, empty when the label is published.
+    """
+
+    vehicle_type: VehicleType
+    coverage: float
+    mean_relative_width: float
+    n: int
+    failures: tuple[str, ...]
+
+    @property
+    def publishes_label(self) -> bool:
+        """Whether the bargain/fair/expensive label may be shown for this vertical."""
+        return not self.failures
+
+    @property
+    def precision_notice(self) -> str | None:
+        """What to tell the user instead of a label, or ``None`` when one is published.
+
+        Phrased as the product's own caveat rather than a model diagnostic, because this
+        string exists to be rendered next to the estimate.
+        """
+        if self.publishes_label:
+            return None
+        return (
+            "Estimate and range only: the price band for this vertical is not precise "
+            f"enough to call a listing a bargain or expensive ({'; '.join(self.failures)})."
+        )
+
+    def labels(
+        self,
+        asking_log_price: npt.ArrayLike,
+        log_lower: npt.ArrayLike,
+        log_upper: npt.ArrayLike,
+    ) -> list[Label] | None:
+        """Classify the rows, or return ``None`` when the band has not earned a label.
+
+        This is the call sites' entry point, so a caller cannot skip the gate by reaching
+        for :func:`classify` without noticing.
+
+        Args:
+            asking_log_price: Observed ``log(price)`` of the listings.
+            log_lower: Predicted lower bound on the log scale.
+            log_upper: Predicted upper bound on the log scale.
+
+        Returns:
+            One label per row when :attr:`publishes_label` holds, ``None`` otherwise.
+        """
+        if not self.publishes_label:
+            return None
+        return classify(asking_log_price, log_lower, log_upper)
+
+
+def label_policy(report: IntervalReport, *, vehicle_type: VehicleType) -> LabelPolicy:
+    """Decide whether a measured band may carry the label.
+
+    Args:
+        report: Held-out quality of the band, from
+            :func:`autovalor.models.metrics.interval_report`.
+        vehicle_type: Vertical the band was fitted for.
+
+    Returns:
+        The decision, carrying the numbers it was taken on so a report can quote them.
+    """
+    failures: list[str] = []
+    if not MIN_LABEL_COVERAGE <= report.coverage <= MAX_LABEL_COVERAGE:
+        failures.append(
+            f"coverage {report.coverage:.1%} outside "
+            f"{MIN_LABEL_COVERAGE:.0%}-{MAX_LABEL_COVERAGE:.0%}"
+        )
+    if report.mean_relative_width > MAX_LABEL_RELATIVE_WIDTH:
+        failures.append(
+            f"mean width {report.mean_relative_width:.0%} of the estimate, "
+            f"above {MAX_LABEL_RELATIVE_WIDTH:.0%}"
+        )
+
+    policy = LabelPolicy(
+        vehicle_type=vehicle_type,
+        coverage=report.coverage,
+        mean_relative_width=report.mean_relative_width,
+        n=report.n,
+        failures=tuple(failures),
+    )
+    logger.info(
+        "%s label — %s (coverage %.1f%%, mean width %.0f%% on %d held-out rows)",
+        vehicle_type,
+        "published" if policy.publishes_label else "withheld: " + "; ".join(failures),
+        report.coverage * 100,
+        report.mean_relative_width * 100,
+        report.n,
+    )
+    return policy

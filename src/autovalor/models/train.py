@@ -55,7 +55,16 @@ from autovalor.models.metrics import (
     interval_report,
     regression_report,
 )
-from autovalor.models.quantiles import NOMINAL_COVERAGE, FittedInterval, fit_interval
+from autovalor.models.quantiles import (
+    MAX_LABEL_COVERAGE,
+    MAX_LABEL_RELATIVE_WIDTH,
+    MIN_LABEL_COVERAGE,
+    NOMINAL_COVERAGE,
+    FittedInterval,
+    LabelPolicy,
+    fit_interval,
+    label_policy,
+)
 from autovalor.models.trees import DEFAULT_PARAMS, FittedTree, TreeModel, fit_tree
 from autovalor.models.tuning import DEFAULT_TRIALS, search, trials_for
 
@@ -116,6 +125,8 @@ class ModelResult:
         trials: One row per Optuna trial, when a search ran.
         interval: Held-out quality of the P10-P90 band, when one was fitted.
         interval_model: The fitted quantile models behind that band.
+        label: Whether that band earned the bargain/fair/expensive label, when one was
+            fitted.
         importance: Mean absolute SHAP contribution per feature, measured on the holdout,
             when the model is the one that gets explained.
     """
@@ -131,6 +142,7 @@ class ModelResult:
     trials: pd.DataFrame | None = None
     interval: IntervalReport | None = None
     interval_model: FittedInterval | None = None
+    label: LabelPolicy | None = None
     importance: pd.DataFrame | None = None
 
     @property
@@ -159,6 +171,10 @@ class ModelResult:
             metrics["interval_widening_log"] = self.interval_model.widening
             metrics["interval_crossing_rate"] = self.interval_model.crossing_rate
             metrics["interval_n_calibration"] = float(self.interval_model.n_calibration)
+        if self.label is not None:
+            # Queryable as a metric so "did this run earn the label" can be answered from
+            # the MLflow table, without opening the run.
+            metrics["label_published"] = float(self.label.publishes_label)
         if self.importance is not None:
             # One metric per feature, so the ranking is queryable in MLflow without
             # opening the artifact.
@@ -219,6 +235,7 @@ def train_model(
     trials: pd.DataFrame | None = None
     band: FittedInterval | None = None
     band_report: IntervalReport | None = None
+    band_label: LabelPolicy | None = None
     importance: pd.DataFrame | None = None
 
     if model_kind == BASELINE_KIND:
@@ -272,6 +289,9 @@ def train_model(
             )
             bounds = band.predict_log_bounds(dataset.test)
             band_report = interval_report(dataset.test[TARGET], bounds[:, 0], bounds[:, 2])
+            # Decided on the holdout the band was just scored on, which is the only split
+            # that can answer whether users would see an honest label.
+            band_label = label_policy(band_report, vehicle_type=dataset.vehicle_type)
 
         if explain and tree_kind == EXPLAINED_KIND:
             # Measured on the holdout, not on train: an importance ranking read off the
@@ -326,6 +346,7 @@ def train_model(
         trials=trials,
         interval=band_report,
         interval_model=band,
+        label=band_label,
         importance=importance,
     )
 
@@ -485,6 +506,10 @@ def format_interval_table(results: Sequence[ModelResult]) -> str:
     enough for the bargain / fair / expensive label to mean something. Eighty per cent
     coverage reached by quoting "between 10 and 200 million" tells a user nothing.
 
+    The last column is that judgement made explicit — see
+    :func:`autovalor.models.quantiles.label_policy` — with the reason spelled out below the
+    table for every vertical that did not pass.
+
     Args:
         results: Fits to display; those without a band are skipped.
 
@@ -496,13 +521,16 @@ def format_interval_table(results: Sequence[ModelResult]) -> str:
 
     header = (
         f"{'vertical':<12} {'model':<10} {'n test':>7} {'coverage':>9} {'width':>8} "
-        f"{'bargain':>8} {'expensive':>10} {'widening':>9} {'crossed':>8}"
+        f"{'bargain':>8} {'expensive':>10} {'widening':>9} {'crossed':>8} {'label':>10}"
     )
     lines = [
-        f"P10-P90 band, conformalized (nominal coverage {NOMINAL_COVERAGE:.0%})",
+        f"P10-P90 band, conformalized (nominal coverage {NOMINAL_COVERAGE:.0%}); label "
+        f"needs coverage {MIN_LABEL_COVERAGE:.0%}-{MAX_LABEL_COVERAGE:.0%} and width "
+        f"<= {MAX_LABEL_RELATIVE_WIDTH:.0%}",
         header,
         "-" * len(header),
     ]
+    withheld: list[str] = []
     for result in results:
         band = result.interval
         if band is None:
@@ -512,12 +540,21 @@ def format_interval_table(results: Sequence[ModelResult]) -> str:
         if result.interval_model is not None:
             widening = f"{result.interval_model.widening:+.3f}"
             crossed = f"{result.interval_model.crossing_rate:.1%}"
+        verdict = "-"
+        if result.label is not None:
+            verdict = "published" if result.label.publishes_label else "withheld"
+            if not result.label.publishes_label:
+                withheld.append(
+                    f"  {result.vehicle_type}: {'; '.join(result.label.failures)} "
+                    "-> estimate and range only, no label"
+                )
         lines.append(
             f"{result.vehicle_type:<12} {result.model_kind:<10} {band.n:>7} "
             f"{band.coverage:>8.1%} {band.mean_relative_width:>7.0%} "
-            f"{band.below_rate:>7.1%} {band.above_rate:>9.1%} {widening:>9} {crossed:>8}"
+            f"{band.below_rate:>7.1%} {band.above_rate:>9.1%} {widening:>9} {crossed:>8} "
+            f"{verdict:>10}"
         )
-    return "\n".join(lines)
+    return "\n".join(lines + withheld)
 
 
 def run(

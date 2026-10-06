@@ -43,6 +43,8 @@ dbt/dbt_packages/
 dbt/logs/
 dbt/.user.yml
 logs/
+# Console output of a long run, redirected to a file so it can be read while it works.
+*.log
 *.duckdb
 *.duckdb.wal
 

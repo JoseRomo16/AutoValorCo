@@ -3,16 +3,20 @@ import pandas as pd
 import pytest
 
 from autovalor.models.dataset import group_keys, split_listings
-from autovalor.models.metrics import interval_report
+from autovalor.models.metrics import IntervalReport, interval_report
 from autovalor.models.quantiles import (
     BARGAIN,
     EXPENSIVE,
     FAIR,
+    MAX_LABEL_COVERAGE,
+    MAX_LABEL_RELATIVE_WIDTH,
+    MIN_LABEL_COVERAGE,
     NOMINAL_COVERAGE,
     QUANTILES,
     classify,
     conformal_widening,
     fit_interval,
+    label_policy,
 )
 
 from .conftest import make_gold_frame
@@ -163,3 +167,87 @@ def test_classify_rejects_a_crossed_band() -> None:
 def test_classify_rejects_mismatched_shapes() -> None:
     with pytest.raises(ValueError, match="shape mismatch"):
         classify([17.0, 17.5], [16.0], [18.0])
+
+
+def make_band_report(coverage: float, width: float, n: int = 1500) -> IntervalReport:
+    """An interval report with the two numbers the label gate reads.
+
+    The rates are plausible rather than meaningful: nothing in the gate looks at them.
+    """
+    outside = (1.0 - coverage) / 2.0
+    return IntervalReport(
+        n=n,
+        coverage=coverage,
+        mean_relative_width=width,
+        below_rate=outside,
+        above_rate=outside,
+    )
+
+
+def test_a_calibrated_and_narrow_band_earns_the_label() -> None:
+    policy = label_policy(make_band_report(0.810, 0.41), vehicle_type="car")
+
+    assert policy.publishes_label
+    assert policy.failures == ()
+    assert policy.precision_notice is None
+
+
+def test_an_under_covering_band_loses_the_label() -> None:
+    policy = label_policy(make_band_report(0.765, 0.38), vehicle_type="car")
+
+    assert not policy.publishes_label
+    assert "coverage 76.5%" in policy.failures[0]
+
+
+def test_an_over_covering_band_also_loses_the_label() -> None:
+    # The window is two-sided: a band wide enough to swallow 90 % of asking prices calls
+    # almost everything fair, which is not a judgement either.
+    policy = label_policy(make_band_report(0.90, 0.50), vehicle_type="car")
+
+    assert not policy.publishes_label
+    assert "coverage 90.0%" in policy.failures[0]
+
+
+def test_a_wide_band_loses_the_label_even_when_perfectly_calibrated() -> None:
+    policy = label_policy(make_band_report(0.80, 0.94), vehicle_type="motorcycle")
+
+    assert not policy.publishes_label
+    assert "mean width 94%" in policy.failures[0]
+
+
+def test_the_f2_motorcycle_band_fails_both_rules() -> None:
+    # The numbers F2 step 4 actually measured on motorcycles. Kept as the anchor the rule
+    # was written against: it has to reject this band on both counts.
+    policy = label_policy(make_band_report(0.768, 0.94), vehicle_type="motorcycle")
+
+    assert not policy.publishes_label
+    assert len(policy.failures) == 2
+
+
+def test_the_thresholds_are_inclusive() -> None:
+    # A rule stated as "between 78 % and 82 %" includes its ends; so does "<= 60 %".
+    for coverage in (MIN_LABEL_COVERAGE, MAX_LABEL_COVERAGE):
+        edge = label_policy(
+            make_band_report(coverage, MAX_LABEL_RELATIVE_WIDTH), vehicle_type="car"
+        )
+        assert edge.publishes_label
+
+
+def test_a_published_policy_classifies_the_rows() -> None:
+    policy = label_policy(make_band_report(0.80, 0.40), vehicle_type="car")
+    lower = np.log([10_000_000.0] * 3)
+    upper = np.log([20_000_000.0] * 3)
+    asking = np.log([9_000_000.0, 15_000_000.0, 25_000_000.0])
+
+    assert policy.labels(asking, lower, upper) == [BARGAIN, FAIR, EXPENSIVE]
+
+
+def test_a_withheld_policy_returns_no_labels_and_a_notice() -> None:
+    policy = label_policy(make_band_report(0.768, 0.94), vehicle_type="motorcycle")
+
+    assert policy.labels([17.0], [16.0], [18.0]) is None
+    notice = policy.precision_notice
+    assert notice is not None
+    assert "Estimate and range only" in notice
+    # The user-facing caveat has to carry the reason, not just the refusal.
+    assert "94%" in notice
