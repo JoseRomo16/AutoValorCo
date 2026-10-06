@@ -14,6 +14,19 @@ with listings as (
     select listing_id, vehicle_type, title, model_year
     from {{ ref('silver_listings') }}
     where title is not null
+    -- One row per listing, which is the grain gold joins this on.
+    --
+    -- silver_listings is one row per (listing, asking price) on purpose: a price change
+    -- becomes a new row, which is what the monthly index needs. So a listing whose price
+    -- moved between captures arrives here more than once, and the join into gold would
+    -- fan out. It stayed invisible while the lake held a single capture window; the first
+    -- time the history spanned five days, 224 listings had repriced.
+    --
+    -- The tie-break matches gold's exactly, so the title mined here belongs to the same
+    -- row gold keeps rather than to an older price.
+    qualify row_number() over (
+        partition by listing_id order by last_seen_at desc, price_cop desc
+    ) = 1
 
 ),
 
