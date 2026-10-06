@@ -22,6 +22,9 @@ vars:
   max_engine_cc: 2500
   min_car_cc: 600
   max_car_cc: 8000
+  # Gear count, from the listing page's free-text field.
+  min_gear_count: 1
+  max_gear_count: 12
 
 seeds:
   autovalor:

@@ -21,6 +21,21 @@ with detail as (
 
     select * from {{ source('detail', 'listings') }}
 
+),
+
+parsed as (
+
+    select
+        *,
+        -- "150 cc" -> 150, ".' separators removed.
+        try_cast(
+            regexp_replace(
+                replace(coalesce(json_extract_string(attributes_json, '$.engine_cc'), ''), '.', ''),
+                '[^0-9]', '', 'g'
+            ) as bigint
+        ) as engine_cc_raw
+    from detail
+
 )
 
 select
@@ -33,14 +48,18 @@ select
     -- the title never says which.
     nullif(trim(json_extract_string(attributes_json, '$.body_type')), '') as detail_body_type,
 
-    -- "150 cc" -> 150. The title yields this for 80,6 % of motorcycles; the page yields
-    -- it for nearly all of them, so this is the column that fills the gap.
-    try_cast(
-        regexp_replace(
-            replace(coalesce(json_extract_string(attributes_json, '$.engine_cc'), ''), '.', ''),
-            '[^0-9]', '', 'g'
-        ) as bigint
-    ) as detail_engine_cc,
+    -- The title yields a displacement for 80,6 % of motorcycles; the page yields one for
+    -- 94,9 %, so this is the column that fills the gap.
+    --
+    -- Bounded by the same plausibility window the title version is. The form field is
+    -- free text, and the first production pass returned 0, 1, 11, 12, 13 and 40 cc: part
+    -- typos, part electric motorcycles that have no displacement at all. Nulling them
+    -- here lets gold's coalesce fall back to the title instead of poisoning a feature.
+    -- The Pandera contract on gold is what caught this.
+    case
+        when engine_cc_raw between {{ var('min_engine_cc') }} and {{ var('max_engine_cc') }}
+            then engine_cc_raw
+    end as detail_engine_cc,
 
     nullif(trim(json_extract_string(attributes_json, '$.color')), '') as detail_color,
     nullif(trim(json_extract_string(attributes_json, '$.brakes')), '') as detail_brakes,
@@ -50,7 +69,12 @@ select
     -- not comparable. Kept as the published string until there is a reason to trust it.
     nullif(trim(json_extract_string(attributes_json, '$.power')), '') as detail_power_raw,
 
-    try_cast(json_extract_string(attributes_json, '$.gear_count') as bigint) as detail_gear_count,
+    -- Free text as well, and the first pass returned 0 and 82 among the real values.
+    case
+        when try_cast(json_extract_string(attributes_json, '$.gear_count') as bigint)
+            between {{ var('min_gear_count') }} and {{ var('max_gear_count') }}
+            then try_cast(json_extract_string(attributes_json, '$.gear_count') as bigint)
+    end as detail_gear_count,
 
     case json_extract_string(attributes_json, '$.single_owner')
         when 'Sí' then true
@@ -62,7 +86,7 @@ select
     nullif(trim(json_extract_string(attributes_json, '$.brand')), '') as detail_brand,
     nullif(trim(json_extract_string(attributes_json, '$.model')), '') as detail_model
 
-from detail
+from parsed
 
 {% else %}
 
