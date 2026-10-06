@@ -16,10 +16,13 @@ divergir: **JSON** para la app y **CSV** para un cuaderno o una hoja de cálculo
 | `regional_effect` | Diferencia de precio por departamento para un vehículo comparable |
 | `segment_error` | MAPE del modelo servido por marca, segmento de precio y departamento, sobre el holdout |
 | `catalogue_contrast` | El contraste identidad/estado de SHAP frente a la depreciación del hedónico |
-| `manifest.json` | Sobre qué lago se midió todo: filas, cobertura de detalle, span de capturas y los umbrales vigentes |
+| `price_index` | Índice hedónico mensual de calidad constante — **todavía no se genera**, ver abajo |
+| `manifest.json` | Sobre qué lago se midió todo: filas, cobertura de detalle, span de capturas, umbrales vigentes y lo que la corrida **no** pudo producir |
 
 **Lee `manifest.json` antes de citar una cifra.** Un número sin saber sobre cuántas filas
-se midió no se puede comparar con el siguiente.
+se midió no se puede comparar con el siguiente. Su campo `skipped` dice qué análisis no se
+pudo producir y por qué: un resultado ausente y un resultado que nadie pidió se ven igual
+en un directorio, y no son lo mismo.
 
 ## Convenciones
 
@@ -30,6 +33,28 @@ se midió no se puede comparar con el siguiente.
 - Los valores faltantes son `null` en JSON, nunca `NaN` —que no es JSON válido—.
 - Los flotantes vienen redondeados a cuatro decimales para que los diffs del repositorio
   sean legibles.
+
+## El IPC del DANE no está aquí, y el índice tampoco
+
+El índice de precios (`autovalor.analysis.price_index`) deflacta con el IPC del DANE, que es
+público y gratuito pero no se publica en una URL estable que una máquina pueda leer.
+Inventar valores para dejar el archivo completo sería peor que no tenerlo: toda cifra real
+que dependiera de ellos heredaría números que nadie puede verificar.
+
+Cuando haga falta —no hoy— se descarga a mano y se guarda como `data/reference/ipc_dane.csv`
+con dos columnas:
+
+```csv
+period,cpi
+2026-09,142.37
+2026-10,142.91
+```
+
+El nivel puede venir en cualquier base; solo se usan razones entre periodos.
+
+**El índice todavía no corre, y no por falta del IPC:** el lago abarca 5,5 días y un índice
+mensual necesita 180. `check_publishable` se niega y dice en qué fecha el histórico semanal
+llega solo —**2027-03-29**—, y esa negativa es la que aparece en `skipped`.
 
 ## Cómo se regeneran
 

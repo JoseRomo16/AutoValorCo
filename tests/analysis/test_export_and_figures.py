@@ -80,6 +80,16 @@ def test_the_timestamp_has_no_microseconds() -> None:
     assert "." not in now_utc()
 
 
+def test_the_manifest_says_what_could_not_be_produced(tmp_path: Path, manifest: Manifest) -> None:
+    # An absent result and a result nobody asked for look identical in a directory, so the
+    # reason an analysis was skipped has to be written down somewhere.
+    manifest.skipped["price_index.car"] = "the lake spans 5.5 days, under the 180 needed"
+
+    written = json.loads(write_manifest(manifest, output_dir=tmp_path).read_text(encoding="utf-8"))
+
+    assert "under the 180" in written["skipped"]["price_index.car"]
+
+
 def test_every_figure_renders(tmp_path: Path, cars: pd.DataFrame) -> None:
     # A smoke test rather than a pixel comparison: what breaks a chart in practice is a
     # column that is not there or an interval that comes out backwards, and both of those

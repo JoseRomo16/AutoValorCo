@@ -662,8 +662,43 @@ muestra; `analysis/` explica y se juzga por si un efecto se distingue de cero. P
 precio, y los errores clásicos saldrían demasiado angostos— y no los ensambles, que
 predicen bien y no dicen cuánto vale un año.
 
-Falta: el **índice mensual de precios** y la **comparación con Fasecolda**, que queda fuera
-de alcance (ver decisiones abiertas).
+Falta publicar el **índice mensual de precios** —implementado, probado y deliberadamente
+sin correr, ver abajo— y la **comparación con Fasecolda**, que queda fuera de alcance (ver
+decisiones abiertas).
+
+#### El índice de precios está hecho y no se publica hasta ~2027-03-29
+
+`autovalor.analysis.price_index` implementa el índice hedónico con **efectos fijos de
+periodo**: una regresión de `log(precio)` sobre los atributos del vehículo más una dummy por
+mes, de forma que lo que se mide es el precio de un vehículo de **calidad constante** y no
+el de la mezcla. Esa distinción es el punto entero: una mediana de precios sube cuando el
+mes trae más camionetas y menos hatchbacks, y eso no es inflación de usados.
+
+Se deflacta con el IPC del DANE, y **las dos cifras se reportan**. Un índice de usados que
+sube 6 % en un año donde todo subió 7 % describe un mercado que se abarató en términos
+reales; publicar solo el "+6 %" invertiría el hallazgo.
+
+**Está probado sobre datos sintéticos con una tendencia plantada**, que es la única forma de
+validar un índice cuando todavía no hay histórico: los tests le plantan un 2 % mensual y
+verifican que lo recupera, que un mercado plano da un índice plano, que deflactar por la
+misma tendencia deja el índice real en 100, y que un periodo sin IPC queda en nulo en vez de
+asumir uno.
+
+**No corre sobre datos reales, a propósito.** `check_publishable` exige
+`MIN_INDEX_SPAN_DAYS = 180` y el lago abarca 5,5 días. Son 180 y no los 14 de la partición
+temporal porque son preguntas distintas: una partición solo tiene que separar pasado de
+futuro, mientras que un índice describe una **trayectoria**, y dos o tres puntos no
+distinguen una tendencia del ruido de dos semanas concretas. La primera captura es del
+**2026-09-30**, así que con la captura semanal corriendo sola el índice tiene sentido desde
+**~2027-03-29**. El error lo dice con esa fecha calculada, no con un "faltan datos", y
+`make results` lo anota en el campo `skipped` del manifiesto en vez de fallar.
+
+Lo que hay que conseguir a mano para entonces: **la serie del IPC del DANE**, en
+`data/reference/ipc_dane.csv` con columnas `period,cpi`. Es pública y gratuita —no viola la
+regla de costo cero— pero no está en una URL estable que una máquina pueda leer. **No se
+inventaron valores** para dejar el archivo completo: cualquier cifra real que dependiera de
+ellos heredaría números que nadie puede verificar. Sin el archivo el índice nominal igual
+funciona y el real queda indefinido, que es lo correcto.
 
 ### F4 — Producto
 

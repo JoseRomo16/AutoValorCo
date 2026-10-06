@@ -23,7 +23,15 @@ from pathlib import Path
 
 import pandas as pd
 
-from autovalor.analysis import catalogue, depreciation, figures, mileage, regional, segments
+from autovalor.analysis import (
+    catalogue,
+    depreciation,
+    figures,
+    mileage,
+    price_index,
+    regional,
+    segments,
+)
 from autovalor.analysis.export import (
     FIGURES_DIR,
     RESULTS_DIR,
@@ -114,6 +122,17 @@ def collect(
     if importances:
         add("catalogue_contrast", catalogue.catalogue_contrast(importances, frames))
 
+    skipped: dict[str, str] = {}
+    for vehicle_type, frame in frames.items():
+        try:
+            add("price_index", price_index.hedonic_index(frame, vehicle_type=vehicle_type))
+        except price_index.IndexNotPossibleError as error:
+            # Expected until the weekly captures accumulate six months, so it is recorded
+            # rather than raised: a run that produced everything else still succeeded, and
+            # the manifest is where "why is there no index" belongs.
+            skipped[f"price_index.{vehicle_type}"] = str(error)
+            logger.info("no %s price index yet — %s", vehicle_type, error)
+
     manifest = Manifest(
         generated_at=now_utc(),
         gold_rows=gold_rows,
@@ -125,8 +144,10 @@ def collect(
             "min_department_listings": regional.MIN_DEPARTMENT_LISTINGS,
             "min_segment_rows": segments.MIN_SEGMENT_ROWS,
             "mileage_step_km": mileage.MILEAGE_STEP_KM,
+            "min_index_span_days": price_index.MIN_INDEX_SPAN_DAYS,
             "lightgbm_trials": -1 if n_trials is None else n_trials,
         },
+        skipped=skipped,
     )
     return {name: pd.concat(parts, ignore_index=True) for name, parts in tables.items()}, manifest
 

@@ -55,6 +55,8 @@ class Manifest:
         thresholds: The filters and cut-offs in force, so a reader does not have to go
             find them in the source.
         files: Relative paths written, filled in by :func:`write_table`.
+        skipped: Analyses the run could not produce, keyed by name, with the reason. An
+            absent result is otherwise indistinguishable from one nobody asked for.
     """
 
     generated_at: str
@@ -63,6 +65,7 @@ class Manifest:
     detail_coverage: dict[str, float]
     thresholds: dict[str, float]
     files: list[str] = field(default_factory=list)
+    skipped: dict[str, str] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, object]:
         """Return the manifest as a JSON-ready mapping."""
@@ -75,6 +78,7 @@ class Manifest:
             },
             "thresholds": self.thresholds,
             "files": sorted(self.files),
+            "skipped": self.skipped,
         }
 
 

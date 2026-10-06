@@ -15,6 +15,7 @@
     "min_department_listings": 30,
     "min_segment_rows": 40,
     "mileage_step_km": 10000,
+    "min_index_span_days": 180,
     "lightgbm_trials": -1
   },
   "files": [
@@ -30,5 +31,9 @@
     "retained_value_by_age.json",
     "segment_error.csv",
     "segment_error.json"
-  ]
+  ],
+  "skipped": {
+    "price_index.car": "the lake spans 5.5 days, under the 180 an index needs; the weekly captures reach it on 2027-03-29",
+    "price_index.motorcycle": "the lake spans 5.5 days, under the 180 an index needs; the weekly captures reach it on 2027-03-29"
+  }
 }
