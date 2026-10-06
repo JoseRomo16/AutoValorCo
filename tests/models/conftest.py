@@ -21,6 +21,9 @@ AGE_EFFECT = -0.08
 MILEAGE_EFFECT = -0.05
 
 
+BODY_TYPES = ("Naked", "Scooter", "Enduro", "Calle")
+
+
 def make_gold_frame(
     n: int = 400,
     *,
@@ -28,6 +31,7 @@ def make_gold_frame(
     seed: int = 7,
     duplicate_rows: int = 0,
     days_span: float = 0.0,
+    enriched_share: float = 0.0,
 ) -> pd.DataFrame:
     """Return a gold-shaped frame whose log price follows a known linear law.
 
@@ -39,6 +43,9 @@ def make_gold_frame(
             vehicle identity identical — the leakage case the grouped split exists for.
         days_span: Spread of ``last_seen_at`` in days; ``0`` reproduces today's lake,
             where every row comes from one capture window.
+        enriched_share: Fraction of rows carrying listing-page attributes. Zero
+            reproduces a lake that has never run an enrichment pass, which is the state
+            every other fixture assumes.
 
     Returns:
         A frame with the columns ``gold_listings`` exposes.
@@ -84,6 +91,17 @@ def make_gold_frame(
     # log_price must stay the exact log of the stored integer price, as in gold.
     frame["log_price"] = np.log(frame["price_cop"])
 
+    # Detail-page columns. Null wherever the listing has not been enriched, which is how
+    # gold leaves them, so a tree sees "not enriched" as missing rather than as a level.
+    enriched = pd.Series(rng.random(size=n) < enriched_share)
+    frame["has_detail"] = enriched.to_numpy()
+    frame["body_type"] = pd.Series(rng.choice(BODY_TYPES, size=n)).where(enriched)
+    frame["transmission"] = pd.Series(["Manual"] * n).where(enriched)
+    frame["brakes"] = pd.Series(["Disco"] * n).where(enriched)
+    frame["color"] = pd.Series(rng.choice(["Negro", "Rojo"], size=n)).where(enriched)
+    frame["gear_count"] = pd.Series(rng.integers(4, 7, size=n), dtype="Int64").where(enriched)
+    frame["is_single_owner"] = pd.Series(rng.random(size=n) > 0.5, dtype="boolean").where(enriched)
+
     if duplicate_rows:
         reposted = frame.iloc[:duplicate_rows].copy()
         reposted["listing_id"] = [f"MCO-repost-{index:06d}" for index in range(duplicate_rows)]
@@ -100,9 +118,14 @@ def gold_cars() -> pd.DataFrame:
 
 @pytest.fixture
 def gold_duckdb(tmp_path: Path, gold_cars: pd.DataFrame) -> Path:
-    """Write a gold-shaped table to a temporary DuckDB file and return its path."""
+    """Write a gold-shaped table to a temporary DuckDB file and return its path.
+
+    Motorcycles are half enriched, so a test can exercise both the whole vertical and the
+    enriched subset from the same lake.
+    """
     path = tmp_path / "autovalor.duckdb"
-    bikes = make_gold_frame(600, vehicle_type="motorcycle", seed=11)
+    # Enough enriched rows that the subset still clears the minimum holdout size.
+    bikes = make_gold_frame(600, vehicle_type="motorcycle", seed=11, enriched_share=0.9)
     listings = pd.concat([gold_cars, bikes], ignore_index=True)
     with duckdb.connect(str(path)) as con:
         con.execute("create schema if not exists main_gold")
