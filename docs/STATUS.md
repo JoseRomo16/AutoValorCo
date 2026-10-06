@@ -82,12 +82,17 @@ Componentes:
 
 ### Estado de los datos
 
-| Capa | Filas | Nota |
-| --- | --- | --- |
-| bronze | 13.696 | append-only, varias capturas |
-| detail | 1.500 | atributos de la página, una fila por anuncio; **solo motos** |
-| silver | 10.982 | tras colapsar repeticiones del mismo anuncio y precio |
-| gold | 10.972 | solo filas plausibles (10 rechazadas) |
+Tras traer el histórico completo de la rama `data` (8 capturas, 2026-09-30 y 2026-10-05):
+
+| Capa | Filas | Antes | Nota |
+| --- | --- | --- | --- |
+| bronze | 18.859 | 13.696 | append-only, ocho capturas |
+| detail | 1.500 | 1.500 | atributos de la página, una fila por anuncio; **solo motos** |
+| silver | 11.925 | 10.982 | grano (anuncio, precio pedido): un cambio de precio es fila nueva |
+| gold | 11.691 | 10.972 | solo filas plausibles, una fila por anuncio |
+
+Por vertical en gold: **7.639 carros** y **4.052 motos**, de las cuales 1.500 (37,0 %)
+tienen detalle.
 
 Cobertura de features sacadas del título, sin peticiones extra:
 
@@ -331,6 +336,56 @@ la página miente. Lo detectó el esquema Pandera de gold, no una revisión a oj
 
 ---
 
+## Re-medición sobre el lago completo (en curso)
+
+El 2026-10-06 se trajo el histórico entero de la rama `data` y se reconstruyó el lago:
+gold pasó de 10.972 a **11.691** filas. Con eso hay que volver a medir todo, porque las
+cifras de la tabla de arriba se tomaron sobre el lago anterior.
+
+**Esta sección está incompleta a propósito.** Solo lleva lo que ya se midió; el resto
+exige terminar un `make train` que quedó corriendo. Ver "Cómo retomar".
+
+### Carros — medido y final
+
+| Modelo | CV MAPE | MAPE fuera | σ (log) | R² | Antes (MAPE fuera) |
+| --- | --- | --- | --- | --- | --- |
+| hedónico, edad + km + depto | — | 49,0 % | 0,567 | 0,309 | 48,8 % |
+| hedónico, + marca/modelo/cc | — | 15,6 % | 0,215 | 0,901 | 15,3 % |
+| **LightGBM** | 11,4 % | **11,3 %** | 0,171 | 0,937 | 11,5 % |
+
+Holdout de 1.528 filas, contra 1.441 antes. Carros **sigue cumpliendo la meta de F2** con
+3,7 puntos de margen, y mejoró levemente: 11,5 % → 11,3 %, σ de 0,177 a 0,171. No se
+enriquecieron, así que la mejora viene solo de tener 432 filas más.
+
+**El hallazgo de esta corrida está en la banda, no en el punto:**
+
+| | Cobertura | Ancho medio | Ensanche (log) | Cruzados |
+| --- | --- | --- | --- | --- |
+| Antes (7.207 filas) | 76,5 % | 38 % | +0,029 | 5,8 % |
+| Ahora (7.639 filas) | **81,0 %** | 41 % | +0,045 | 5,4 % |
+
+**El déficit de cobertura se cerró.** Estaba documentado como deuda conocida —76,5 %
+contra un nominal de 80 %, ~3 puntos de más— con la hipótesis de que la conformalización
+sufría por filas agrupadas por reposteo. Con 432 filas más de calibración la cobertura
+llegó a 81,0 %, es decir **la hipótesis del agrupamiento era secundaria: el problema era
+tamaño de muestra de calibración**. El precio es un ensanche mayor (+0,045 contra +0,029)
+y una banda 3 puntos más ancha, que es exactamente lo que debía pasar: la banda de 38 % al
+76,5 % estaba **angosta de más**, no bien calibrada.
+
+### Lo que falta de la re-medición
+
+- CatBoost en carros, y los cuatro modelos en motos.
+- La banda nueva de motos, que es la que decide si la etiqueta ganga/justo/caro sirve en
+  esa vertical. Con el dato de carros a la vista, la pregunta cambió: si el déficit de
+  cobertura era tamaño de calibración, la banda de motos (76,8 % con 3.012 filas) debería
+  también acercarse al nominal ahora que hay 4.052.
+- Motos conservan solo **37 % de cobertura de detalle** (1.500 de 4.052). El
+  enriquecimiento se detuvo por decisión del usuario, así que la re-medición mide el lago
+  más grande con la cilindrada corregida donde la hay, **no** la vertical enriquecida
+  completa.
+
+---
+
 ## Lo que falta
 
 ### F2 — los cinco pasos hechos
@@ -467,11 +522,12 @@ sustituirlo por algo que no es Fasecolda.
 - **Las tarjetas patrocinadas se filtran entre regiones**, así que `department` no es un
   marco de muestreo limpio.
 - **GitHub desactiva los workflows programados** tras 60 días sin actividad en el repo.
-- **La validación temporal todavía no se puede hacer.** Todo el gold viene de una sola
-  ventana de captura (2026-09-29 21:48 → 2026-09-30 01:01), así que `--split temporal`
-  falla a propósito hasta que haya 14 días de histórico. Con la captura semanal activa eso
-  llega solo; conviene repetir la medición con `temporal` cuando llegue, porque es la
-  partición que exige el índice mensual.
+- **La validación temporal sigue sin poderse hacer, y ahora se sabe por cuánto.** Con el
+  histórico completo el lago abarca **5,54 días** (2026-09-29 21:48 → 2026-10-05 10:49, en
+  tres días distintos) contra los **14** que exige `MIN_TEMPORAL_SPAN_DAYS`, así que
+  `--split temporal` sigue fallando a propósito. Faltan ~8 días, es decir **una o dos
+  capturas semanales más**; llega solo. Conviene repetir la medición con `temporal` en ese
+  momento, porque es la partición que exige el índice mensual de F3.
 - **La cobertura de la banda queda corta: 76,5 % y 76,8 % contra el nominal de 80 %.** Son
   ~3 puntos, demasiado para ser ruido de muestreo con n=1441 (±1 punto). La causa probable
   es que la conformalización supone filas **intercambiables** y estos datos están agrupados
@@ -536,6 +592,17 @@ tener el lago:
 .\make.ps1 pull-history   # trae los Parquet publicados al lago, sin sobrescribir
 .\make.ps1 transform      # reconstruye silver y gold desde ahí
 ```
+
+**Lo primero que hay que hacer al retomar** es terminar la re-medición, que quedó a medias:
+
+```powershell
+uv run python -m autovalor.models.train --no-mlflow   # ~60 min con el lago actual
+```
+
+Eso completa la tabla de "Re-medición sobre el lago completo": falta CatBoost en carros y
+los cuatro modelos más la banda en motos. Con la banda de motos en mano se puede responder
+la pregunta de producto que quedó abierta —si la etiqueta ganga/justo/caro sirve en esa
+vertical— y recién entonces marcar F2 como cerrada aquí y en `CLAUDE.md`.
 
 Para seguir enriqueciendo motos, **el camino preferido es GitHub Actions**: es gratis, no
 depende de una máquina encendida y ya trae el histórico por sí solo. Lanza
