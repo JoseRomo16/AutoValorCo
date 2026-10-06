@@ -1,0 +1,88 @@
+---
+name: Enrich motorcycle details
+
+# Reads the attribute table of motorcycle listings that do not have one yet, and
+# publishes the result to the data branch. Manual: a polite pause of two to six seconds
+# per request makes this a job of hours, so it is never on a schedule.
+#
+# This is a separate workflow from capture.yml on purpose. The enrichment needs two
+# things a fresh capture cannot provide: a gold layer covering the whole accumulated lake
+# (so the candidates are the listings that are actually missing a detail row) and the
+# published detail layer (so a listing is never fetched twice). Both come from
+# pull-history, which is why that is the first step here.
+#
+# Cars are deliberately not an option. They reach the F2 target without a single extra
+# request, and the decision not to enrich them is recorded in docs/STATUS.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      enrich_budget:
+        description: >-
+          Listing pages to read in this run. Measured at roughly 15 pages a minute, so
+          800 is about 55 minutes of scraping. Keep it well inside the job timeout: the
+          rows are written once, at the end, so a run killed by the timeout loses
+          everything it fetched.
+        required: false
+        default: "800"
+
+concurrency:
+  # Shares the group with the weekly capture: never two scrapers on the site at once.
+  group: capture
+  cancel-in-progress: false
+
+env:
+  UV_FROZEN: "1"
+  ENRICH_BUDGET: ${{ inputs.enrich_budget || '800' }}
+
+jobs:
+  enrich:
+    name: enrich from the detail pages
+    runs-on: ubuntu-latest
+    permissions:
+      # Publishes the new detail rows to the data branch (ADR 0004).
+      contents: write
+    # Generous against the budget above, because losing a run to the timeout means
+    # losing every page it fetched.
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Bring the published history into the lake
+        run: uv run python -m autovalor.ingest.history pull
+
+      - name: Build silver and gold
+        run: uv run dbt build --project-dir dbt --profiles-dir dbt
+
+      # Logs how many listings are still missing a detail row, which is how you know
+      # whether another run is needed.
+      - name: Enrich motorcycles from their detail pages
+        run: |
+          uv run python -m autovalor.ingest.detail_cli \
+            --vehicle-type motorcycle \
+            --budget "$ENRICH_BUDGET"
+
+      - name: Validate the detail layer
+        run: uv run python -m autovalor.quality.cli --stage detail
+
+      - name: Publish the detail layer to the data branch
+        # Runs even after a failed validation, for the same reason the capture upload
+        # does: the fetched pages are the irreplaceable part of the run.
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          uv run python -m autovalor.ingest.history push \
+            --message "detail: enrichment from run ${{ github.run_id }}"

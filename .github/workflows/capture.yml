@@ -16,12 +16,6 @@ on:
         required: false
         default: >-
           bogota-dc antioquia valle-del-cauca atlantico santander cundinamarca
-      enrich_budget:
-        description: >-
-          Motorcycle detail pages to read after the capture. Zero skips the step, which
-          is the default: a polite pause per request turns minutes into hours.
-        required: false
-        default: "0"
 
 concurrency:
   # Never let two captures hit the site at the same time.
@@ -34,7 +28,6 @@ env:
   LOCATIONS: >-
     ${{ inputs.locations ||
     'bogota-dc antioquia valle-del-cauca atlantico santander cundinamarca' }}
-  ENRICH_BUDGET: ${{ inputs.enrich_budget || '0' }}
 
 jobs:
   capture:
@@ -80,17 +73,6 @@ jobs:
 
       - name: Validate silver and gold
         run: uv run python -m autovalor.quality.cli --stage silver --stage gold
-
-      # Off by default. The candidates come from gold, so this has to run after dbt, and
-      # the rows it writes reach gold on the next transform rather than this one — they
-      # are published either way, so nothing is lost by not rebuilding here.
-      - name: Enrich motorcycles from their detail pages
-        if: ${{ inputs.enrich_budget && inputs.enrich_budget != '0' }}
-        run: |
-          uv run python -m autovalor.ingest.detail_cli \
-            --vehicle-type motorcycle \
-            --budget "$ENRICH_BUDGET"
-          uv run python -m autovalor.quality.cli --stage detail
 
       - name: Report capture size
         run: |
