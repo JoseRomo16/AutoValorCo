@@ -26,4 +26,6 @@ def test_thresholds_match_the_dbt_project() -> None:
         "max_engine_cc": schemas.MAX_ENGINE_CC,
         "min_car_cc": schemas.MIN_CAR_CC,
         "max_car_cc": schemas.MAX_CAR_CC,
+        "min_gear_count": schemas.MIN_GEAR_COUNT,
+        "max_gear_count": schemas.MAX_GEAR_COUNT,
     }
