@@ -7,17 +7,19 @@ be unpacked by hand. [ADR 0004](../../../docs/adr/0004-capture-history-storage.m
 ``data`` branch, with Cloudflare R2 as the documented upgrade path once the dataset
 outgrows git.
 
-The branch holds no code: its root is ``bronze/``, mirroring ``data/bronze/`` with the
-same Hive partitions, so a pulled history can be read by dbt exactly as a local capture
-would be.
+The branch holds no code: its roots are ``bronze/`` and ``detail/``, mirroring
+``data/bronze/`` and ``data/detail/`` with the same Hive partitions, so a pulled history
+can be read by dbt exactly as a local capture would be.
 
 Two rules hold on both sides of the transfer:
 
-* **Bronze is immutable.** A file already present is never overwritten, in either
+* **Captures are immutable.** A file already present is never overwritten, in either
   direction. Captures are named after their UTC instant, so a collision means the same
   capture, not a newer version of it.
-* **Only bronze travels.** Silver and gold are rebuilt from it with dbt, so publishing
-  them would store a derivation that the transformation already defines.
+* **Only the raw layers travel.** Silver and gold are rebuilt from them with dbt, so
+  publishing those would store a derivation that the transformation already defines. The
+  detail layer does travel, because an enrichment pass costs one polite request per
+  listing and nobody should have to spend that hour twice.
 
 One mechanism serves all three callers — the weekly workflow, ``make pull-history`` and
 the local seeding — so there is a single place where this can be wrong.
@@ -44,6 +46,17 @@ DATA_BRANCH: Final = "data"
 
 BRONZE_PREFIX: Final = "bronze"
 """Directory at the root of the branch that mirrors ``data/bronze``."""
+
+DETAIL_PREFIX: Final = "detail"
+"""Directory that mirrors ``data/detail`` — the listing-page attributes.
+
+Published for the same reason bronze is: an enrichment pass costs one polite request per
+listing, so ~1.300 of them is an hour of scraping that nobody should have to repeat. It
+is a separate root because dbt reads each layer through its own glob.
+"""
+
+PUBLISHED_PREFIXES: Final = (BRONZE_PREFIX, DETAIL_PREFIX)
+"""Every layer that travels. Silver and gold never do; dbt rebuilds them."""
 
 DEFAULT_REMOTE: Final = "origin"
 
@@ -98,10 +111,10 @@ def pull_history(
     Raises:
         HistoryError: If the branch does not exist on the remote.
     """
-    bronze = _bronze_dir(data_dir)
+    root = _lake_root(data_dir)
     _fetch(remote, branch)
     with _branch_worktree() as worktree:
-        result = _copy_captures(worktree / BRONZE_PREFIX, bronze, branch=branch)
+        result = _copy_layers(worktree, root, branch=branch)
     logger.info("pulled history: %s", result.summary())
     return result
 
@@ -132,15 +145,14 @@ def push_history(
     Raises:
         HistoryError: If there is nothing to publish, or git refuses the push.
     """
-    bronze = _bronze_dir(data_dir)
-    if not bronze.exists():
-        msg = f"no bronze layer at {bronze}; run a capture first"
+    root = _lake_root(data_dir)
+    if not (root / BRONZE_PREFIX).exists():
+        msg = f"no bronze layer at {root / BRONZE_PREFIX}; run a capture first"
         raise HistoryError(msg)
 
     _ensure_branch(remote, branch)
     with _branch_worktree() as worktree:
-        destination = worktree / BRONZE_PREFIX
-        result = _copy_captures(bronze, destination, branch=branch)
+        result = _copy_layers(root, worktree, branch=branch)
         if not result.copied:
             logger.info("nothing to publish: %s", result.summary())
             return result
@@ -149,7 +161,10 @@ def push_history(
             return result
 
         subject = f"data: {message}" if message else f"data: captures as of {_timestamp()}"
-        _git("add", "--", BRONZE_PREFIX, cwd=worktree)
+        # Only the layers that exist: git add refuses a pathspec matching nothing, and a
+        # lake with no enrichment pass yet has no detail/ at all.
+        present = [prefix for prefix in PUBLISHED_PREFIXES if (worktree / prefix).is_dir()]
+        _git("add", "--", *present, cwd=worktree)
         _git("commit", "--message", subject, cwd=worktree)
         _git("push", remote, f"HEAD:refs/heads/{branch}", cwd=worktree)
 
@@ -157,31 +172,40 @@ def push_history(
     return HistoryResult(result.copied, result.skipped, branch=branch, committed=True)
 
 
-def _bronze_dir(data_dir: Path | None) -> Path:
-    if data_dir is not None:
-        return data_dir / BRONZE_PREFIX
-    return get_settings().bronze_dir
+def _lake_root(data_dir: Path | None) -> Path:
+    return data_dir if data_dir is not None else get_settings().data_dir
 
 
-def _copy_captures(source: Path, destination: Path, *, branch: str) -> HistoryResult:
+def _copy_layers(source_root: Path, destination_root: Path, *, branch: str) -> HistoryResult:
+    """Copy every published layer from one lake root to another."""
+    copied: list[str] = []
+    skipped: list[str] = []
+    for prefix in PUBLISHED_PREFIXES:
+        layer = _copy_captures(source_root / prefix, destination_root / prefix, prefix=prefix)
+        copied.extend(layer[0])
+        skipped.extend(layer[1])
+    return HistoryResult(tuple(copied), tuple(skipped), branch=branch)
+
+
+def _copy_captures(source: Path, destination: Path, *, prefix: str) -> tuple[list[str], list[str]]:
     """Copy every Parquet under ``source`` into ``destination``, never overwriting."""
     if not source.exists():
-        return HistoryResult((), (), branch=branch)
+        return [], []
 
     copied: list[str] = []
     skipped: list[str] = []
     for path in sorted(source.glob(CAPTURE_GLOB)):
-        relative = path.relative_to(source)
-        target = destination / relative
+        relative = f"{prefix}/{path.relative_to(source).as_posix()}"
+        target = destination / path.relative_to(source)
         if target.exists():
             # Bronze is immutable and captures are named after their UTC instant, so a
             # collision is the same capture rather than a newer version of it.
-            skipped.append(str(relative).replace("\\", "/"))
+            skipped.append(relative)
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, target)
-        copied.append(str(relative).replace("\\", "/"))
-    return HistoryResult(tuple(copied), tuple(skipped), branch=branch)
+        copied.append(relative)
+    return copied, skipped
 
 
 def _fetch(remote: str, branch: str) -> None:
