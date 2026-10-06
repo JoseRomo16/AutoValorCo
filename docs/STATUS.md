@@ -417,9 +417,13 @@ cambia la respuesta.
 
 `fasecolda.com/guia-de-valores/` es un shell de JS sin datos;
 `guiadevalores.fasecolda.com` responde **403**. Su `robots.txt` no prohíbe nada, pero la
-guía no se obtiene por HTTP simple. Hace falta decidir la fuente: export manual,
-suscripción, o se cae el benchmark. No bloquea F2 porque `valor_fasecolda` nunca fue
+guía no se obtiene por HTTP simple. No bloquea F2 porque `valor_fasecolda` nunca fue
 feature del modelo; se vuelve necesaria en F3.
+
+**La suscripción queda descartada por la regla de costo cero.** Lo que queda: un export
+manual que tú consigas, o alguna fuente pública gratuita que republique la guía. Si no
+aparece ninguna, el benchmark se cae y hay que decirlo en los resultados en vez de
+sustituirlo por algo que no es Fasecolda.
 
 ---
 
@@ -434,9 +438,12 @@ feature del modelo; se vuelve necesaria en F3.
   `pull-history` + `transform`. Si el índice mensual de F3 va a correr en CI, el workflow
   tendrá que traer el histórico antes de dbt.
 - **La rama `data` crece para siempre.** ~1 MB hoy con las 8 capturas más el detalle,
-  ~25 MB al año. Quitar algo publicado por error exige reescribir la rama. Los
-  disparadores para pasar a R2 están en
-  [ADR 0004](adr/0004-capture-history-storage.md).
+  ~25 MB al año. Quitar algo publicado por error exige reescribir la rama. Cuando empiece
+  a apretar hay que **avisar, no migrar**: el proyecto corre a costo cero y pasar a
+  almacenamiento de objetos exige aprobación explícita
+  ([ADR 0004](adr/0004-capture-history-storage.md), y la sección "Costo cero" de
+  `CLAUDE.md`). Podar el histórico o acotar lo que se captura son respuestas igual de
+  válidas.
 - **El detalle solo cubre 39,8 % de motos y 0 % de carros.** Por eso las features de
   detalle están **apagadas por defecto** en el modelo: encenderlas sobre la vertical
   completa le daría al modelo columnas nulas en seis de cada diez filas. Tienen sentido

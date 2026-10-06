@@ -4,8 +4,8 @@ Weekly captures only become useful by accumulating: the monthly price index and 
 depreciation curves of F3 are time series, and temporal validation needs a lake that
 spans weeks. Workflow artifacts cannot carry that — they expire after 90 days and have to
 be unpacked by hand. [ADR 0004](../../../docs/adr/0004-capture-history-storage.md) chose a
-``data`` branch, with Cloudflare R2 as the documented upgrade path once the dataset
-outgrows git.
+``data`` branch, and it is the destination rather than an interim step: the project runs at
+zero monetary cost, so object storage is only reconsidered with the owner's approval.
 
 The branch holds no code: its roots are ``bronze/`` and ``detail/``, mirroring
 ``data/bronze/`` and ``data/detail/`` with the same Hive partitions, so a pulled history
