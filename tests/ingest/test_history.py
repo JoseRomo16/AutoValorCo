@@ -6,6 +6,7 @@ import pytest
 from autovalor.ingest.history import (
     BRONZE_PREFIX,
     DATA_BRANCH,
+    DETAIL_PREFIX,
     HistoryError,
     main,
     pull_history,
@@ -14,6 +15,9 @@ from autovalor.ingest.history import (
 
 PARTITION = "source=tucarro/vehicle_type=car/capture_date=2026-09-30"
 """The Hive layout the bronze writer produces, mirrored on the branch."""
+
+DETAIL_PARTITION = "source=tucarro/vehicle_type=motorcycle"
+"""The detail layer is keyed by listing rather than by date, so it has no date level."""
 
 
 def _git(*args: str, cwd: Path) -> str:
@@ -73,9 +77,9 @@ def test_the_history_branch_carries_no_code(clone: Path) -> None:
     assert all(line.startswith(BRONZE_PREFIX) for line in published.splitlines())
 
 
-def test_only_bronze_is_published(clone: Path) -> None:
-    # Silver and gold are rebuilt from bronze with dbt, so publishing them would store a
-    # derivation the transformation already defines.
+def test_derived_layers_are_never_published(clone: Path) -> None:
+    # Silver and gold are rebuilt from the raw layers with dbt, so publishing them would
+    # store a derivation the transformation already defines.
     lake = clone / "data"
     _capture(lake, "listings_20260930T024809Z.parquet")
     (lake / "silver").mkdir(parents=True)
@@ -89,6 +93,49 @@ def test_only_bronze_is_published(clone: Path) -> None:
     assert "autovalor.duckdb" not in published
 
 
+def test_the_detail_layer_travels_with_the_captures(clone: Path) -> None:
+    # An enrichment pass costs one polite request per listing, so the result is published
+    # for the same reason bronze is: nobody should have to spend that hour twice.
+    lake = clone / "data"
+    _capture(lake, "listings_20260930T024809Z.parquet")
+    detail = lake / DETAIL_PREFIX / DETAIL_PARTITION / "details_20261006T002150Z.parquet"
+    detail.parent.mkdir(parents=True, exist_ok=True)
+    detail.write_bytes(b"PAR1-detail")
+
+    result = push_history(data_dir=lake)
+
+    assert len(result.copied) == 2
+    published = _git("ls-tree", "-r", "--name-only", f"origin/{DATA_BRANCH}", cwd=clone)
+    assert f"{DETAIL_PREFIX}/{DETAIL_PARTITION}/details_20261006T002150Z.parquet" in published
+
+
+def test_a_lake_without_an_enrichment_pass_still_publishes(clone: Path) -> None:
+    # git add refuses a pathspec that matches nothing, so a lake with no detail/ at all
+    # must not take the publish down with it.
+    lake = clone / "data"
+    _capture(lake, "listings_20260930T024809Z.parquet")
+
+    result = push_history(data_dir=lake)
+
+    assert result.committed
+    assert not (clone / "data" / DETAIL_PREFIX).exists()
+
+
+def test_pulling_brings_the_detail_layer_back(clone: Path) -> None:
+    source = clone / "data"
+    _capture(source, "listings_20260930T024809Z.parquet")
+    detail = source / DETAIL_PREFIX / DETAIL_PARTITION / "details_20261006T002150Z.parquet"
+    detail.parent.mkdir(parents=True, exist_ok=True)
+    detail.write_bytes(b"PAR1-detail")
+    push_history(data_dir=source)
+    other = clone / "elsewhere"
+
+    pull_history(data_dir=other)
+
+    landed = other / DETAIL_PREFIX / DETAIL_PARTITION / "details_20261006T002150Z.parquet"
+    assert landed.read_bytes() == b"PAR1-detail"
+
+
 def test_only_parquet_travels(clone: Path) -> None:
     lake = clone / "data"
     _capture(lake, "listings_20260930T024809Z.parquet")
@@ -96,7 +143,7 @@ def test_only_parquet_travels(clone: Path) -> None:
 
     result = push_history(data_dir=lake)
 
-    assert result.copied == (f"{PARTITION}/listings_20260930T024809Z.parquet",)
+    assert result.copied == (f"{BRONZE_PREFIX}/{PARTITION}/listings_20260930T024809Z.parquet",)
 
 
 def test_pushing_twice_publishes_nothing_the_second_time(clone: Path) -> None:
@@ -122,7 +169,7 @@ def test_a_new_capture_is_appended_to_the_existing_history(clone: Path) -> None:
     result = push_history(data_dir=lake)
 
     assert result.committed
-    assert result.copied == (f"{PARTITION}/listings_20261005T074500Z.parquet",)
+    assert result.copied == (f"{BRONZE_PREFIX}/{PARTITION}/listings_20261005T074500Z.parquet",)
     published = _git("ls-tree", "-r", "--name-only", f"origin/{DATA_BRANCH}", cwd=clone)
     assert len(published.splitlines()) == 2
 
