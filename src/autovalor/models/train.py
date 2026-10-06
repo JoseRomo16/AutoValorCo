@@ -166,6 +166,7 @@ def train_model(
     n_trials: int | None = None,
     seed: int = DEFAULT_SEED,
     intervals: bool = True,
+    detail_features: bool = False,
 ) -> ModelResult:
     """Fit one model on a partition and score both sides of it.
 
@@ -179,6 +180,9 @@ def train_model(
         seed: Seed for the search and the models.
         intervals: Whether to also fit the P10-P90 band. Only applies to
             :data:`INTERVAL_KIND`, and reuses that model's tuned parameters.
+        detail_features: Whether the tree models consume the listing-page columns. Only
+            meaningful on a partition built with ``only_enriched``; see
+            :func:`autovalor.models.trees.tree_spec`.
 
     Returns:
         The fitted model together with its in-sample and held-out error, plus the band
@@ -215,6 +219,7 @@ def train_model(
                 vehicle_type=dataset.vehicle_type,
                 n_trials=n_trials,
                 seed=seed,
+                detail_features=detail_features,
             )
             variant = "tuned"
             best_params = result.best_params
@@ -230,9 +235,12 @@ def train_model(
             vehicle_type=dataset.vehicle_type,
             params=best_params,
             seed=seed,
+            detail_features=detail_features,
         )
         model = tree
         extra.update({f"param_{key}": value for key, value in best_params.items()})
+        extra["detail_features"] = detail_features
+        extra["n_model_features"] = len(tree.spec.columns)
 
         if intervals and tree_kind == INTERVAL_KIND:
             # The band reuses the point model's tuned parameters rather than running its
@@ -442,6 +450,8 @@ def run(
     seed: int = DEFAULT_SEED,
     n_trials: int | None = None,
     intervals: bool = True,
+    detail_features: bool = False,
+    only_enriched: bool = False,
     duckdb_path: Path | None = None,
     track: bool = True,
 ) -> list[ModelResult]:
@@ -457,6 +467,10 @@ def run(
         n_trials: Optuna budget per tree model and vertical; ``None`` uses the per-model
             defaults.
         intervals: Whether to fit the P10-P90 band on :data:`INTERVAL_KIND`.
+        detail_features: Whether the tree models consume the listing-page columns.
+        only_enriched: Keep only listings that have a detail row. Pairing this with
+            ``detail_features`` on and off is how the enrichment is measured: both runs
+            then see exactly the same rows.
         duckdb_path: Database written by dbt. Defaults to the configured path.
         track: Whether to record each fit as an MLflow run.
 
@@ -471,6 +485,7 @@ def run(
             test_size=test_size,
             seed=seed,
             duckdb_path=duckdb_path,
+            only_enriched=only_enriched,
         )
         for model_kind in model_kinds:
             # The feature set is a baseline-only knob; the trees always take the full
@@ -486,6 +501,7 @@ def run(
                     n_trials=n_trials,
                     seed=seed,
                     intervals=intervals,
+                    detail_features=detail_features,
                 )
                 if track:
                     log_to_mlflow(result)
@@ -570,6 +586,23 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--detail-features",
+        action="store_true",
+        help=(
+            "Let the tree models consume the listing-page columns (body type, "
+            "transmission, brakes, colour, gear count, single owner). Only meaningful "
+            "with --only-enriched: without it the columns are null for most rows."
+        ),
+    )
+    parser.add_argument(
+        "--only-enriched",
+        action="store_true",
+        help=(
+            "Keep only listings that have a detail row. Running this twice, with and "
+            "without --detail-features, measures the enrichment on identical rows."
+        ),
+    )
+    parser.add_argument(
         "--no-mlflow",
         action="store_true",
         help="Skip MLflow tracking; useful for a quick look at the numbers.",
@@ -602,6 +635,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             seed=args.seed,
             n_trials=args.trials,
             intervals=not args.no_intervals,
+            detail_features=args.detail_features,
+            only_enriched=args.only_enriched,
             duckdb_path=args.duckdb_path,
             track=not args.no_mlflow,
         )

@@ -43,6 +43,24 @@ MOTORCYCLE_BOOLEAN = ("is_quad",)
 """Quads, buggies and side-by-sides sit in the motorcycle vertical but not on its price
 curve, so the flag reaches the model there and nowhere else."""
 
+DETAIL_CATEGORICAL = ("body_type", "transmission", "brakes", "color")
+"""Categoricals that only exist on the listing page.
+
+``body_type`` is the one the enrichment was worth running for: a Naked, a Scooter and an
+Enduro at the same displacement are different price classes, and the title never says
+which. The other three are free once the page has been fetched.
+"""
+
+DETAIL_NUMERIC = ("gear_count", "is_single_owner")
+"""Gear count, and single ownership — one of the few condition signals the page offers.
+
+``is_single_owner`` is numeric rather than boolean on purpose. Most adverts leave the
+field blank, and the boolean group fills missing values with ``False``, which would turn
+"not stated" into "not a single owner" — a claim the advert never made. As a numeric it
+keeps its null and both libraries route it down their missing branch, the same treatment
+``engine_cc`` gets.
+"""
+
 FORBIDDEN_COLUMNS = frozenset(
     {
         "price_cop",
@@ -73,18 +91,31 @@ DEFAULT_PARAMS: dict[TreeModel, dict[str, Any]] = {
 """Sane starting points, used when no tuned parameters are supplied."""
 
 
-def tree_spec(vehicle_type: VehicleType) -> FeatureSpec:
+def tree_spec(vehicle_type: VehicleType, *, detail_features: bool = False) -> FeatureSpec:
     """Return the columns the tree models consume for a vertical.
 
     Args:
         vehicle_type: Vertical being modeled.
+        detail_features: Also consume the columns that only exist on the listing page.
+            Off by default: they are null for every listing that has not been enriched,
+            and the pass is incremental, so a run over the whole vertical would feed the
+            model mostly-missing columns. Turning it on is only meaningful together with
+            ``only_enriched`` on the split, which is what makes a with-and-without
+            comparison measure the features rather than the population.
 
     Returns:
         The specification. Reuses :class:`~autovalor.models.hedonic.FeatureSpec` because
         the grouping — numeric, categorical, boolean — is the same question.
     """
-    boolean = TREE_BOOLEAN + MOTORCYCLE_BOOLEAN if vehicle_type == "motorcycle" else TREE_BOOLEAN
-    return FeatureSpec(numeric=TREE_NUMERIC, categorical=TREE_CATEGORICAL, boolean=boolean)
+    numeric: tuple[str, ...] = TREE_NUMERIC
+    categorical: tuple[str, ...] = TREE_CATEGORICAL
+    boolean: tuple[str, ...] = (
+        TREE_BOOLEAN + MOTORCYCLE_BOOLEAN if vehicle_type == "motorcycle" else TREE_BOOLEAN
+    )
+    if detail_features:
+        numeric += DETAIL_NUMERIC
+        categorical += DETAIL_CATEGORICAL
+    return FeatureSpec(numeric=numeric, categorical=categorical, boolean=boolean)
 
 
 def _model_matrix(frame: pd.DataFrame, spec: FeatureSpec) -> pd.DataFrame:
@@ -183,6 +214,7 @@ def fit_tree(
     vehicle_type: VehicleType,
     params: dict[str, Any] | None = None,
     seed: int = DEFAULT_SEED,
+    detail_features: bool = False,
 ) -> FittedTree:
     """Fit one tree model on a training frame.
 
@@ -192,6 +224,7 @@ def fit_tree(
         vehicle_type: Vertical being modeled.
         params: Hyperparameters; defaults to :data:`DEFAULT_PARAMS`.
         seed: Seed for the library's own randomness.
+        detail_features: Also consume the listing-page columns; see :func:`tree_spec`.
 
     Returns:
         The fitted model, ready to score a gold-shaped frame.
@@ -203,7 +236,7 @@ def fit_tree(
         msg = f"unknown tree model {model_kind!r}"
         raise ValueError(msg)
 
-    spec = tree_spec(vehicle_type)
+    spec = tree_spec(vehicle_type, detail_features=detail_features)
     matrix = _model_matrix(train, spec)
     target = train["log_price"].astype("float64")
     settings = dict(DEFAULT_PARAMS[model_kind] if params is None else params)

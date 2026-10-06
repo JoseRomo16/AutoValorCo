@@ -124,3 +124,21 @@ def test_load_split_returns_a_partition(gold_duckdb: Path) -> None:
 
     assert isinstance(split, Dataset)
     assert split.n_train > split.n_test > 0
+
+
+def test_only_enriched_keeps_the_listings_with_a_detail_row(gold_duckdb: Path) -> None:
+    # Both sides of a with-and-without comparison have to see exactly the same rows, or
+    # the difference measures the population instead of the features.
+    whole = load_split("motorcycle", duckdb_path=gold_duckdb)
+    enriched = load_split("motorcycle", duckdb_path=gold_duckdb, only_enriched=True)
+
+    assert enriched.n_train + enriched.n_test < whole.n_train + whole.n_test
+    assert enriched.train["has_detail"].all()
+    assert enriched.test["has_detail"].all()
+
+
+def test_only_enriched_fails_loudly_on_a_lake_without_an_enrichment(gold_duckdb: Path) -> None:
+    # Cars in the fixture are not enriched at all. Silently returning nothing would look
+    # like a modeling result.
+    with pytest.raises(SplitNotPossibleError, match="has been enriched"):
+        load_split("car", duckdb_path=gold_duckdb, only_enriched=True)
