@@ -11,12 +11,13 @@ qué no. Se actualiza al cerrar cada bloque de trabajo.
 ## Resumen en una línea
 
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
-validado— con 7.207 carros y 3.765 motos. Tres modelos entrenados y medidos **fuera de
-muestra**: el mejor es LightGBM con **11,5 % MAPE en carros** y **26,7 % en motos**.
-Carros cumple la meta de F2 (≤ 15 %); motos no. La banda P10–P90 está calibrada y SHAP ya
-explica cada predicción, con lo que **los cinco pasos de F2 están hechos**. Lo que SHAP
-dejó claro es por qué motos falla: el modelo pesa identidad (marca, cilindrada, modelo) y
-casi no pesa estado (edad, kilometraje).
+validado— con 7.207 carros y 3.765 motos, y las capturas ya no se pierden: viven en la
+rama `data`. Tres modelos entrenados y medidos **fuera de muestra**: el mejor es LightGBM
+con **11,5 % MAPE en carros** y **24,9 % en motos** tras enriquecer 1.500 anuncios con su
+página de detalle (eran 26,7 %). Carros cumple la meta de F2 (≤ 15 %); motos no todavía.
+La banda P10–P90 está calibrada y SHAP ya explica cada predicción, con lo que **los cinco
+pasos de F2 están hechos**. Lo que SHAP dejó claro es por qué motos falla: el modelo pesa
+identidad (marca, cilindrada, modelo) y casi no pesa estado (edad, kilometraje).
 
 ---
 
@@ -65,15 +66,19 @@ Componentes:
 - **`.github/workflows/capture.yml`** — captura semanal, lunes 07:00 UTC, barre seis
   departamentos, valida, **publica bronze en la rama `data`** y sube el resultado como
   artefacto.
-- **`ingest/history.py`** — mueve capturas entre `data/bronze` y la rama `data`. Una sola
+- **`ingest/history.py`** — mueve capturas entre el lago y la rama `data`. Una sola
   implementación para el workflow, `make pull-history` y el sembrado manual. Nunca
-  sobrescribe y solo mueve bronze.
+  sobrescribe, y solo viajan las capas crudas (bronze y detail).
+- **`ingest/detail.py` + `ingest/detail_cli.py`** — `make enrich`: lee la tabla de
+  atributos de la página de cada anuncio sin detalle, con presupuesto por corrida y
+  muestreo aleatorio con semilla. Lista blanca de etiquetas, nunca HTML, nada personal.
 
 ### Estado de los datos
 
 | Capa | Filas | Nota |
 | --- | --- | --- |
 | bronze | 13.696 | append-only, varias capturas |
+| detail | 1.500 | atributos de la página, una fila por anuncio; **solo motos** |
 | silver | 10.982 | tras colapsar repeticiones del mismo anuncio y precio |
 | gold | 10.972 | solo filas plausibles (10 rechazadas) |
 
@@ -107,6 +112,11 @@ P10–P90 calibrada y SHAP. `make train` corre los tres modelos, la banda y la i
 ## Resultados fuera de muestra
 
 Holdout del 20 %, `make train` del 2026-10-01. Estos **sí** se pueden citar.
+
+> **Las motos de esta tabla ya están superadas.** El enriquecimiento corrigió la
+> cilindrada de 573 anuncios, y con eso LightGBM en motos pasó de 26,7 % a **24,9 %** sobre
+> el mismo holdout. Ver [El enriquecimiento de motos](#el-enriquecimiento-de-motos). Las
+> filas de carros siguen vigentes: no se enriquecieron.
 
 | Vertical | Modelo | CV MAPE | MAPE fuera | MAPE dentro | σ (log) | R² | vs base |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -198,9 +208,12 @@ cuánto mueve esa variable el precio en una fila cualquiera, sin su signo.
 y modelo suman un tirón de 105 puntos; edad y kilometraje suman 15. En carros la relación
 es la inversa —edad es el segundo factor (25,3 %) y el estado pesa 35 puntos—. Dicho de
 otra forma, el modelo de motos funciona como un catálogo: sabe cuánto vale una Pulsar 180,
-pero no cuánto descontarle por tener diez años y 60.000 km. Eso explica a la vez el 26,7 %
-de MAPE y los 94 % de ancho de banda: dentro de una celda (marca, cilindrada, modelo) le
-queda poca información para separar un ejemplar barato de uno caro.
+pero no cuánto descontarle por tener diez años y 60.000 km. Eso explica a la vez el MAPE y
+los 94 % de ancho de banda: dentro de una celda (marca, cilindrada, modelo) le queda poca
+información para separar un ejemplar barato de uno caro.
+
+(Esta tabla se midió **antes** del enriquecimiento, cuando motos iba en 26,7 %. El orden de
+las variables es lo que importa aquí, y es lo que motivó la sección siguiente.)
 
 Dos matices antes de usar esto para decidir:
 
@@ -213,6 +226,101 @@ Dos matices antes de usar esto para decidir:
 Esto reordena la discusión sobre páginas de detalle: versión y transmisión agregan **más
 identidad**, que es justo lo que a motos no le falta. Lo que falta es señal de estado, y
 eso no está en la tabla de atributos.
+
+---
+
+## El enriquecimiento de motos
+
+Se leyó la tabla de atributos de la página de **1.500 de las 3.765 motos** (39,8 %), una
+petición por anuncio con las pausas educadas: **1.500/1.500 sin un solo fallo**, ~100 min,
+94 KB de Parquet. La muestra es aleatoria con semilla fija, no los primeros N, porque los
+identificadores correlacionan con la fecha de publicación.
+
+### Lo primero: la tabla de motos no es la de carros
+
+Verificado contra páginas reales, no supuesto. **No existen versión, combustible ni
+carrocería** —esos son el esquema de carros—. Lo que sí trae, y es el hallazgo que
+justifica la corrida:
+
+| Campo pedido | Qué hay en motos |
+| --- | --- |
+| Cilindrada | **sí**, 94,9 % de cobertura contra 80,6 % del título |
+| Carrocería | **no**, pero `Tipo de moto` es su equivalente: Naked, Touring, Scooter, Enduro… |
+| Transmisión | **sí**, pero solo en 22,8 % de los anuncios |
+| Versión | **no existe** en la tabla |
+| Combustible | **no existe**; `Motor` trae el ciclo (4 tiempos), no el combustible |
+
+Cobertura real de lo que se guardó, sobre las 1.500 filas: `body_type` 100 %, `color`
+99,7 %, `engine_cc` 94,9 %, `brakes` 86,3 %, `single_owner` 53,4 %, `transmission` 22,8 %,
+`gear_count` 16,3 %.
+
+**`Tipo de moto` es señal nueva de verdad**, con 12 segmentos y buen reparto: Naked 321,
+Touring 274, Scooters 177, Calle 155, Enduro 99, Deportivas 93, Cuatrimotos 58, Doble
+propósito 49, Custom 28, Cross 15, Chopper 12. Una Touring y una Scooter de la misma
+cilindrada son clases de precio distintas y el título nunca lo dice.
+
+### La muestra es representativa
+
+Pregunta obligada antes de medir sobre un subconjunto:
+
+| | Enriquecidas (1.500) | Resto (2.265) |
+| --- | --- | --- |
+| Precio medio | 30,91 M | 30,47 M |
+| σ de log(precio) | 1,009 | 1,032 |
+| Edad media | 4,14 | 4,12 |
+| Km medios | 23.729 | 23.501 |
+
+La mezcla de marcas se desvía como máximo ~1 punto porcentual (Suzuki 7,27 % contra
+6,32 %; Yamaha 11,67 % contra 11,00 %). El subconjunto se parece a la vertical.
+
+### El resultado: motos pasan de 26,7 % a 24,9 %
+
+LightGBM afinado, 40 trials, misma semilla y misma partición agrupada en las cuatro
+corridas. El enriquecimiento tiene **dos efectos separables** y se midieron por separado,
+porque mezclarlos daría un número que no se puede atribuir a nada:
+
+| Qué se midió | Filas | Holdout | CV MAPE | **MAPE fuera** | σ (log) | R² |
+| --- | --- | --- | --- | --- | --- | --- |
+| Publicado, antes del enriquecimiento | 3.765 | 753 | 27,2 % | 26,7 % | 0,410 | 0,847 |
+| Vertical completa, solo con la cilindrada corregida | 3.765 | 753 | 25,9 % | **24,9 %** | 0,378 | 0,870 |
+| Subconjunto enriquecido, sin las columnas nuevas | 1.500 | 300 | 24,2 % | 22,4 % | 0,363 | 0,879 |
+| Subconjunto enriquecido, con las columnas nuevas | 1.500 | 300 | 22,7 % | **20,6 %** | 0,331 | 0,900 |
+
+Dos lecturas, las dos limpias:
+
+- **La cilindrada corregida sola vale −1,8 puntos en la vertical completa**: 26,7 % →
+  **24,9 %**, mismas 3.012 filas de entrenamiento y mismo holdout de 753 que el número
+  publicado. `engine_cc` mejoró en **573 de las 1.500 filas enriquecidas** —251 huecos
+  llenados y **322 valores corregidos**, donde el token del título contradecía al campo
+  del formulario—, y eso solo alcanzó a bajar casi dos puntos de toda la vertical.
+- **Las columnas nuevas valen otros −1,8 puntos** donde existen: 22,4 % → 20,6 % sobre
+  exactamente las mismas 1.500 filas, con la cilindrada corregida ya presente en las dos
+  ramas. Es la única diferencia entre esas dos corridas, así que es atribuible a las
+  features y no a la población.
+
+El par de filas del subconjunto **no se compara contra el 26,7 %**: usa 1.200 filas de
+entrenamiento en vez de 3.012. Ese es justamente el motivo de haber corrido las cuatro.
+
+**Estimación, no medición:** si las 2.265 motos restantes se enriquecen, la vertical
+completa debería caer de 24,9 % a algo cercano a **23 %**, suponiendo que el −1,8 de las
+columnas nuevas se sostenga al triplicar la cobertura. Es una extrapolación de dos puntos
+medidos, no un resultado.
+
+### Lo que la página trae y el modelo todavía no usa
+
+El reporte de etiquetas desconocidas —que existe justamente para esto— encontró campos
+que no estaban en la lista blanca: peso (105 anuncios), dimensiones y distancia entre ejes,
+entrada USB (230), y el bloque de batería de las motos eléctricas (voltaje, capacidad,
+autonomía, tiempo de carga). Ya están en la lista blanca, pero **las 1.500 filas ya
+escritas no los traen**: se capturan desde la próxima pasada.
+
+### Dos cosas que el contrato de calidad atrapó
+
+El campo de cilindrada de la página es texto libre y devolvió **0, 1, 11, 12, 13 y 40 cc**
+—en parte errores de digitación, en parte motos eléctricas que no tienen cilindrada—. El
+de velocidades devolvió **0 y 82**. Los dos se acotan ahora en `stg_listing_details` con
+los mismos umbrales de siempre, y la cilindrada cae de vuelta al valor del título cuando
+la página miente. Lo detectó el esquema Pandera de gold, no una revisión a ojo.
 
 ---
 
@@ -277,30 +385,33 @@ valió 21 puntos de MAPE en motos.
 
 ## Decisiones abiertas (del usuario, no mías)
 
-### 1. Páginas de detalle
+### 1. Páginas de detalle — decidido para motos, abierto para carros
 
-Lo que falta para acercarse a la meta —versión, transmisión, combustible, carrocería,
-puertas— está en la página de cada anuncio como tabla estructurada, a **una petición
-extra por anuncio**. Con las pausas educadas son ~4 h para los 11.000 actuales. Convierte
-el workflow semanal de minutos en horas.
+**Motos: aprobado y hecho en 1.500 anuncios**, de forma incremental. Resultados arriba.
 
-Recomendación: pasada incremental con presupuesto por corrida, enriqueciendo solo
-anuncios sin detalle, en vez de un barrido monolítico.
+**Lo que falta de motos**: 2.265 anuncios sin detalle, ~2,5 h en cinco corridas de 500.
+Vale la pena, y no por el MAPE: el bloqueador real de la vertical era **el ancho de banda
+del 94 %**, y con 3,8 veces más filas enriquecidas se puede volver a medir la banda con
+las features nuevas, que es la medición que decide si la etiqueta ganga/justo/caro sirve.
 
-Con los ensambles medidos, la decisión es **solo sobre motos** y ya no es obvia:
+**Carros: la recomendación es no extenderlo, al menos no por precisión.** El argumento,
+con el número en la mano:
 
-- **Carros quedaron fuera del debate.** 11,5 % con LightGBM, 3,5 puntos bajo la meta, sin
-  una sola petición extra. Enriquecerlos no se justifica por rendimiento.
-- **Motos mejoraron 21 puntos sin datos nuevos**, de 47,8 % a 26,7 %. Eso debilita el
-  argumento de que la versión era el cuello de botella: parte de lo que parecía falta de
-  señal era falta de capacidad del modelo. Cuánto queda por ganar con la versión ya no se
-  puede estimar desde el hedónico.
-- Pero **26,7 % sigue sin servir para el producto.** Un intervalo honesto a ese nivel de
-  error será demasiado ancho para que la etiqueta ganga/justo/caro diga algo.
+- Carros van en **11,5 %**, 3,5 puntos bajo la meta, sin una sola petición extra.
+- El efecto limpio de las features nuevas fue de **−1,8 puntos**, y se consiguió en la
+  vertical que estaba hambrienta de señal: SHAP mostró que motos pesa identidad (105
+  puntos de tirón entre marca, cilindrada y modelo) y casi no pesa estado (15 puntos).
+  Carros no tienen ese desbalance —la edad es su segundo factor, con 25,3 %—, así que
+  ahí hay menos hueco que llenar.
+- El costo no es comparable: **~8 h** de raspado educado para 7.207 carros, contra los
+  100 min que costaron 1.500 motos, y duplica el peso de la rama `data`.
+- Matiz honesto a favor de carros: su tabla **sí** trae versión, transmisión, combustible,
+  carrocería y puertas —el esquema que motos no tiene—, así que la ganancia por anuncio
+  podría ser mayor que −1,8. Lo que es menor es la necesidad.
 
-Enriquecer solo motos cuesta ~1,3 h (3.765 anuncios) en vez de ~4 h. La alternativa es
-acotar el alcance: publicar motos con una advertencia de precisión, o dejarlas fuera del
-clasificador y solo estimar carros.
+Dónde sí lo reconsideraría: si F4 quiere mostrar versión o transmisión en la ficha, o si
+F3 necesita carrocería para segmentar. Eso es una razón de producto, no de modelo, y
+cambia la respuesta.
 
 ### 2. Fasecolda — bloqueada
 
@@ -322,9 +433,20 @@ feature del modelo; se vuelve necesaria en F3.
   `gold_listings` del workflow no es el lago completo; el acumulado se arma en local con
   `pull-history` + `transform`. Si el índice mensual de F3 va a correr en CI, el workflow
   tendrá que traer el histórico antes de dbt.
-- **La rama `data` crece para siempre.** 944 KB hoy, ~25 MB al año. Quitar una captura
-  publicada por error exige reescribir la rama. Los disparadores para pasar a R2 están en
+- **La rama `data` crece para siempre.** ~1 MB hoy con las 8 capturas más el detalle,
+  ~25 MB al año. Quitar algo publicado por error exige reescribir la rama. Los
+  disparadores para pasar a R2 están en
   [ADR 0004](adr/0004-capture-history-storage.md).
+- **El detalle solo cubre 39,8 % de motos y 0 % de carros.** Por eso las features de
+  detalle están **apagadas por defecto** en el modelo: encenderlas sobre la vertical
+  completa le daría al modelo columnas nulas en seis de cada diez filas. Tienen sentido
+  con `--only-enriched`, o cuando la cobertura sea alta.
+- **Las 1.500 filas de detalle ya escritas no traen peso, dimensiones ni batería.** Esas
+  etiquetas se agregaron a la lista blanca *después* de esa pasada, con el reporte de
+  drift en la mano; se capturan desde la siguiente.
+- **`model` y `brand` de la página de detalle se guardan pero no se usan.** El `Modelo`
+  del formulario es más limpio que el token minado del título, pero en algunos anuncios
+  trae el año. Reconciliarlo con `stg_title_features` está sin hacer.
 - **Cuatrimotos, buggies y side-by-sides** viven en la vertical de motos (121 anuncios).
   Marcados con `is_quad` para que F2 los segmente, no eliminados.
 - **Las tarjetas patrocinadas se filtran entre regiones**, así que `department` no es un
@@ -374,7 +496,7 @@ feature del modelo; se vuelve necesaria en F3.
 #  2. la red intercepta TLS: uv necesita --system-certs, y el scraping
 #     necesita AUTOVALOR_USE_SYSTEM_CERTS=true
 #  3. no hay make ni docker en Windows: usar .\make.ps1
-.\make.ps1 test          # 228 tests, cobertura 95,8 %
+.\make.ps1 test          # 276 tests, cobertura 96,4 %
 .\make.ps1 lint          # ruff + mypy
 .\make.ps1 transform     # valida bronze, corre dbt, valida silver y gold
 .\make.ps1 train         # los tres modelos y la banda, ~50 min, todo a MLflow
@@ -396,8 +518,26 @@ uv run python -m autovalor.models.train --model lightgbm --vehicle-type car `
 tener el lago:
 
 ```powershell
-.\make.ps1 pull-history   # trae los Parquet publicados a data/bronze, sin sobrescribir
+.\make.ps1 pull-history   # trae los Parquet publicados al lago, sin sobrescribir
 .\make.ps1 transform      # reconstruye silver y gold desde ahí
+```
+
+Para seguir enriqueciendo motos (quedan 2.265, ~35 min por corrida de 500):
+
+```powershell
+$env:AUTOVALOR_USE_SYSTEM_CERTS = 'true'
+.\make.ps1 enrich -Budget 500   # solo anuncios sin detalle, muestreo con semilla
+.\make.ps1 transform
+.\make.ps1 push-history         # publica el detalle nuevo
+```
+
+Y para repetir la medición pareada tal cual se hizo:
+
+```powershell
+uv run python -m autovalor.models.train --model lightgbm --vehicle-type motorcycle `
+    --only-enriched --no-intervals --no-mlflow                     # sin las features
+uv run python -m autovalor.models.train --model lightgbm --vehicle-type motorcycle `
+    --only-enriched --detail-features --no-intervals --no-mlflow    # con ellas
 ```
 
 Estado de la rama hoy: **8 capturas, 944 KB**, dos commits de backfill. Solo viaja bronze;
