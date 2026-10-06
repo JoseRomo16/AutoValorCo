@@ -45,6 +45,16 @@ docs/          # ADRs y diccionario de datos
 - Nada de lógica de negocio en notebooks: los notebooks importan desde `src/autovalor`.
 - Configuración por variables de entorno (`.env`, nunca commiteado); `.env.example` actualizado.
 
+## Costo cero
+
+Restricción de diseño, no una preferencia: **el proyecto opera sin ningún costo monetario**. Todo lo de abajo se deriva de ahí.
+
+- **No propongas servicios que pidan tarjeta o suscripción** —Cloudflare R2, AWS, Apify, planes pagos de Render, APIs de pago— sin preguntar primero. Si una solución necesita uno, dilo y espera decisión en vez de asumirlo.
+- **El repositorio se mantiene público**, que es lo que hace gratis a GitHub Actions. Cualquier propuesta que implique volverlo privado tiene que contar ese costo.
+- **El histórico de capturas vive en la rama `data`** del propio repositorio ([ADR 0004](docs/adr/0004-capture-history-storage.md)). Almacenamiento de objetos solo se reconsidera con aprobación explícita.
+- **F4 cabe en el plan gratuito de Render**: un solo servicio web para la API, con imagen mínima —sin CatBoost, MLflow, Playwright ni dbt— que quepa en 512 MB, y el modelo servido empaquetado dentro de la imagen en vez de descargado en arranque. El frontend Next.js se publica como sitio estático. Hoy el `Dockerfile` instala todas las dependencias, así que F4 tendrá que partir `pyproject.toml` en grupos (`api` contra `train`/`ingest`): ahí se van los 512 MB.
+- **Fasecolda solo por fuentes públicas y gratuitas.** Sin suscripción a la guía.
+
 ## Reglas de datos
 
 - Scraping educado: respetar robots.txt, pausas aleatorias entre requests, user-agent identificable, sin paralelismo agresivo.

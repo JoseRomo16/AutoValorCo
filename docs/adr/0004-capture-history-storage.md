@@ -54,12 +54,20 @@ plus a dependency that nothing else in the project needs today.
 
 ## Decision
 
-**A, the `data` branch.** It is in place with no account and no secrets, 25 MB/year is
-negligible against the deadline it removes, and a visible capture history is worth
-something in a project meant to be read. **Cloudflare R2 stays the documented upgrade
-path**, and the mechanism is built so that taking it is a small change rather than a
-rewrite: `AUTOVALOR_BRONZE_GLOB` already points dbt at the bronze layer through a single
-glob, and DuckDB reads `s3://` directly, so the read side becomes a change of variable.
+**A, the `data` branch — and not as an interim step.** It is in place with no account and
+no secrets, 25 MB/year is negligible against the deadline it removes, and a visible capture
+history is worth something in a project meant to be read.
+
+**Superseded on 2026-10-05: R2 is no longer the default upgrade path.** The project
+operates at zero monetary cost as a design constraint (see the "Costo cero" section of
+`CLAUDE.md`), and R2 needs an account with a payment method on file even while the usage
+stays inside the free tier. The `data` branch is therefore the destination, not a staging
+post on the way to object storage.
+
+R2 remains *documented* rather than *planned*: the cost of taking it is recorded below so
+the option stays cheap to exercise, and `AUTOVALOR_BRONZE_GLOB` still makes the read side a
+change of variable. But it is **only reconsidered with the owner's explicit approval**, and
+the triggers further down are reasons to *raise the question*, not to migrate.
 
 Detail-page enrichment was approved in the same decision, which is the condition this ADR
 had flagged as a reason to prefer R2 from the start. It does not reverse the choice, for
@@ -85,8 +93,11 @@ Chosen — **A**:
 - One mechanism — `autovalor.ingest.history` — serves the workflow, the Makefile and a
   manual seed, so there is a single place where this can be wrong.
 
-The upgrade to **B** costs, when the time comes:
+What **B** would cost, recorded so the option stays cheap to exercise rather than because
+it is planned:
 
+- An account with a payment method on file, which is the part that conflicts with the
+  zero-cost constraint even inside the free tier.
 - Four secrets (account id, access key id, secret access key, bucket) and a documented
   rotation step.
 - `AUTOVALOR_BRONZE_GLOB` points at `s3://<bucket>/bronze/**/*.parquet` and dbt needs the
@@ -95,10 +106,12 @@ The upgrade to **B** costs, when the time comes:
 - Bucket versioning or a write-once policy has to be configured deliberately, because an
   object store will happily overwrite a key — git would not.
 
-**When to revisit.** Three triggers, in the order they are likely to arrive: the branch
-passes ~500 MB; a weekly capture stops fitting in a commit that is cheap to clone; or the
-detail enrichment is extended beyond motorcycles and starts carrying per-listing HTML-sized
-payloads rather than parsed rows.
+**When to raise the question — not to migrate.** Three triggers, in the order they are
+likely to arrive: the branch passes ~500 MB; a weekly capture stops fitting in a commit
+that is cheap to clone; or the detail enrichment starts carrying per-listing HTML-sized
+payloads rather than parsed rows. Any of them is a reason to tell the owner the branch is
+straining, and the answer might equally be to prune the history or to narrow what gets
+captured. **Moving to a paid-account service needs explicit approval either way.**
 
 Regardless:
 
