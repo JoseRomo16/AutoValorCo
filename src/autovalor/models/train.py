@@ -73,6 +73,18 @@ logger = logging.getLogger("autovalor.models")
 ModelKind = Literal["hedonic", "lightgbm", "catboost"]
 
 MODEL_KINDS: tuple[ModelKind, ...] = get_args(ModelKind)
+"""Every model this command can fit, which is not the same as what it fits by default."""
+
+DEFAULT_MODEL_KINDS: tuple[ModelKind, ...] = ("hedonic", "lightgbm")
+"""What a bare ``make train`` fits.
+
+CatBoost is reachable with ``--model catboost`` but no longer runs by default: measured on
+two different lakes it has not won a vertical — 1,8 points behind on cars, a tie on
+motorcycles — while costing 46 of the full run's ~110 minutes. A default command that
+doubles in length to re-confirm a known ranking is a default that stops being run. See
+``docs/adr/0003-tree-model-validation.md``, including why the asymmetric search budget
+makes this a default rather than a deletion.
+"""
 
 BASELINE_KIND: Final = "hedonic"
 BASELINE_VARIANT: Final = "full"
@@ -560,7 +572,7 @@ def format_interval_table(results: Sequence[ModelResult]) -> str:
 def run(
     *,
     vehicle_types: Sequence[VehicleType] = VEHICLE_TYPES,
-    model_kinds: Sequence[ModelKind] = MODEL_KINDS,
+    model_kinds: Sequence[ModelKind] = DEFAULT_MODEL_KINDS,
     feature_sets: Sequence[FeatureSet] = FEATURE_SETS,
     strategy: SplitStrategy = "random",
     test_size: float = DEFAULT_TEST_SIZE,
@@ -577,7 +589,7 @@ def run(
 
     Args:
         vehicle_types: Verticals to model.
-        model_kinds: Models to fit.
+        model_kinds: Models to fit; defaults to :data:`DEFAULT_MODEL_KINDS`.
         feature_sets: Feature sets, for the hedonic baseline only.
         strategy: Split strategy, ``random`` or ``temporal``.
         test_size: Fraction of listings held out.
@@ -648,7 +660,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         choices=MODEL_KINDS,
         default=None,
-        help="Model to fit; repeatable. Defaults to all three.",
+        help=(
+            "Model to fit; repeatable. Defaults to "
+            f"{' and '.join(DEFAULT_MODEL_KINDS)} — CatBoost has to be asked for, since "
+            "it has not won a vertical and costs about as much as everything else "
+            "together."
+        ),
     )
     parser.add_argument(
         "--feature-set",
@@ -757,7 +774,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         results = run(
             vehicle_types=args.vehicle_type or VEHICLE_TYPES,
-            model_kinds=args.model or MODEL_KINDS,
+            model_kinds=args.model or DEFAULT_MODEL_KINDS,
             feature_sets=args.feature_set or FEATURE_SETS,
             strategy=args.split,
             test_size=args.test_size,

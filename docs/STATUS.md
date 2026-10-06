@@ -1,7 +1,8 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-05** · Fase actual: **F2, los cinco pasos hechos**
-(la meta de MAPE ≤ 15 % se cumple en carros, no en motos)
+Última actualización: **2026-10-06** · Fase actual: **F2 cerrada**, F3 en curso
+(carros cumplen la meta de MAPE ≤ 15 % y publican etiqueta; motos publican precio y rango
+sin etiqueta, por la regla de calidad de banda)
 
 Este documento es el punto de retorno: dice qué funciona, qué falta, qué está decidido y
 qué no. Se actualiza al cerrar cada bloque de trabajo.
@@ -11,13 +12,15 @@ qué no. Se actualiza al cerrar cada bloque de trabajo.
 ## Resumen en una línea
 
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
-validado— con 7.207 carros y 3.765 motos, y las capturas ya no se pierden: viven en la
+validado— con 7.639 carros y 4.052 motos, y las capturas ya no se pierden: viven en la
 rama `data`. Tres modelos entrenados y medidos **fuera de muestra**: el mejor es LightGBM
-con **11,5 % MAPE en carros** y **24,9 % en motos** tras enriquecer 1.500 anuncios con su
-página de detalle (eran 26,7 %). Carros cumple la meta de F2 (≤ 15 %); motos no todavía.
-La banda P10–P90 está calibrada y SHAP ya explica cada predicción, con lo que **los cinco
-pasos de F2 están hechos**. Lo que SHAP dejó claro es por qué motos falla: el modelo pesa
-identidad (marca, cilindrada, modelo) y casi no pesa estado (edad, kilometraje).
+con **11,3 % MAPE en carros** y **24,1 % en motos** (con 2.300 motos enriquecidas, 56,8 %
+de la vertical). Carros cumple la meta de F2 (≤ 15 %); motos no. **F2 queda cerrada** con
+una regla explícita que decide qué se publica en cada vertical: la etiqueta
+ganga/justo/caro exige una banda con cobertura entre 78 % y 82 % y ancho medio ≤ 60 % del
+estimado, y motos no la alcanza, así que sale con precio estimado, rango y aviso de
+precisión. Lo que SHAP dejó claro es por qué motos falla —el modelo pesa identidad y casi
+no pesa estado—, y eso sigue siendo lo que hay que atacar para bajar de 24 %.
 
 ---
 
@@ -87,12 +90,17 @@ Tras traer el histórico completo de la rama `data` (8 capturas, 2026-09-30 y 20
 | Capa | Filas | Antes | Nota |
 | --- | --- | --- | --- |
 | bronze | 18.859 | 13.696 | append-only, ocho capturas |
-| detail | 1.500 | 1.500 | atributos de la página, una fila por anuncio; **solo motos** |
+| detail | 2.300 | 1.500 | atributos de la página, una fila por anuncio; **solo motos** |
 | silver | 11.925 | 10.982 | grano (anuncio, precio pedido): un cambio de precio es fila nueva |
 | gold | 11.691 | 10.972 | solo filas plausibles, una fila por anuncio |
 
-Por vertical en gold: **7.639 carros** y **4.052 motos**, de las cuales 1.500 (37,0 %)
+Por vertical en gold: **7.639 carros** y **4.052 motos**, de las cuales 2.300 (**56,8 %**)
 tienen detalle.
+
+> Las 800 filas de detalle que faltaban aparecieron solas: la corrida de `enrich.yml` que
+> seguía en vuelo cuando se detuvo el enriquecimiento terminó y publicó su Parquet en la
+> rama `data`. `pull-history` lo trajo. **No se reanudó el raspado** —la decisión de parar
+> sigue en pie—; esto es dato que ya estaba capturado y no costó una sola petición nueva.
 
 Cobertura de features sacadas del título, sin peticiones extra:
 
@@ -205,27 +213,33 @@ cuánto mueve esa variable el precio en una fila cualquiera, sin su signo.
 
 | Variable | Carros | Motos |
 | --- | --- | --- |
-| `model` | **31,0 %** | 22,2 % |
-| `vehicle_age_years` | **25,3 %** | 8,5 % |
-| `brand` | 14,5 % | **42,6 %** |
-| `mileage_km` | 9,6 % | 6,5 % |
-| `engine_cc` | 8,5 % | **40,9 %** |
-| `city` | 1,9 % | 9,0 % |
-| `km_per_year` | 1,6 % | 2,1 % |
-| `department` | 0,2 % | 0,8 % |
-| `is_official_store` | 0,1 % | 0,5 % |
-| `is_quad` | — | 0,6 % |
+| `model` | **31,6 %** | 16,8 % |
+| `vehicle_age_years` | **25,5 %** | 9,6 % |
+| `brand` | 12,9 % | **28,5 %** |
+| `mileage_km` | 9,2 % | 7,7 % |
+| `engine_cc` | 8,9 % | **61,7 %** |
+| `city` | 1,9 % | 7,3 % |
+| `km_per_year` | 1,9 % | 2,0 % |
+| `department` | 0,3 % | 0,4 % |
+| `is_official_store` | 0,1 % | 0,4 % |
+| `is_quad` | — | 0,0 % |
+
+(Medida sobre el lago completo del 2026-10-06. La versión anterior, sobre 10.972 filas y
+1.500 motos enriquecidas, está en el historial de este documento; el orden no cambió.)
 
 **El hallazgo: en motos el modelo pesa identidad y casi no pesa estado.** Marca, cilindrada
-y modelo suman un tirón de 105 puntos; edad y kilometraje suman 15. En carros la relación
-es la inversa —edad es el segundo factor (25,3 %) y el estado pesa 35 puntos—. Dicho de
+y modelo suman un tirón de 107 puntos; edad y kilometraje suman 17. En carros la relación
+es la inversa —edad es el segundo factor (25,5 %) y el estado pesa 35 puntos—. Dicho de
 otra forma, el modelo de motos funciona como un catálogo: sabe cuánto vale una Pulsar 180,
 pero no cuánto descontarle por tener diez años y 60.000 km. Eso explica a la vez el MAPE y
 los 94 % de ancho de banda: dentro de una celda (marca, cilindrada, modelo) le queda poca
 información para separar un ejemplar barato de uno caro.
 
-(Esta tabla se midió **antes** del enriquecimiento, cuando motos iba en 26,7 %. El orden de
-las variables es lo que importa aquí, y es lo que motivó la sección siguiente.)
+**El enriquecimiento reforzó el diagnóstico en vez de corregirlo.** Con la cilindrada
+arreglada en 2.300 anuncios, `engine_cc` subió de 40,9 % a **61,7 %** de tirón típico: el
+modelo ahora se apoya *más* en identidad, no menos. Es coherente —la cilindrada corregida
+es una variable mejor, así que el modelo la usa más— y deja claro que la ruta para bajar de
+24 % no es más identidad.
 
 Dos matices antes de usar esto para decidir:
 
@@ -318,6 +332,13 @@ completa debería caer de 24,9 % a algo cercano a **23 %**, suponiendo que el �
 columnas nuevas se sostenga al triplicar la cobertura. Es una extrapolación de dos puntos
 medidos, no un resultado.
 
+> **Qué pasó con esa extrapolación.** La cobertura subió a 56,8 % (2.300 de 4.052), no al
+> 100 %, y la vertical completa quedó en **24,1 %** sobre el lago nuevo. No es comparable
+> punto a punto —cambió el lago y con él el holdout— pero la dirección es la que la
+> extrapolación anticipaba y la magnitud es más modesta. Las features nuevas **siguen
+> apagadas por defecto**, así que esos 24,1 % son solo la cilindrada corregida; el −1,8 de
+> las columnas nuevas sigue sin cobrarse en la vertical completa.
+
 ### Lo que la página trae y el modelo todavía no usa
 
 El reporte de etiquetas desconocidas —que existe justamente para esto— encontró campos
@@ -336,76 +357,124 @@ la página miente. Lo detectó el esquema Pandera de gold, no una revisión a oj
 
 ---
 
-## Re-medición sobre el lago completo (en curso)
+## Re-medición sobre el lago completo (final)
 
 El 2026-10-06 se trajo el histórico entero de la rama `data` y se reconstruyó el lago:
-gold pasó de 10.972 a **11.691** filas. Con eso hay que volver a medir todo, porque las
-cifras de la tabla de arriba se tomaron sobre el lago anterior.
+gold pasó de 10.972 a **11.691** filas, y el detalle de motos de 1.500 a 2.300. Estas son
+las cifras vigentes; las de la sección anterior quedan como registro de cómo se llegó aquí.
 
-**Esta sección está incompleta a propósito.** Solo lleva lo que ya se midió; el resto
-exige terminar un `make train` que quedó corriendo. Ver "Cómo retomar".
+| Vertical | Modelo | CV MAPE | MAPE fuera | σ (log) | R² | Antes |
+| --- | --- | --- | --- | --- | --- | --- |
+| Carros | hedónico, edad + km + depto | — | 49,0 % | 0,567 | 0,309 | 48,8 % |
+| Carros | hedónico, + marca/modelo/cc | — | 15,6 % | 0,215 | 0,901 | 15,3 % |
+| Carros | **LightGBM** | 11,4 % | **11,3 %** | 0,171 | 0,937 | 11,5 % |
+| Carros | CatBoost | 13,4 % | 13,1 % | 0,200 | 0,914 | 13,1 % |
+| Motos | hedónico, edad + km + depto | — | 99,8 % | 0,978 | 0,093 | 101,0 % |
+| Motos | hedónico, + marca/modelo/cc | — | **40,0 %** | 0,525 | 0,738 | 47,8 % |
+| Motos | **LightGBM** | 24,0 % | 24,1 % | 0,377 | 0,865 | 26,7 % |
+| Motos | CatBoost | 24,8 % | **23,6 %** | 0,364 | 0,875 | 26,8 % |
 
-### Carros — medido y final
+Holdouts de 1.528 y 810 filas, contra 1.441 y 753 antes.
 
-| Modelo | CV MAPE | MAPE fuera | σ (log) | R² | Antes (MAPE fuera) |
+Tres lecturas:
+
+- **Carros mejoran levemente y siguen cumpliendo la meta** con 3,7 puntos de margen:
+  11,5 % → 11,3 %, σ de 0,177 a 0,171. No se enriquecieron, así que la mejora viene solo
+  de 432 filas más.
+- **Motos bajan de 26,7 % a 24,1 %**, y la mayor parte no es el modelo: es la cilindrada
+  corregida en 2.300 anuncios en vez de 1.500. El salto más grande está en la **línea base
+  hedónica, que pasó de 47,8 % a 40,0 %** —casi ocho puntos— y eso solo puede venir de los
+  datos, porque el modelo es el mismo. Sigue a 9 puntos de la meta.
+- **CatBoost gana en motos por primera vez, y la evidencia se contradice a sí misma**:
+  23,6 % contra 24,1 % en el holdout, pero 24,8 % contra 24,0 % en la CV. Cuando el orden
+  se invierte según qué partición se mire, lo que hay es un empate, no un ganador. En
+  carros no hay ambigüedad: LightGBM gana por 1,8 puntos en las dos. Ver la decisión abajo.
+
+### La banda, y la regla que decide qué se publica
+
+| Vertical | Cobertura | Ancho medio | Ensanche (log) | Cruzados | Etiqueta |
 | --- | --- | --- | --- | --- | --- |
-| hedónico, edad + km + depto | — | 49,0 % | 0,567 | 0,309 | 48,8 % |
-| hedónico, + marca/modelo/cc | — | 15,6 % | 0,215 | 0,901 | 15,3 % |
-| **LightGBM** | 11,4 % | **11,3 %** | 0,171 | 0,937 | 11,5 % |
+| Carros, antes (7.207) | 76,5 % | 38 % | +0,029 | 5,8 % | — |
+| **Carros, ahora (7.639)** | **81,0 %** | **41 %** | +0,045 | 5,4 % | **se publica** |
+| Motos, antes (3.012) | 76,8 % | 94 % | +0,061 | 8,4 % | — |
+| **Motos, ahora (4.052)** | **83,6 %** | **84 %** | +0,104 | 12,0 % | **se retiene** |
 
-Holdout de 1.528 filas, contra 1.441 antes. Carros **sigue cumpliendo la meta de F2** con
-3,7 puntos de margen, y mejoró levemente: 11,5 % → 11,3 %, σ de 0,177 a 0,171. No se
-enriquecieron, así que la mejora viene solo de tener 432 filas más.
+**La regla es ahora código, no criterio.** `models.quantiles.label_policy` publica la
+etiqueta ganga/justo/caro solo si la banda medida en el holdout cumple las dos cosas:
 
-**El hallazgo de esta corrida está en la banda, no en el punto:**
+- **cobertura dentro de [78 %, 82 %]** — ventana de dos lados, no piso. Cubrir de menos
+  dispara "ganga" en anuncios normales; cubrir de más mete en "justo" anuncios que de
+  verdad están mal preciados, y la etiqueta deja de discriminar.
+- **ancho medio ≤ 60 % del estimado.**
 
-| | Cobertura | Ancho medio | Ensanche (log) | Cruzados |
-| --- | --- | --- | --- | --- |
-| Antes (7.207 filas) | 76,5 % | 38 % | +0,029 | 5,8 % |
-| Ahora (7.639 filas) | **81,0 %** | 41 % | +0,045 | 5,4 % |
+Carros pasan las dos. **Motos fallan las dos** —83,6 % de cobertura y 84 % de ancho—, así
+que esa vertical se publica con **precio estimado, rango y un aviso de precisión**, sin
+etiqueta. La vertical no se retira: un estimado con rango sigue siendo útil; lo que no se
+puede sostener es la etiqueta.
 
-**El déficit de cobertura se cerró.** Estaba documentado como deuda conocida —76,5 %
-contra un nominal de 80 %, ~3 puntos de más— con la hipótesis de que la conformalización
-sufría por filas agrupadas por reposteo. Con 432 filas más de calibración la cobertura
-llegó a 81,0 %, es decir **la hipótesis del agrupamiento era secundaria: el problema era
-tamaño de muestra de calibración**. El precio es un ensanche mayor (+0,045 contra +0,029)
-y una banda 3 puntos más ancha, que es exactamente lo que debía pasar: la banda de 38 % al
-76,5 % estaba **angosta de más**, no bien calibrada.
+**El déficit de cobertura no era lo que parecía.** Estaba documentado como deuda conocida
+—76,5 % y 76,8 % contra un nominal de 80 %— con la hipótesis de que la conformalización
+sufría por filas agrupadas por reposteo. Con más filas de calibración carros llegó a
+81,0 % y motos a **83,6 %**, es decir **se pasó de largo**. Entonces ni "tamaño de muestra"
+ni "agrupamiento" explican solos el comportamiento: con pocas filas la banda salía angosta
+y con más sale ancha, que es lo que hace un ensanche conformal estimado sobre un residuo
+de cola pesada. En motos, con un ensanche de +0,104 y 12 % de cuantiles cruzados, el
+problema de fondo sigue siendo que los tres modelos cuantílicos no concuerdan sobre la
+forma de la superficie de precios.
 
-### Lo que falta de la re-medición
+### CatBoost sale de `make train` por defecto, pero el caso ya no es limpio
 
-- CatBoost en carros, y los cuatro modelos en motos.
-- La banda nueva de motos, que es la que decide si la etiqueta ganga/justo/caro sirve en
-  esa vertical. Con el dato de carros a la vista, la pregunta cambió: si el déficit de
-  cobertura era tamaño de calibración, la banda de motos (76,8 % con 3.012 filas) debería
-  también acercarse al nominal ahora que hay 4.052.
-- Motos conservan solo **37 % de cobertura de detalle** (1.500 de 4.052). El
-  enriquecimiento se detuvo por decisión del usuario, así que la re-medición mide el lago
-  más grande con la cilindrada corregida donde la hay, **no** la vertical enriquecida
-  completa.
+**Ojo: la premisa con la que se pidió esta decisión —"si no gana en ninguna vertical"— ya
+no se cumple exactamente.** CatBoost gana el holdout de motos por 0,5 puntos. Lo que pasa
+es que pierde la CV de esa misma vertical por 0,8, y un orden que se invierte entre
+particiones es ruido, no un ganador. En carros pierde por 1,8 puntos en las dos
+particiones, que sí es consistente.
+
+Se saca del camino por defecto igual, por tres razones y ninguna es "pierde siempre":
+
+- **Cambiar de modelo servido en motos costaría la banda y la explicación.** `quantiles.py`
+  y `explain.py` son solo-LightGBM. Servir CatBoost en motos exige escribir los tres
+  modelos cuantílicos de CatBoost y su ruta de atribución —y motos es justamente la
+  vertical cuyo rango sí se publica—, todo para una ventaja de 0,5 puntos que la CV
+  contradice.
+- **Cuesta más de la mitad de la corrida**: 46 minutos de los ~110 en carros y ~105 en
+  motos. Un comando por defecto que se duplica en duración para reconfirmar un empate es un
+  comando que se deja de correr.
+- Sigue alcanzable con `--model catboost`, así que la comparación no se pierde; solo deja
+  de pagarse en cada corrida.
+
+Si en algún momento se quiere perseguir esos 0,5 puntos —por ejemplo si motos se acerca a
+la meta y el margen empieza a importar—, lo correcto es **medirlo con el mismo presupuesto
+de búsqueda** (40 trials para los dos) antes de mover nada. Detalle en
+[ADR 0003](adr/0003-tree-model-validation.md).
 
 ---
 
 ## Lo que falta
 
-### F2 — los cinco pasos hechos
+### F2 — cerrada
 
-Queda abierto el criterio de cierre en sí: **motos no llega a la meta de 15 %**. Lo que las
-corridas dejaron pendiente:
+Los cinco pasos estaban hechos desde el 2026-10-05; lo que faltaba era el criterio de
+cierre, y se cerró decidiendo **qué se publica en cada vertical** en vez de esperar a que
+motos llegue a 15 %:
 
-- **Elegir el modelo servido.** LightGBM gana en ambas verticales y es ~5 veces más rápido
-  de ajustar que CatBoost. En motos la diferencia con CatBoost es de 0,1 puntos, que es
-  ruido; en carros son 1,6 puntos reales. Falta decidir si CatBoost se mantiene como
-  comparación o se retira.
-- **Motos a 26,7 % todavía no sirve para el producto**, y la banda lo confirma: 94 % de
-  ancho. SHAP acota el diagnóstico: falta señal de estado, no de identidad.
-- **La cobertura de la banda queda ~3 puntos corta** del nominal. Ver deuda conocida; no
-  bloquea, pero hay que decidir si se arregla antes de exponer la etiqueta en la API.
+- **Carros cumplen la meta** (11,3 % contra 15 %) y su banda pasa la regla, así que salen
+  con estimado, rango y etiqueta.
+- **Motos no llegan** (24,1 %) y su banda falla las dos condiciones, así que salen con
+  estimado, rango y aviso de precisión, **sin etiqueta**. La regla está en el código y hay
+  tests sobre los cuatro modos de fallo, así que no es una nota en un documento: si una
+  corrida futura mejora la banda de motos, la etiqueta se enciende sola.
+- **El modelo servido es LightGBM** en ambas verticales. CatBoost sale del camino por
+  defecto.
+
+Lo que **no** cierra F2 y pasa a F3 o F4: que motos llegue a 15 % sigue siendo deseable y
+no hay plan que lo logre con los datos de hoy —SHAP y el hedónico coinciden en que falta
+señal de estado, no de identidad—.
 
 ### F3 — Resultados
 
 Métricas por segmento, curvas de depreciación, índice mensual, comparación con Fasecolda
-(bloqueada, ver abajo). La importancia global ya está; lo que falta de SHAP en F3 es
+(fuera de alcance, ver abajo). La importancia global ya está; lo que falta de SHAP en F3 es
 desagregarla por segmento.
 
 ### F4 — Producto
@@ -475,17 +544,22 @@ Dónde sí lo reconsideraría: si F4 quiere mostrar versión o transmisión en l
 F3 necesita carrocería para segmentar. Eso es una razón de producto, no de modelo, y
 cambia la respuesta.
 
-### 2. Fasecolda — bloqueada
+### 2. Fasecolda — fuera de alcance por ahora
 
 `fasecolda.com/guia-de-valores/` es un shell de JS sin datos;
 `guiadevalores.fasecolda.com` responde **403**. Su `robots.txt` no prohíbe nada, pero la
-guía no se obtiene por HTTP simple. No bloquea F2 porque `valor_fasecolda` nunca fue
-feature del modelo; se vuelve necesaria en F3.
+guía no se obtiene por HTTP simple. Nunca bloqueó F2 porque `valor_fasecolda` no es feature
+del modelo —sería fuga—; solo era benchmark.
 
-**La suscripción queda descartada por la regla de costo cero.** Lo que queda: un export
-manual que tú consigas, o alguna fuente pública gratuita que republique la guía. Si no
-aparece ninguna, el benchmark se cae y hay que decirlo en los resultados en vez de
-sustituirlo por algo que no es Fasecolda.
+**Decisión: el benchmark queda documentado como fuera de alcance y no se busca una fuente
+de pago.** La suscripción está descartada por la regla de costo cero, y sustituir Fasecolda
+por otra tabla de referencia sería peor que no tener benchmark: el valor de comparar contra
+Fasecolda es precisamente que es *la* referencia del mercado colombiano, y comparar contra
+otra cosa respondería una pregunta que nadie hizo.
+
+Queda abierto solo si aparece **un export manual** que consigas por tu cuenta. Mientras
+tanto los resultados de F3 se publican diciendo que no hay comparación externa, en vez de
+inventar una.
 
 ---
 
@@ -507,10 +581,11 @@ sustituirlo por algo que no es Fasecolda.
   ([ADR 0004](adr/0004-capture-history-storage.md), y la sección "Costo cero" de
   `CLAUDE.md`). Podar el histórico o acotar lo que se captura son respuestas igual de
   válidas.
-- **El detalle solo cubre 39,8 % de motos y 0 % de carros.** Por eso las features de
+- **El detalle cubre 56,8 % de motos y 0 % de carros.** Por eso las features de
   detalle están **apagadas por defecto** en el modelo: encenderlas sobre la vertical
-  completa le daría al modelo columnas nulas en seis de cada diez filas. Tienen sentido
-  con `--only-enriched`, o cuando la cobertura sea alta.
+  completa le daría al modelo columnas nulas en cuatro de cada diez filas. Tienen sentido
+  con `--only-enriched`, o cuando la cobertura sea alta. A 56,8 % ya está cerca del punto
+  en que encenderlas vale la pena; medirlo es una tarea abierta, no una conclusión.
 - **Las 1.500 filas de detalle ya escritas no traen peso, dimensiones ni batería.** Esas
   etiquetas se agregaron a la lista blanca *después* de esa pasada, con el reporte de
   drift en la mano; se capturan desde la siguiente.
@@ -528,17 +603,20 @@ sustituirlo por algo que no es Fasecolda.
   `--split temporal` sigue fallando a propósito. Faltan ~8 días, es decir **una o dos
   capturas semanales más**; llega solo. Conviene repetir la medición con `temporal` en ese
   momento, porque es la partición que exige el índice mensual de F3.
-- **La cobertura de la banda queda corta: 76,5 % y 76,8 % contra el nominal de 80 %.** Son
-  ~3 puntos, demasiado para ser ruido de muestreo con n=1441 (±1 punto). La causa probable
-  es que la conformalización supone filas **intercambiables** y estos datos están agrupados
-  por vehículo reposteado, así que el cuantil empírico subestima. El arreglo es conformal
-  consciente de grupos o una calibración anidada. **No** subir el nivel hasta que el
-  holdout cuadre: eso sería ajustar contra el holdout y devolvería la cobertura a ser una
-  cifra en muestra.
-- **Los cuantiles se cruzan en 5,8 % de carros y 8,4 % de motos.** Se ordenan por fila, que
+- **La cobertura de la banda ya no queda corta — ahora se pasa, y en motos lo bastante
+  para costarle la etiqueta.** Era 76,5 % y 76,8 % contra el nominal de 80 %; con el lago
+  completo es 81,0 % en carros y **83,6 % en motos**. La hipótesis vieja (filas no
+  intercambiables por reposteo) no explica un cambio de signo. Lo que sí: el ensanche
+  conformal se estima sobre el cuantil empírico de un residuo de cola pesada, y ese
+  estimador es inestable en los dos sentidos según cuántas filas de calibración haya. El
+  arreglo sigue siendo conformal consciente de grupos o calibración anidada, ahora con el
+  objetivo de **estabilizar**, no de subir. **No** bajar el nivel hasta que el holdout
+  cuadre: eso sería ajustar contra el holdout.
+- **Los cuantiles se cruzan en 5,4 % de carros y 12,0 % de motos.** Se ordenan por fila, que
   es correcto, pero un cruce alto significa que los tres niveles no concuerdan sobre la
-  forma de la superficie de precios. Ajustar los tres con un objetivo multicuantil, o con
-  monotonicidad impuesta, lo reduciría.
+  forma de la superficie de precios. En motos subió de 8,4 % a 12,0 % y es la pista más
+  concreta de por qué esa banda sigue midiendo 84 % de ancho. Ajustar los tres con un
+  objetivo multicuantil, o con monotonicidad impuesta, es el siguiente intento.
 - **La banda entrena con 25 % menos filas** que el modelo puntual, porque esa parte se
   aparta para calibrar. El modelo puntual no paga ese costo; la banda sí.
 - **CatBoost se exploró con la mitad del presupuesto que LightGBM** (20 trials contra 40),
@@ -567,11 +645,14 @@ sustituirlo por algo que no es Fasecolda.
 #  2. la red intercepta TLS: uv necesita --system-certs, y el scraping
 #     necesita AUTOVALOR_USE_SYSTEM_CERTS=true
 #  3. no hay make ni docker en Windows: usar .\make.ps1
-.\make.ps1 test          # 276 tests, cobertura 96,4 %
+.\make.ps1 test          # la suite completa con cobertura
 .\make.ps1 lint          # ruff + mypy
 .\make.ps1 transform     # valida bronze, corre dbt, valida silver y gold
-.\make.ps1 train         # los tres modelos y la banda, ~50 min, todo a MLflow
+.\make.ps1 train         # LightGBM y el hedónico, con banda; ~25 min
 ```
+
+`train` ya **no corre CatBoost por defecto** (perdía en las dos verticales y costaba más
+de la mitad del tiempo). Para la comparación: `--model catboost`.
 
 Para ver solo los números rápido, sin búsqueda y sin escribir en MLflow:
 
@@ -593,18 +674,12 @@ tener el lago:
 .\make.ps1 transform      # reconstruye silver y gold desde ahí
 ```
 
-**Lo primero que hay que hacer al retomar** es terminar la re-medición, que quedó a medias:
+**La re-medición está completa** y F2 cerrada; no hay nada a medias esperando. Lo que
+sigue es F3: queda el índice mensual (implementado, no publicable hasta ~2027-03) y la
+comparación con Fasecolda (bloqueada).
 
-```powershell
-uv run python -m autovalor.models.train --no-mlflow   # ~60 min con el lago actual
-```
-
-Eso completa la tabla de "Re-medición sobre el lago completo": falta CatBoost en carros y
-los cuatro modelos más la banda en motos. Con la banda de motos en mano se puede responder
-la pregunta de producto que quedó abierta —si la etiqueta ganga/justo/caro sirve en esa
-vertical— y recién entonces marcar F2 como cerrada aquí y en `CLAUDE.md`.
-
-Para seguir enriqueciendo motos, **el camino preferido es GitHub Actions**: es gratis, no
+Para seguir enriqueciendo motos —**detenido por decisión, no reanudar sin que lo pidan**—
+el camino preferido es GitHub Actions: es gratis, no
 depende de una máquina encendida y ya trae el histórico por sí solo. Lanza
 `Enrich motorcycle details` desde la pestaña Actions con el presupuesto que quieras
 (~15 páginas/min, así que 800 son ~55 min). El workflow pide el histórico, reconstruye
@@ -639,12 +714,11 @@ por la misma razón que la subida del artefacto —la captura es la parte irremp
 artefacto sigue subiéndose como red de seguridad; los dos caminos son independientes a
 propósito.
 
-**Ojo con los números al reconstruir.** El lago local tiene solo las **6 capturas del
-2026-09-30** (10.972 filas de gold), que es donde se midieron el 11,5 % y el 26,7 %. La
-rama tiene 8: incluye la captura programada del 2026-10-05, que deliberadamente no se
-incorporó al lago local para no invalidar las cifras de F2 a mitad de camino. Si corres
-`pull-history` + `transform`, gold crece y **las métricas de F2 hay que volver a medirlas**
-sobre ese gold más grande.
+**Ojo con los números al reconstruir.** El lago local ya está sincronizado con la rama: 8
+capturas de bronze y los dos Parquet de detalle, 11.691 filas de gold, que es donde se
+midió todo lo de arriba. La próxima captura semanal lo hará crecer otra vez, y entonces
+**las métricas hay que volver a medirlas** —no son constantes del proyecto, son medidas
+sobre un lago con fecha—.
 
 Si de verdad hace falta raspar de nuevo:
 

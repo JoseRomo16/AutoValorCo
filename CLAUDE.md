@@ -24,7 +24,7 @@ data/          # bronze/ silver/ gold/ (en .gitignore)
 notebooks/     # solo exploración: 01_eda, 02_modelo_hedonico, 03_comparacion_modelos
 frontend/      # Next.js + Tailwind
 tests/
-docs/          # ADRs y diccionario de datos
+docs/          # ADRs, diccionario de datos, results/ (JSON y CSV versionados) y figures/
 ```
 
 ## Comandos
@@ -32,7 +32,7 @@ docs/          # ADRs y diccionario de datos
 - `make setup` instala dependencias (uv sync + playwright install + npm install en frontend)
 - `make scrape` captura anuncios a data/bronze
 - `make transform` corre dbt (silver y gold) y validaciones Pandera
-- `make train` entrena y registra modelos en MLflow
+- `make train` entrena y registra modelos en MLflow (hedónico y LightGBM; CatBoost solo con `--model catboost`)
 - `make serve` levanta la API en local
 - `make test` corre pytest; `make lint` corre ruff + mypy
 
@@ -63,12 +63,25 @@ Restricción de diseño, no una preferencia: **el proyecto opera sin ningún cos
 - `valor_fasecolda` no se usa como feature del modelo base (fuga de información); solo como benchmark.
 - Precio modelado como log(precio). Carros y motos son modelos separados.
 
+## Qué se publica de cada vertical
+
+Regla de producto, implementada en `models/quantiles.py` y con tests: **la etiqueta
+ganga/justo/caro solo se muestra si la banda P10–P90 medida en el holdout tiene cobertura
+entre 78 % y 82 % y ancho medio ≤ 60 % del estimado**. La ventana de cobertura es de dos
+lados a propósito: cubrir de menos dispara "ganga" en anuncios normales, cubrir de más mete
+en "justo" anuncios mal preciados.
+
+Si una vertical no cumple, se publica igual pero con **precio estimado, rango y aviso de
+precisión, sin etiqueta** — hoy es el caso de motos (83,6 % y 84 %). No inventes una
+excepción ni subas el umbral para que pase: el gate se evalúa sobre el holdout y arreglarlo
+contra el holdout lo vuelve una cifra en muestra.
+
 ## Fases y criterios de cierre
 
 - F0 Requisitos: repo inicial, CI verde, estructura y Makefile. (cerrada)
 - F1 Datos: piloto de 1.000 anuncios para medir σ del error; cierre con ≥ 6.000 carros y ≥ 2.600 motos limpios (captura bruta ~7.500 y ~3.500). Captura semanal activa desde aquí. (cerrada)
-- F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (actual)
-- F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda.
+- F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (**cerrada**: carros 11,3 % y publican etiqueta; motos 24,1 % y publican precio + rango sin etiqueta, por la regla de abajo. El modelo servido es LightGBM.)
+- F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda. (actual)
 - F4 Producto: API (/predict, /explain, /health, /model-info), app Next.js, Docker, despliegue en Render.
 
 ## Forma de trabajo

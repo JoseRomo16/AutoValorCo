@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-10-01
+- Updated: 2026-10-06 — CatBoost leaves the default run; see "CatBoost's place" below.
 
 ## Context
 
@@ -58,3 +59,38 @@ budget would spend most of the run on one model.
   than a LightGBM loss. Worth remembering before dropping it.
 - `cv_mape` is logged next to `test_mape` in every MLflow run. A wide gap between them is
   the signal that the search overfitted the folds.
+
+## CatBoost's place, settled 2026-10-06
+
+Held-out MAPE, measured twice on two different lakes:
+
+| Vertical | LightGBM | CatBoost | Gap |
+| --- | --- | --- | --- |
+| Cars, 7.207 rows | 11,5 % | 13,1 % | −1,6 pt |
+| Cars, 7.639 rows | 11,3 % | 13,1 % | −1,8 pt |
+| Motorcycles, 3.765 rows | 26,7 % | 26,8 % | −0,1 pt |
+| Motorcycles, 4.052 rows | 24,1 % | **23,6 %** | **+0,5 pt** |
+
+**On the 2026-10-06 lake CatBoost wins the motorcycle holdout**, which it had never done
+before. It does not survive looking at the other half of the evidence: on the *same*
+vertical the cross-validated MAPE goes the other way, 24,8 % for CatBoost against 24,0 %
+for LightGBM. A ranking that flips depending on which partition you read is a tie. Cars are
+unambiguous — CatBoost loses by 1,8 points on the holdout and 2,0 on CV.
+
+**CatBoost is removed from the default `make train`** and stays reachable with
+`--model catboost`. The reasons are about cost and coupling, not about a clean loss:
+
+- **Switching the served model on motorcycles would cost the band and the explanation.**
+  `models/quantiles.py` and `models/explain.py` are LightGBM-only. Serving CatBoost there
+  means writing its three quantile models and its attribution path — and motorcycles are
+  precisely the vertical whose range *is* published — all for 0,5 points that CV
+  contradicts.
+- **It costs more than half the run**: 46 of the ~110 minutes on cars, ~105 minutes on
+  motorcycles. A default command that doubles in length to re-confirm a tie is a default
+  that stops being run.
+
+The asymmetric-budget caveat above is now the live question rather than a footnote: CatBoost
+reached a tie on motorcycles with *half* the search budget. If that 0,5 points ever matters
+— if motorcycles approach the 15 % target and the margin starts to count — the right move
+is to re-measure both at 40 trials before changing anything, not to switch on this
+evidence.

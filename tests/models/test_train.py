@@ -9,6 +9,7 @@ from autovalor.models import train as train_module
 from autovalor.models.dataset import split_listings
 from autovalor.models.explain import global_importance
 from autovalor.models.train import (
+    DEFAULT_MODEL_KINDS,
     MODEL_KINDS,
     build_parser,
     format_importance_table,
@@ -349,3 +350,13 @@ def test_every_model_kind_is_reachable_from_the_cli() -> None:
     )
 
     assert args.model == list(MODEL_KINDS)
+
+
+def test_catboost_has_to_be_asked_for() -> None:
+    # It has not won a vertical on either lake and costs about as much as everything else
+    # in the run put together, so it is reachable but not default. Pinned here because the
+    # decision is a default rather than a deletion: deleting it would make this test fail
+    # for the wrong reason.
+    assert "catboost" in MODEL_KINDS
+    assert "catboost" not in DEFAULT_MODEL_KINDS
+    assert set(DEFAULT_MODEL_KINDS) == {"hedonic", "lightgbm"}
