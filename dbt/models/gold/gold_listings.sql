@@ -21,8 +21,22 @@ select
     valid.title,
     coalesce(title_features.brand, 'Desconocida') as brand,
     title_features.model,
-    title_features.engine_cc,
+    -- The listing page wins when it has a displacement: it is a form field the seller
+    -- filled in, while the title version is mined out of free text. Falls back to the
+    -- title, so a listing with no detail row keeps exactly the value it had before.
+    coalesce(details.detail_engine_cc, title_features.engine_cc) as engine_cc,
     coalesce(title_features.is_quad, false) as is_quad,
+
+    -- Detail-page features. Null for every listing that has not been enriched, which
+    -- both tree libraries route down their own branch, so "not enriched" stays a state
+    -- rather than becoming an imputed average.
+    details.detail_body_type as body_type,
+    details.detail_transmission as transmission,
+    details.detail_brakes as brakes,
+    details.detail_color as color,
+    details.detail_gear_count as gear_count,
+    details.detail_single_owner as is_single_owner,
+    details.listing_id is not null as has_detail,
     valid.price_cop,
     ln(valid.price_cop) as log_price,
     valid.model_year,
@@ -39,3 +53,5 @@ select
 from valid
 left join {{ ref('stg_title_features') }} as title_features
     on title_features.listing_id = valid.listing_id
+left join {{ ref('stg_listing_details') }} as details
+    on details.listing_id = valid.listing_id
