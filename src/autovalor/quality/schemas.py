@@ -39,6 +39,17 @@ MIN_CAR_CC: Final = 600
 MAX_CAR_CC: Final = 8_000
 """Eight litres covers every car sold in Colombia, with room to spare."""
 
+MIN_GEAR_COUNT: Final = 1
+"""A single-speed motorcycle exists — scooters and electrics; zero gears does not."""
+
+MAX_GEAR_COUNT: Final = 12
+"""Above a dozen the number is not a gear count.
+
+The listing page's gear field is free text, and the first production pass returned 0 and
+82 among the real values, so this range is enforced in ``stg_listing_details`` and not
+only here.
+"""
+
 VEHICLE_TYPES: Final = ("car", "motorcycle")
 
 _LISTING_ID_PATTERN = r"^MCO-?\d+$"
@@ -174,7 +185,11 @@ GOLD_LISTINGS: Final = pa.DataFrameSchema(
         "transmission": pa.Column(str, nullable=True),
         "brakes": pa.Column(str, nullable=True),
         "color": pa.Column(str, nullable=True),
-        "gear_count": pa.Column("Int64", nullable=True, checks=pa.Check.in_range(1, 12)),
+        "gear_count": pa.Column(
+            "Int64",
+            nullable=True,
+            checks=pa.Check.in_range(MIN_GEAR_COUNT, MAX_GEAR_COUNT),
+        ),
         "is_single_owner": pa.Column("boolean", nullable=True),
         "has_detail": pa.Column(bool, nullable=False),
         "price_cop": pa.Column(
