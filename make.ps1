@@ -9,13 +9,17 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('help', 'setup', 'scrape', 'pull-history', 'push-history', 'transform',
-        'train', 'serve', 'test', 'lint', 'format', 'docker-build', 'docker-up', 'clean')]
+    [ValidateSet('help', 'setup', 'scrape', 'enrich', 'pull-history', 'push-history',
+        'transform', 'train', 'serve', 'test', 'lint', 'format', 'docker-build',
+        'docker-up', 'clean')]
     [string]$Target = 'help',
 
     [string]$ApiHost = '127.0.0.1',
     [int]$Port = 8000,
     [int]$Pages = 10,
+    # Listings fetched per enrichment run. A polite pause makes this a time budget:
+    # roughly 35 minutes for 500.
+    [int]$Budget = 500,
     # Optuna budget per tree model and vertical. Zero skips the search; -1 leaves the
     # per-model defaults in place (LightGBM 40, CatBoost 20).
     [int]$Trials = -1
@@ -36,6 +40,7 @@ switch ($Target) {
         Write-Host 'AutoValor CO - available targets:'
         Write-Host '  setup          Install Python, browser and frontend dependencies'
         Write-Host '  scrape         Capture TuCarro listings into data/bronze'
+        Write-Host '  enrich         Read the detail page of motorcycles without one (-Budget N)'
         Write-Host '  pull-history   Bring the published captures into data/bronze'
         Write-Host '  push-history   Publish the local captures to the data branch'
         Write-Host '  transform      Run dbt (silver and gold) and the Pandera validations'
@@ -63,6 +68,10 @@ switch ($Target) {
     'scrape' {
         Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.cli',
         '--vehicle-type', 'all', '--pages', "$Pages"
+    }
+    'enrich' {
+        Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.detail_cli',
+        '--budget', "$Budget"
     }
     'pull-history' {
         Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.history', 'pull'

@@ -8,8 +8,8 @@ PORT ?= 8000
 PAGES ?= 10
 
 .DEFAULT_GOAL := help
-.PHONY: help setup scrape pull-history push-history transform train serve test lint \
-	format docker-build docker-up clean
+.PHONY: help setup scrape enrich pull-history push-history transform train serve test \
+	lint format docker-build docker-up clean
 
 help: ## Show the available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -27,6 +27,9 @@ setup: ## Install Python, browser and frontend dependencies
 
 scrape: ## Capture listings into data/bronze
 	$(RUN) python -m autovalor.ingest.cli --vehicle-type all --pages $(PAGES)
+
+enrich: ## Read the detail page of motorcycles without one (BUDGET=N, ~35 min for 500)
+	$(RUN) python -m autovalor.ingest.detail_cli $(if $(BUDGET),--budget $(BUDGET),)
 
 pull-history: ## Bring the published captures from the data branch into data/bronze
 	$(RUN) python -m autovalor.ingest.history pull
