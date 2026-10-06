@@ -64,7 +64,23 @@ DETAIL_LABELS: Final[dict[str, str]] = {
     "Frenos ABS": "abs",
     "Alarma": "alarm",
     "GPS": "gps",
+    "Entrada USB": "usb",
+    # Physical attributes, found by the drift report of the first 1.500-page run. Not in
+    # those rows — they were parsed before these entries existed — so they start
+    # appearing with the next pass.
+    "Peso": "weight",
+    "Altura": "height",
+    "Largo": "length",
+    "Ancho": "width",
+    "Distancia entre ejes": "wheelbase",
+    # Electric motorcycles, which are a price class of their own and have no displacement.
     "Tipo de cargador": "charger_type",
+    "Voltaje de la batería": "battery_voltage",
+    "Capacidad de la batería": "battery_capacity",
+    "Autonomia de la batería": "battery_range",
+    "Autonomía de la batería": "battery_range",
+    "Peso de la batería": "battery_weight",
+    "Tiempo de carga": "charge_time",
     # Requested for this enrichment and not seen on any motorcycle page so far — they are
     # the car schema. Listed anyway so that the day one appears it is captured instead of
     # being dropped as an unknown label.
@@ -83,7 +99,9 @@ reviewed. Both spellings of the gear-count and fuel labels appear in the wild.
 
 The entries were derived from real pages, not guessed, and the unknown-label report in
 :class:`EnrichmentResult` is how the list grows: it earned ``Transmisión``, ``GPS``,
-``Alarma`` and ``Tipo de cargador`` on the first three-page trial run.
+``Alarma`` and ``Tipo de cargador`` on a three-page trial run, then the weight,
+dimension and battery fields on the first 1.500-page pass. Entries added after a pass do
+not appear in the rows that pass already wrote; they start being captured on the next one.
 """
 
 DEFAULT_BUDGET: Final = 500
