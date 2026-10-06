@@ -34,6 +34,27 @@ models:
         data_tests:
           - not_null
 
+  - name: stg_listing_details
+    description: >
+      Typed columns out of the listing-page attribute table, one row per enriched
+      listing. Empty — with the same columns — on a lake that has never run an
+      enrichment pass, which is why the tests below are the contract rather than tests on
+      the source.
+    columns:
+      - name: listing_id
+        data_tests:
+          - not_null
+          - unique
+      - name: fetched_at
+        data_tests:
+          - not_null
+      - name: vehicle_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["car", "motorcycle"]
+
   - name: silver_listings
     description: >
       One row per listing and asking price. Implausible rows are kept and flagged
