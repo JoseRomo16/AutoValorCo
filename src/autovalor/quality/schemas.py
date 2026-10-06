@@ -74,6 +74,36 @@ BRONZE_CAPTURE: Final = BRONZE_LISTINGS.update_column("listing_id", unique=True)
 """A single capture file, where a listing may appear only once."""
 
 # --------------------------------------------------------------------------- #
+# Detail — listing-page attributes, one row per listing
+# --------------------------------------------------------------------------- #
+BRONZE_DETAILS: Final = pa.DataFrameSchema(
+    name="bronze_details",
+    strict=True,
+    coerce=True,
+    columns={
+        "listing_id": pa.Column(
+            str, nullable=False, unique=True, checks=pa.Check.str_matches(_LISTING_ID_PATTERN)
+        ),
+        "source": pa.Column(str, nullable=False),
+        "source_url": pa.Column(str, nullable=False, checks=pa.Check.str_startswith("https://")),
+        "fetched_at": pa.Column("datetime64[ns, UTC]", nullable=False),
+        "vehicle_type": pa.Column(str, nullable=False, checks=pa.Check.isin(VEHICLE_TYPES)),
+        "attributes_json": pa.Column(str, nullable=False),
+        "detail_schema_version": pa.Column(int, nullable=False, checks=pa.Check.ge(1)),
+    },
+)
+"""The attribute table of a listing page.
+
+``strict=True`` is doing privacy work here, not only typing: the column set is closed, so
+a column carrying a seller's name, phone number or e-mail cannot reach this layer even if
+something upstream started producing one. Combined with the parser's allow-list, that is
+two independent barriers (Ley 1581 de 2012).
+
+``listing_id`` is unique because this layer is keyed by vehicle rather than by capture: a
+listing is enriched once and never re-fetched.
+"""
+
+# --------------------------------------------------------------------------- #
 # Silver
 # --------------------------------------------------------------------------- #
 SILVER_LISTINGS: Final = pa.DataFrameSchema(
@@ -138,6 +168,15 @@ GOLD_LISTINGS: Final = pa.DataFrameSchema(
             checks=[pa.Check.ge(MIN_ENGINE_CC), pa.Check.le(MAX_CAR_CC)],
         ),
         "is_quad": pa.Column(bool, nullable=False),
+        # Detail-page features. Null for every listing that has not been enriched, which
+        # is most of them: the pass is incremental and costs one request each.
+        "body_type": pa.Column(str, nullable=True),
+        "transmission": pa.Column(str, nullable=True),
+        "brakes": pa.Column(str, nullable=True),
+        "color": pa.Column(str, nullable=True),
+        "gear_count": pa.Column("Int64", nullable=True, checks=pa.Check.in_range(1, 12)),
+        "is_single_owner": pa.Column("boolean", nullable=True),
+        "has_detail": pa.Column(bool, nullable=False),
         "price_cop": pa.Column(
             "int64",
             nullable=False,
@@ -214,6 +253,22 @@ def validate_bronze(frame: pd.DataFrame, *, single_capture: bool = False) -> pd.
     """
     schema = BRONZE_CAPTURE if single_capture else BRONZE_LISTINGS
     return _validate(schema, frame, "bronze")
+
+
+def validate_detail(frame: pd.DataFrame) -> pd.DataFrame:
+    """Validate the listing-detail layer and return it with dtypes coerced.
+
+    Args:
+        frame: Frame read from one or more enrichment runs.
+
+    Returns:
+        The validated frame.
+
+    Raises:
+        LayerValidationError: If the contract is broken — including a column that is not
+            on the declared list, which is what keeps personal data out of the layer.
+    """
+    return _validate(BRONZE_DETAILS, frame, "detail")
 
 
 def validate_silver(frame: pd.DataFrame) -> pd.DataFrame:

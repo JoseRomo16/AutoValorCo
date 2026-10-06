@@ -8,11 +8,25 @@ import pytest
 from autovalor.quality.schemas import (
     LayerValidationError,
     validate_bronze,
+    validate_detail,
     validate_gold,
     validate_silver,
 )
 
 UTC_NOW = pd.Timestamp("2026-09-29 14:05:00", tz="UTC")
+
+
+def detail_frame(**overrides: object) -> pd.DataFrame:
+    row: dict[str, object] = {
+        "listing_id": "MCO-2084746289",
+        "source": "tucarro",
+        "source_url": "https://articulo.tucarro.com.co/MCO-2084746289-pulsar-_JM",
+        "fetched_at": UTC_NOW,
+        "vehicle_type": "motorcycle",
+        "attributes_json": json.dumps({"body_type": "Naked", "engine_cc": "200 cc"}),
+        "detail_schema_version": 1,
+    }
+    return pd.DataFrame([row | overrides])
 
 
 def bronze_frame(**overrides: object) -> pd.DataFrame:
@@ -66,6 +80,15 @@ def gold_frame(**overrides: object) -> pd.DataFrame:
         "model": "hb20",
         "engine_cc": 1600,
         "is_quad": False,
+        # Detail-page features: null for a listing that has not been enriched, which is
+        # the common case.
+        "body_type": None,
+        "transmission": None,
+        "brakes": None,
+        "color": None,
+        "gear_count": None,
+        "is_single_owner": None,
+        "has_detail": False,
         "price_cop": 78_990_000,
         "log_price": 18.18,
         "model_year": 2019,
@@ -105,6 +128,33 @@ def test_bronze_rejects_extra_columns() -> None:
     frame["seller_name"] = "Autama Hyundai"
     with pytest.raises(LayerValidationError):
         validate_bronze(frame)
+
+
+def test_detail_accepts_an_enriched_listing() -> None:
+    assert len(validate_detail(detail_frame())) == 1
+
+
+def test_detail_refuses_a_column_carrying_personal_data() -> None:
+    """strict=True is privacy work here, not only typing.
+
+    The parser's allow-list already keeps the seller's name out. This is the second,
+    independent barrier: the column set is closed, so a column like this cannot reach the
+    layer even if something upstream started producing one (Ley 1581 de 2012).
+    """
+    frame = detail_frame()
+    frame["seller_name"] = "Carlos Andres Pineda"
+
+    with pytest.raises(LayerValidationError):
+        validate_detail(frame)
+
+
+def test_detail_refuses_the_same_listing_twice() -> None:
+    # Keyed by vehicle, not by capture: a listing is enriched once and never re-fetched,
+    # so a duplicate means the skip-what-is-already-enriched logic failed.
+    frame = pd.concat([detail_frame(), detail_frame()], ignore_index=True)
+
+    with pytest.raises(LayerValidationError):
+        validate_detail(frame)
 
 
 def test_bronze_allows_missing_optional_strings() -> None:
@@ -149,6 +199,25 @@ def test_silver_allows_missing_parsed_values() -> None:
 # --------------------------------------------------------------------------- #
 def test_gold_accepts_a_model_ready_row() -> None:
     assert len(validate_gold(gold_frame())) == 1
+
+
+def test_gold_accepts_an_enriched_listing() -> None:
+    validated = validate_gold(
+        gold_frame(
+            vehicle_type="motorcycle",
+            engine_cc=200,
+            body_type="Naked",
+            transmission="Manual",
+            brakes="Disco",
+            color="Rojo",
+            gear_count=6,
+            is_single_owner=True,
+            has_detail=True,
+        )
+    )
+
+    assert validated["has_detail"].all()
+    assert validated["gear_count"].iloc[0] == 6
 
 
 def test_gold_requires_one_row_per_listing() -> None:

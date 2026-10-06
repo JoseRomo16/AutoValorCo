@@ -18,17 +18,18 @@ import duckdb
 import pandas as pd
 
 from autovalor.config import get_settings
-from autovalor.ingest.bronze import read_captures
+from autovalor.ingest.bronze import read_captures, read_details
 from autovalor.quality.schemas import (
     LayerValidationError,
     validate_bronze,
+    validate_detail,
     validate_gold,
     validate_silver,
 )
 
 logger = logging.getLogger("autovalor.quality")
 
-STAGES = ("bronze", "silver", "gold")
+STAGES = ("bronze", "detail", "silver", "gold")
 
 DBT_TABLES = {
     "silver": "main_silver.silver_listings",
@@ -86,19 +87,22 @@ def main(argv: Sequence[str] | None = None) -> int:
     duckdb_path = args.duckdb_path if args.duckdb_path is not None else settings.duckdb_path
     stages: tuple[str, ...] = tuple(args.stage) if args.stage else STAGES
 
+    readers = {
+        "bronze": lambda: read_captures(data_dir),
+        "detail": lambda: read_details(data_dir),
+    }
+
     exit_code = 0
     for stage in stages:
-        frame = (
-            read_captures(data_dir)
-            if stage == "bronze"
-            else read_dbt_table(duckdb_path, DBT_TABLES[stage])
-        )
+        reader = readers.get(stage)
+        frame = reader() if reader is not None else read_dbt_table(duckdb_path, DBT_TABLES[stage])
         if frame is None or frame.empty:
             logger.warning("%s: no data yet, skipped", stage)
             continue
 
         validator = {
             "bronze": validate_bronze,
+            "detail": validate_detail,
             "silver": validate_silver,
             "gold": validate_gold,
         }[stage]
