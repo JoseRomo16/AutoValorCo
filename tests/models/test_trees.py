@@ -146,6 +146,47 @@ def test_the_lightgbm_design_matrix_turns_an_unseen_level_into_missing(
     assert matrix["brand"].isna().all()
 
 
+def test_the_detail_features_are_off_by_default() -> None:
+    # They are null for every listing that has not been enriched, and the pass is
+    # incremental, so a run over the whole vertical would feed mostly-missing columns.
+    columns = set(tree_spec("motorcycle").columns)
+
+    assert "body_type" not in columns
+    assert "gear_count" not in columns
+
+
+def test_the_detail_features_can_be_turned_on() -> None:
+    columns = set(tree_spec("motorcycle", detail_features=True).columns)
+
+    assert {"body_type", "transmission", "brakes", "color", "gear_count"} <= columns
+    assert columns & FORBIDDEN_COLUMNS == set()
+
+
+def test_single_ownership_keeps_its_missing_values() -> None:
+    # The boolean group fills missing with False, which would turn "not stated" into "not
+    # a single owner" — a claim the advert never made. It is numeric so the null survives.
+    spec = tree_spec("motorcycle", detail_features=True)
+
+    assert "is_single_owner" in spec.numeric
+    assert "is_single_owner" not in spec.boolean
+
+
+def test_an_unenriched_row_is_fitted_without_crashing() -> None:
+    # Half the fixture has no detail columns at all, which is the real state of the lake.
+    frame = make_gold_frame(200, vehicle_type="motorcycle", seed=5, enriched_share=0.5)
+
+    model = fit_tree(
+        frame,
+        model_kind="lightgbm",
+        vehicle_type="motorcycle",
+        params=FAST["lightgbm"],
+        detail_features=True,
+    )
+
+    assert "body_type" in model.spec.columns
+    assert np.isfinite(model.predict_log_price(frame)).all()
+
+
 def test_fit_tree_rejects_an_unknown_model(gold_cars: pd.DataFrame) -> None:
     with pytest.raises(ValueError, match="unknown tree model"):
         fit_tree(gold_cars, model_kind="xgboost", vehicle_type="car")  # type: ignore[arg-type]

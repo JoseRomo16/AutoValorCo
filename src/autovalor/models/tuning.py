@@ -132,6 +132,7 @@ def cross_validated_mape(
     params: dict[str, Any] | None = None,
     n_splits: int = DEFAULT_FOLDS,
     seed: int = DEFAULT_SEED,
+    detail_features: bool = False,
 ) -> float:
     """Return the MAPE of one parameter set, averaged over grouped folds.
 
@@ -142,6 +143,8 @@ def cross_validated_mape(
         params: Hyperparameters to score.
         n_splits: Number of folds.
         seed: Seed passed to the model.
+        detail_features: Whether the folds see the listing-page columns. Has to match
+            what the final fit will use, or the search tunes a different model.
 
     Returns:
         Mean of the per-fold MAPE, in peso terms.
@@ -159,6 +162,7 @@ def cross_validated_mape(
             vehicle_type=vehicle_type,
             params=params,
             seed=seed,
+            detail_features=detail_features,
         )
         report = regression_report(fold_score["log_price"], model.predict_log_price(fold_score))
         scores.append(report.mape)
@@ -174,6 +178,7 @@ def search(
     n_trials: int | None = None,
     n_splits: int = DEFAULT_FOLDS,
     seed: int = DEFAULT_SEED,
+    detail_features: bool = False,
 ) -> SearchResult:
     """Search for the hyperparameters with the lowest cross-validated MAPE.
 
@@ -186,6 +191,8 @@ def search(
         n_splits: Folds in the inner cross-validation.
         seed: Seed for both the sampler and the models, so a rerun compares models
             rather than random draws.
+        detail_features: Whether the folds see the listing-page columns; must match the
+            final fit.
 
     Returns:
         The best parameters, their cross-validated MAPE and the trial log.
@@ -206,6 +213,7 @@ def search(
             params=space(trial),
             n_splits=n_splits,
             seed=seed,
+            detail_features=detail_features,
         )
 
     study = optuna.create_study(

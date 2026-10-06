@@ -343,6 +343,7 @@ def load_split(
     test_size: float = DEFAULT_TEST_SIZE,
     seed: int = DEFAULT_SEED,
     duckdb_path: Path | None = None,
+    only_enriched: bool = False,
 ) -> Dataset:
     """Load a vertical from gold and partition it in one call.
 
@@ -352,9 +353,22 @@ def load_split(
         test_size: Fraction of rows held out.
         seed: Seed for the ``random`` strategy.
         duckdb_path: Database written by dbt. Defaults to the configured path.
+        only_enriched: Keep only listings that have a detail row. This is what makes a
+            with-and-without comparison of the detail features honest: both fits then see
+            exactly the same rows, so the difference is attributable to the features and
+            not to a different population.
 
     Returns:
         The train/test partition for that vertical.
+
+    Raises:
+        SplitNotPossibleError: If ``only_enriched`` leaves no rows.
     """
     frame = load_gold(vehicle_type, duckdb_path=duckdb_path)
+    if only_enriched:
+        frame = frame.loc[frame["has_detail"].fillna(False)].reset_index(drop=True)
+        if frame.empty:
+            msg = f"no {vehicle_type} listing has been enriched yet; run the enrichment first"
+            raise SplitNotPossibleError(msg)
+        logger.info("kept %d enriched %s listings", len(frame), vehicle_type)
     return split_listings(frame, strategy=strategy, test_size=test_size, seed=seed)
