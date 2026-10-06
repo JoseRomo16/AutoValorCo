@@ -57,6 +57,16 @@ class Settings(BaseSettings):
         return self.data_dir / "bronze"
 
     @property
+    def detail_dir(self) -> Path:
+        """Listing-page attributes, one row per listing.
+
+        A sibling of bronze rather than a directory inside it: the layer is bronze-grade,
+        but dbt unions ``bronze/**/*.parquet`` into one source and a second schema there
+        would leak null columns into silver.
+        """
+        return self.data_dir / "detail"
+
+    @property
     def silver_dir(self) -> Path:
         """Cleaned and deduplicated listings."""
         return self.data_dir / "silver"
