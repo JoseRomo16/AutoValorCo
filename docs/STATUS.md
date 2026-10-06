@@ -66,6 +66,13 @@ Componentes:
 - **`.github/workflows/capture.yml`** — captura semanal, lunes 07:00 UTC, barre seis
   departamentos, valida, **publica bronze en la rama `data`** y sube el resultado como
   artefacto.
+- **`.github/workflows/enrich.yml`** — enriquecimiento manual (`workflow_dispatch`, con
+  `enrich_budget`): trae el histórico, reconstruye gold, lee páginas de detalle y publica
+  el resultado. Es un workflow aparte porque necesita dos cosas que una captura fresca no
+  da: un gold sobre el lago acumulado —para que los candidatos sean los anuncios que de
+  verdad faltan— y la capa de detalle ya publicada, para no pedir dos veces la misma
+  página. Comparte el grupo de concurrencia `capture`, así que nunca hay dos raspadores
+  sobre el sitio a la vez.
 - **`ingest/history.py`** — mueve capturas entre el lago y la rama `data`. Una sola
   implementación para el workflow, `make pull-history` y el sembrado manual. Nunca
   sobrescribe, y solo viajan las capas crudas (bronze y detail).
@@ -430,9 +437,10 @@ feature del modelo; se vuelve necesaria en F3.
 - **Docker nunca se ha construido ni corrido.** No hay docker en la máquina de desarrollo.
 - **La captura semanal sigue construyendo silver y gold solo con su propia corrida**, no
   con el histórico acumulado. Eso basta para validar que la captura salió bien, pero el
-  `gold_listings` del workflow no es el lago completo; el acumulado se arma en local con
-  `pull-history` + `transform`. Si el índice mensual de F3 va a correr en CI, el workflow
-  tendrá que traer el histórico antes de dbt.
+  `gold_listings` del workflow no es el lago completo. `enrich.yml` ya hace lo correcto
+  —`pull-history` antes de dbt— y ese es el patrón que el índice mensual de F3 tendrá que
+  copiar si va a correr en CI. La captura semanal se dejó como está a propósito: volverla
+  acumulativa cambia qué valida y qué sube como artefacto.
 - **La rama `data` crece para siempre.** ~1 MB hoy con las 8 capturas más el detalle,
   ~25 MB al año. Quitar algo publicado por error exige reescribir la rama. Los
   disparadores para pasar a R2 están en
@@ -522,7 +530,13 @@ tener el lago:
 .\make.ps1 transform      # reconstruye silver y gold desde ahí
 ```
 
-Para seguir enriqueciendo motos (quedan 2.265, ~35 min por corrida de 500):
+Para seguir enriqueciendo motos, **el camino preferido es GitHub Actions**: es gratis, no
+depende de una máquina encendida y ya trae el histórico por sí solo. Lanza
+`Enrich motorcycle details` desde la pestaña Actions con el presupuesto que quieras
+(~15 páginas/min, así que 800 son ~55 min). El workflow pide el histórico, reconstruye
+gold, enriquece y publica.
+
+En local, si hace falta:
 
 ```powershell
 $env:AUTOVALOR_USE_SYSTEM_CERTS = 'true'
