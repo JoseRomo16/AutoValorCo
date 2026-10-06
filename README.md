@@ -106,6 +106,7 @@ Copy-Item .env.example .env
 | `make scrape`    | Captura anuncios de TuCarro en `data/bronze`         | F1         |
 | `make transform` | Corre dbt (silver y gold) + validaciones Pandera     | F1         |
 | `make train`     | Entrena y registra modelos en MLflow                 | F2         |
+| `make results`   | Estima los resultados económicos y los exporta a `docs/` | F3     |
 | `make serve`     | Levanta la API en local (`:8000`)                    | F0         |
 | `make test`      | pytest con cobertura (mínimo 70 %)                   | F0         |
 | `make lint`      | ruff + mypy                                          | F0         |
@@ -140,6 +141,50 @@ Con Docker:
 docker compose up -d api                    # API en http://localhost:8000
 docker compose --profile ml up -d mlflow    # UI de MLflow en http://localhost:5000
 ```
+
+### Resultados económicos
+
+Salen del hedónico con errores robustos (HC3), no de los ensambles: un ensamble predice
+bien y no dice cuánto vale un año. Las tablas completas, con intervalos de confianza y el
+manifiesto de sobre qué lago se midieron, están en
+[`docs/results/`](docs/results/README.md); se regeneran con `make results`.
+
+**Lo que más sorprende: las motos casi no se deprecian con la edad.** Una Yamaha pierde
+0,9 % al año y el intervalo incluye el cero —es decir, estos datos no la distinguen de no
+perder nada—, mientras una Bajaj pierde 6,5 %. En carros el rango va de 4,8 % (Volkswagen)
+a 9,6 % (Ford), y la folk theory se sostiene: las japonesas y coreanas aguantan, las
+premium alemanas y Ford caen al doble de velocidad.
+
+![Depreciación anual por marca, carros](docs/figures/depreciation-car.png)
+
+![Valor retenido con la edad, motos](docs/figures/retained-value-motorcycle.png)
+
+Esa es la misma historia que SHAP contó desde el otro lado —el modelo de motos pesa
+identidad y casi no pesa estado— pero medida con un método independiente, que es lo que la
+vuelve una conclusión en vez de una lectura.
+
+**Y el hallazgo que más cambia el plan:** el 24,1 % de error en motos no se reparte parejo.
+Está concentrado en los anuncios cuya marca no se extrae del título —19,6 % de la vertical,
+con 50,2 % de MAPE—; las marcas que sí resuelven van entre 9,7 % y 19,0 %, y **Bajaj ya
+cumple la meta de F2**. Si ese bucket se comportara como el resto, la vertical estaría en
+17,5 %: **el parseo del título vale 6,6 puntos de MAPE**, más que cualquier cosa que haya
+salido del modelado.
+
+![Error por marca, motos](docs/figures/segment-error-motorcycle.png)
+
+Los otros dos resultados:
+
+- **10.000 km cuestan ~216.000 COP** en el carro mediano (89 M, 53.000 km) y ~81.000 COP en
+  la moto mediana (14,9 M, 17.000 km). Por segmento el efecto escala con el valor del
+  vehículo, y en las motos más baratas no es distinguible de cero: ese mercado no cobra el
+  kilometraje.
+- **El mismo carro cuesta 8,6 % más en Santander y 7,1 % más en Antioquia que en Bogotá.**
+  En motos la diferencia regional es mucho mayor: +28 % en Antioquia, −31 % en Quindío.
+  Con el matiz de que las tarjetas patrocinadas se filtran entre regiones, así que
+  `department` dice dónde se publica el anuncio, que no es exactamente dónde está el
+  mercado.
+
+![Diferencias regionales, motos](docs/figures/regional-motorcycle.png)
 
 ### Roadmap
 
@@ -204,6 +249,31 @@ make test
 `make lint` runs ruff and mypy; `make serve` starts the API on `:8000`. Targets that
 belong to a later phase (`scrape`, `transform`, `train`) print a notice until that phase
 is implemented.
+
+### Economic results
+
+Estimated with the hedonic model and heteroskedasticity-robust (HC3) errors rather than
+with the ensembles: an ensemble predicts well and says nothing about how much a year is
+worth. Full tables with confidence intervals, plus the manifest recording which lake they
+were measured on, live in [`docs/results/`](docs/results/README.md); `make results`
+regenerates them.
+
+**The surprise is that motorcycles barely depreciate with age.** A Yamaha loses 0.9 % a
+year and the interval includes zero — this data cannot tell it apart from losing nothing —
+while a Bajaj loses 6.5 %. Cars run from 4.8 % (Volkswagen) to 9.6 % (Ford). That is the
+same story SHAP told from the other side, that the motorcycle model leans on identity and
+barely on condition, but measured by an independent method.
+
+Two more: **10,000 km cost ~216,000 COP** on the median car and ~81,000 COP on the median
+motorcycle, scaling with the vehicle's value and indistinguishable from zero on the
+cheapest motorcycles; and **the same car is 8.6 % dearer in Santander than in Bogotá**,
+with a far wider regional spread for motorcycles (+28 % in Antioquia, −31 % in Quindío).
+
+Breaking the served model's error down by segment turned up the most actionable result:
+the motorcycle vertical's 24.1 % is concentrated in the listings whose brand cannot be
+parsed out of the title — 19.6 % of the vertical, at 50.2 % MAPE. Every brand that does
+resolve lands between 9.7 % and 19.0 %. **Title parsing is worth 6.6 MAPE points**, more
+than anything modeling produced in F2.
 
 ### Roadmap
 

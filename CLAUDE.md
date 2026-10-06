@@ -17,7 +17,8 @@ src/autovalor/
   ingest/      # scrapers TuCarro (carros y motos), carga guía Fasecolda
   quality/     # esquemas Pandera
   features/    # features derivadas
-  models/      # train.py, predict.py, explain.py
+  models/      # train.py, predict.py, explain.py — predicción, se juzga por MAPE
+  analysis/    # hedónico con errores HC3 — explicación, se juzga por intervalos
   api/         # FastAPI
 dbt/           # modelos silver y gold
 data/          # bronze/ silver/ gold/ (en .gitignore)
@@ -33,6 +34,7 @@ docs/          # ADRs, diccionario de datos, results/ (JSON y CSV versionados) y
 - `make scrape` captura anuncios a data/bronze
 - `make transform` corre dbt (silver y gold) y validaciones Pandera
 - `make train` entrena y registra modelos en MLflow (hedónico y LightGBM; CatBoost solo con `--model catboost`)
+- `make results` estima los resultados económicos de F3 y los exporta a `docs/results` y `docs/figures`
 - `make serve` levanta la API en local
 - `make test` corre pytest; `make lint` corre ruff + mypy
 

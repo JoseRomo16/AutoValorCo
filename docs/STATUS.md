@@ -20,7 +20,8 @@ una regla explícita que decide qué se publica en cada vertical: la etiqueta
 ganga/justo/caro exige una banda con cobertura entre 78 % y 82 % y ancho medio ≤ 60 % del
 estimado, y motos no la alcanza, así que sale con precio estimado, rango y aviso de
 precisión. Lo que SHAP dejó claro es por qué motos falla —el modelo pesa identidad y casi
-no pesa estado—, y eso sigue siendo lo que hay que atacar para bajar de 24 %.
+no pesa estado— y el hedónico de F3 lo confirmó por otra vía: una moto pierde entre 0,9 % y
+6,5 % de valor al año, contra 4,8 %–9,6 % en carros.
 
 ---
 
@@ -450,6 +451,182 @@ de búsqueda** (40 trials para los dos) antes de mover nada. Detalle en
 
 ---
 
+## Resultados económicos (F3)
+
+Estimados con el hedónico y errores robustos **HC3**, no con los ensambles. Un ensamble
+predice bien y no dice cuánto vale un año; estas son preguntas de coeficiente con intervalo,
+así que son de OLS. Tablas completas en [`docs/results/`](results/README.md), figuras en
+`docs/figures/`, y todo se regenera con `make results`.
+
+### Las motos casi no se deprecian con la edad
+
+| Vertical | Marca | Depreciación anual | IC 95 % | Solo edad | ¿Distinguible de cero? |
+| --- | --- | --- | --- | --- | --- |
+| Carros | Volkswagen | 4,8 % | 1,3 – 8,2 | 4,3 % | sí |
+| Carros | Kia | 5,2 % | 4,6 – 5,8 | 4,5 % | sí |
+| Carros | Chevrolet | 5,2 % | 3,7 – 6,7 | 4,7 % | sí |
+| Carros | Mazda | 5,3 % | 4,7 – 5,9 | 4,7 % | sí |
+| Carros | Toyota (ref.) | 5,9 % | 5,2 – 6,5 | 5,2 % | sí |
+| Carros | Renault | 6,1 % | 5,2 – 7,1 | 5,6 % | sí |
+| Carros | Nissan | 7,2 % | 6,6 – 7,8 | 6,8 % | sí |
+| Carros | BMW | 9,2 % | 8,0 – 10,4 | 8,8 % | sí |
+| Carros | Mercedes-Benz | 9,2 % | 8,0 – 10,5 | 8,8 % | sí |
+| Carros | Ford | **9,6 %** | 8,1 – 11,1 | 9,2 % | sí |
+| Motos | Yamaha (ref.) | **0,9 %** | −0,7 – 2,4 | 0,2 % | **no** |
+| Motos | Honda | 1,9 % | 0,9 – 2,9 | 1,4 % | sí |
+| Motos | Suzuki | 2,1 % | 0,3 – 3,8 | 1,4 % | sí |
+| Motos | BMW | 3,5 % | −0,1 – 7,0 | 3,0 % | **no** |
+| Motos | KTM | 3,7 % | 2,3 – 5,0 | 2,9 % | sí |
+| Motos | Bajaj | 6,5 % | 5,0 – 7,9 | 5,7 % | sí |
+
+Se reportan **dos tasas** porque "depreciación anual" es ambiguo y la diferencia es real.
+La regresión controla por kilometraje, así que el coeficiente de edad solo es el precio de
+un año *con el uso congelado*. Un año también trae kilómetros y esos también se pagan: la
+columna principal suma el efecto del kilometraje de un año típico de esa marca. Las dos
+salen del mismo ajuste y el total es una combinación lineal con pesos fijos, así que su
+intervalo es exacto y no una aproximación.
+
+**El hallazgo:** una Yamaha pierde 0,9 % al año y el intervalo incluye el cero —estos datos
+no la distinguen de no perder nada—, mientras una Bajaj pierde 6,5 %. En carros el rango va
+de 4,8 % a 9,6 % y **la folk theory se sostiene**: japonesas y coreanas aguantan, las
+premium alemanas y Ford caen al doble de velocidad.
+
+Esto es **la misma conclusión que SHAP**, por una vía independiente. SHAP decía que el
+modelo de motos pesa identidad y casi no pesa estado, y eso tenía dos lecturas que SHAP
+sola no separa: que el estado de verdad importe poco, o que marca y modelo ya lo hubieran
+absorbido. El hedónico pone la edad explícitamente, con la marca fija, y encuentra el mismo
+efecto diminuto. **Sobrevive la primera lectura**: en motos la edad de verdad no mueve el
+precio. Eso es un hecho del mercado, no una limitación del modelo, y explica por qué más
+columnas de identidad no iban a ayudar.
+
+La marca de referencia excluye el bucket de **marca desconocida** —en motos es el 19 % de
+los títulos y sería la "marca" más grande de la vertical—. Sus filas siguen en la regresión
+como control; lo que no se publica es una tasa para "desconocida".
+
+### El kilometraje se cobra en proporción al valor, y abajo no se cobra
+
+| Vertical | Segmento | Mediana de precio | Costo de 10.000 km | ¿Distinguible de cero? |
+| --- | --- | --- | --- | --- |
+| Carros | toda la vertical | 89,0 M | −216.000 | sí |
+| Carros | Q1 | 51,9 M | −119.000 | sí |
+| Carros | Q2 | 75,9 M | +1.000 | **no** |
+| Carros | Q3 | 110,0 M | −126.000 | sí |
+| Carros | Q4 | 198,9 M | −323.000 | sí |
+| Motos | toda la vertical | 14,9 M | −81.000 | sí |
+| Motos | Q1 | 6,9 M | +9.000 | **no** |
+| Motos | Q2 | 11,1 M | −12.000 | **no** |
+| Motos | Q3 | 18,4 M | −281.000 | sí |
+| Motos | Q4 | 58,9 M | −322.000 | **no** |
+
+El modelo lleva el kilometraje como `log1p(km)`, que es lo correcto —el efecto del uso es
+proporcional— y es la unidad equivocada para una respuesta. La cifra en pesos se evalúa en
+**la mediana del segmento**, y la tabla reporta esa mediana al lado: el número solo es
+cierto cerca de ahí.
+
+**Los segmentos se cortan por la clase de precio del vehículo** —la mediana de su marca y
+modelo—, no por el precio del anuncio. Cortar por el precio pedido sería condicionar sobre
+la variable dependiente: dentro de una franja estrecha, un anuncio con muchos kilómetros
+tiene que estar compensado por otra cosa, y el coeficiente se aplasta contra cero por
+construcción. Medido así, tres de los cuatro cuartiles de carros daban "el kilometraje no
+se paga", que es un artefacto del corte y no un hecho del mercado. **Esta distinción se
+descubrió comparando los dos cortes, no de entrada.**
+
+Lo que queda después de arreglarlo: **en las motos baratas el kilometraje de verdad no se
+paga** (Q1 y Q2 no se distinguen de cero), que es otra vez la historia del catálogo.
+
+### Dónde está más caro el mismo vehículo
+
+Contra Bogotá D.C., que es el departamento con más anuncios en las dos verticales, para un
+vehículo comparable: mismo modelo, misma edad, mismo kilometraje, misma cilindrada.
+
+| Vertical | Departamento | Diferencia | IC 95 % |
+| --- | --- | --- | --- |
+| Carros | Santander | **+8,6 %** | 5,6 – 11,7 |
+| Carros | Antioquia | +7,1 % | 4,3 – 10,0 |
+| Carros | Norte de Santander | +4,7 % | 1,9 – 7,7 |
+| Carros | Valle del Cauca | +1,9 % | −0,3 – 4,1 |
+| Carros | Cundinamarca | +0,8 % | −1,5 – 3,1 |
+| Carros | Atlántico | +0,1 % | −2,2 – 2,5 |
+| Motos | Antioquia | **+28,3 %** | 21,4 – 35,5 |
+| Motos | Valle del Cauca | −6,0 % | −13,2 – 1,7 |
+| Motos | Santander | −13,6 % | −22,8 – −3,3 |
+| Motos | Cundinamarca | −17,5 % | −23,7 – −10,7 |
+| Motos | Atlántico | −25,5 % | −38,7 – −9,5 |
+| Motos | Quindío | **−31,3 %** | −44,7 – −14,7 |
+
+En carros el rango completo es de 8,6 puntos; en motos es de **60**. Antioquia es el caso
+llamativo: la misma moto se pide 28 % más cara allá que en Bogotá, con un intervalo que no
+se acerca al cero.
+
+Dos advertencias que viajan con estos números:
+
+- **`department` no es un marco de muestreo limpio.** Las tarjetas patrocinadas se filtran
+  entre regiones, así que esto describe dónde se *publica* el anuncio, que se parece a pero
+  no es dónde está el mercado. Ya estaba en la deuda conocida; aquí es donde muerde.
+- El bucket de departamento desconocido y el de departamentos con menos de 30 anuncios
+  **siguen en la regresión como control pero no se reportan**. "Los anuncios cuyo
+  departamento no parseó son 22 % más baratos" es una afirmación sobre el parser, no sobre
+  un lugar de Colombia. Con esos buckets dentro, el rango de carros se veía de 30 puntos en
+  vez de 8,6.
+
+### Dónde se equivoca el modelo, y la sorpresa que eso destapó
+
+MAPE del modelo servido sobre el holdout, abierto por marca. Lo que sigue es el resultado
+más accionable de F3:
+
+| Vertical | Segmento | n | MAPE | σ (log) |
+| --- | --- | --- | --- | --- |
+| Motos | **Desconocida** | 163 | **50,2 %** | 0,638 |
+| Motos | Yamaha | 86 | 19,0 % | 0,342 |
+| Motos | Suzuki | 69 | 18,6 % | 0,283 |
+| Motos | Honda | 52 | 16,6 % | 0,251 |
+| Motos | BMW | 80 | 15,7 % | 0,249 |
+| Motos | **Bajaj** | 51 | **9,7 %** | 0,121 |
+| Carros | Mercedes-Benz | 107 | 19,9 % | 0,294 |
+| Carros | Toyota | 240 | 9,8 % | 0,133 |
+| Carros | Mazda | 134 | 6,8 % | 0,105 |
+
+**El 24,1 % de motos no se reparte parejo: está concentrado en los anuncios cuya marca no
+se pudo extraer del título.** Ese bucket son 163 de las 810 filas del holdout (20,1 %, y
+19,6 % de la vertical) y va en 50,2 % de MAPE. Las marcas que sí resuelven van entre 9,7 %
+y 19,0 %, y **Bajaj ya cumple la meta de F2** con 9,7 %.
+
+Haciendo la cuenta al revés: si el bucket desconocido se comportara como el resto, la
+vertical estaría en **17,5 %**. Dicho de otro modo, **el problema de parseo del título vale
+6,6 puntos de MAPE**, más que cualquier cosa que haya salido del modelado en toda F2.
+
+Esto no contradice el diagnóstico de SHAP —dentro de las marcas conocidas sigue faltando
+señal de estado para bajar de 17,5 % a 15 %— pero **cambia cuál es el siguiente trabajo**.
+Era "conseguir señal de estado, que no está en la página de detalle"; ahora el primer
+renglón es **resolver la marca en el 19,6 % de títulos que no la resuelven**, que es
+trabajo de parseo sobre datos que ya están capturados, sin una sola petición nueva. El
+semillero `vehicle_brands` y `stg_title_features` son donde se haría.
+
+Dos cosas más del mismo corte:
+
+- **En motos la dispersión por departamento es enorme**: Santander 35,2 % y Valle del Cauca
+  34,5 % contra Bogotá 19,0 %. En carros el rango va de 7,8 % a 12,5 %.
+- **En carros el peor segmento es Mercedes-Benz con 19,9 %**, el único por encima de la
+  meta. Es coherente con que sea la marca con más dispersión de versión dentro del mismo
+  modelo, que es justo lo que el título no trae.
+
+### El contraste del catálogo, con número
+
+| Vertical | SHAP: identidad | SHAP: estado | Razón | Hedónico: depreciación anual |
+| --- | --- | --- | --- | --- |
+| Carros | 57,4 % | 39,8 % | **1,4** | 8,3 % a los 5 años |
+| Motos | 77,0 % | 16,1 % | **4,8** | 3,3 % a los 3 años |
+
+Las dos columnas no miden lo mismo y el export lo dice: la de SHAP es importancia relativa
+dentro de un modelo, la del hedónico es un coeficiente. Lo comparable es **el orden entre
+verticales**, y ahí las dos coinciden: el modelo de motos se apoya 4,8 veces más en
+identidad que en estado, y el hedónico encuentra que la edad de verdad mueve poco el precio
+de una moto. La hipótesis alternativa —que marca y modelo ya hubieran absorbido la edad— no
+sobrevive, porque el hedónico pone la edad explícitamente con la marca fija y sigue
+encontrando 3,3 %.
+
+---
+
 ## Lo que falta
 
 ### F2 — cerrada
@@ -467,15 +644,26 @@ motos llegue a 15 %:
 - **El modelo servido es LightGBM** en ambas verticales. CatBoost sale del camino por
   defecto.
 
-Lo que **no** cierra F2 y pasa a F3 o F4: que motos llegue a 15 % sigue siendo deseable y
-no hay plan que lo logre con los datos de hoy —SHAP y el hedónico coinciden en que falta
-señal de estado, no de identidad—.
+Lo que **no** cierra F2 y pasa a F3 o F4: que motos llegue a 15 %. F3 encontró por dónde
+empezar y no es el modelo — **el 19,6 % de títulos de moto cuya marca no se resuelve va en
+50,2 % de MAPE y se lleva 6,6 puntos de la vertical**. Ver "Dónde se equivoca el modelo".
 
 ### F3 — Resultados
 
-Métricas por segmento, curvas de depreciación, índice mensual, comparación con Fasecolda
-(fuera de alcance, ver abajo). La importancia global ya está; lo que falta de SHAP en F3 es
-desagregarla por segmento.
+Hecho: **curvas de depreciación por marca** con intervalos, **efecto del kilometraje** por
+vertical y segmento, **diferencias regionales**, **error por segmento** del modelo servido
+y el **contraste del catálogo** (SHAP contra el hedónico). Todo en
+`src/autovalor/analysis/`, exportado a [`docs/results/`](results/README.md) y graficado en
+`docs/figures/`. El cuaderno `04_resultados_economicos` solo importa de `src`.
+
+La separación con `models/` es deliberada: `models/` predice y se juzga por MAPE fuera de
+muestra; `analysis/` explica y se juzga por si un efecto se distingue de cero. Por eso
+`analysis/` usa OLS con errores robustos **HC3** —la dispersión de precios crece con el
+precio, y los errores clásicos saldrían demasiado angostos— y no los ensambles, que
+predicen bien y no dicen cuánto vale un año.
+
+Falta: el **índice mensual de precios** y la **comparación con Fasecolda**, que queda fuera
+de alcance (ver decisiones abiertas).
 
 ### F4 — Producto
 
@@ -622,12 +810,12 @@ inventar una.
 - **CatBoost se exploró con la mitad del presupuesto que LightGBM** (20 trials contra 40),
   porque cuesta de 3 a 9 veces más por ajuste. Que pierda es evidencia más débil que si
   hubiera perdido con el mismo presupuesto; tenerlo en cuenta antes de retirarlo.
-- **El gráfico de barras de SHAP no está.** Dibujarlo exige importar matplotlib directo, y
-  hoy llega solo como dependencia transitiva de `shap`; declararlo pide regenerar
-  `uv.lock`, que esta máquina no pudo hacer (pypi.org no resolvía) y CI corre con
-  `UV_FROZEN=1`, así que un `pyproject` en desacuerdo con el lock rompe el build. El CSV y
-  las métricas por variable en MLflow llevan la misma información. F3 declara matplotlib
-  de todos modos para las curvas de depreciación.
+- **El gráfico de barras de SHAP sigue sin estar**, pero ya no por la razón que decía esta
+  nota. `matplotlib` quedó **declarado en `pyproject.toml`** para las figuras de F3: el
+  bloqueo era regenerar `uv.lock` sin red, y **`uv lock --offline` lo resuelve** porque la
+  versión ya estaba en el lock como dependencia transitiva de `shap`. El diff del lock son
+  dos líneas. Dibujar la barra de SHAP es ahora trabajo pendiente, no un impedimento; el
+  CSV y las métricas por variable en MLflow llevan la misma información mientras tanto.
 - **Quedan corridas `hedonic_ols-*` en MLflow** del nombre anterior al refactor del paso 3.
   No molestan, pero al filtrar por nombre de modelo hay que contar con ellas.
 - **MLflow 3 rechaza el backend de archivos.** `file:./mlruns` quedó en modo
@@ -649,6 +837,7 @@ inventar una.
 .\make.ps1 lint          # ruff + mypy
 .\make.ps1 transform     # valida bronze, corre dbt, valida silver y gold
 .\make.ps1 train         # LightGBM y el hedónico, con banda; ~25 min
+.\make.ps1 results       # los resultados económicos a docs/results y docs/figures
 ```
 
 `train` ya **no corre CatBoost por defecto** (perdía en las dos verticales y costaba más
@@ -718,7 +907,8 @@ propósito.
 capturas de bronze y los dos Parquet de detalle, 11.691 filas de gold, que es donde se
 midió todo lo de arriba. La próxima captura semanal lo hará crecer otra vez, y entonces
 **las métricas hay que volver a medirlas** —no son constantes del proyecto, son medidas
-sobre un lago con fecha—.
+sobre un lago con fecha—. El `manifest.json` de `docs/results/` existe justamente para que
+una cifra publicada diga sobre cuántas filas se tomó.
 
 Si de verdad hace falta raspar de nuevo:
 

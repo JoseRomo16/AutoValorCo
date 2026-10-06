@@ -8,8 +8,8 @@ PORT ?= 8000
 PAGES ?= 10
 
 .DEFAULT_GOAL := help
-.PHONY: help setup scrape enrich pull-history push-history transform train serve test \
-	lint format docker-build docker-up clean
+.PHONY: help setup scrape enrich pull-history push-history transform train results serve \
+	test lint format docker-build docker-up clean
 
 help: ## Show the available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -44,6 +44,9 @@ transform: ## Run dbt (silver and gold) and the Pandera validations
 
 train: ## Train the models and log them to MLflow (TRIALS=N to set the Optuna budget)
 	$(RUN) python -m autovalor.models.train $(if $(TRIALS),--trials $(TRIALS),)
+
+results: ## Estimate the economic results and export them to docs/ (TRIALS=N)
+	$(RUN) python -m autovalor.analysis.cli $(if $(TRIALS),--trials $(TRIALS),)
 
 serve: ## Run the API locally with autoreload
 	$(RUN) uvicorn autovalor.api.main:app --reload --host $(HOST) --port $(PORT)

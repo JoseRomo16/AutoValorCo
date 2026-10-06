@@ -10,7 +10,7 @@
 param(
     [Parameter(Position = 0)]
     [ValidateSet('help', 'setup', 'scrape', 'enrich', 'pull-history', 'push-history',
-        'transform', 'train', 'serve', 'test', 'lint', 'format', 'docker-build',
+        'transform', 'train', 'results', 'serve', 'test', 'lint', 'format', 'docker-build',
         'docker-up', 'clean')]
     [string]$Target = 'help',
 
@@ -45,6 +45,7 @@ switch ($Target) {
         Write-Host '  push-history   Publish the local captures to the data branch'
         Write-Host '  transform      Run dbt (silver and gold) and the Pandera validations'
         Write-Host '  train          Train the models and log them to MLflow (-Trials N)'
+        Write-Host '  results        Estimate the economic results and export them to docs/'
         Write-Host '  serve          Run the API locally with autoreload'
         Write-Host '  test           Run the test suite with coverage'
         Write-Host '  lint           Run ruff (lint + format check) and mypy'
@@ -89,6 +90,11 @@ switch ($Target) {
         $trainCommand = @('uv', 'run', 'python', '-m', 'autovalor.models.train')
         if ($Trials -ge 0) { $trainCommand += @('--trials', "$Trials") }
         Invoke-Step $trainCommand
+    }
+    'results' {
+        $resultsCommand = @('uv', 'run', 'python', '-m', 'autovalor.analysis.cli')
+        if ($Trials -ge 0) { $resultsCommand += @('--trials', "$Trials") }
+        Invoke-Step $resultsCommand
     }
     'serve' {
         Invoke-Step 'uv', 'run', 'uvicorn', 'autovalor.api.main:app', '--reload',
