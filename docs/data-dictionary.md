@@ -1,15 +1,18 @@
 # Data dictionary / Diccionario de datos
 
-Status: bronze, silver and gold documented (F1). Fasecolda benchmark tables follow.
+Status: bronze, detail, silver and gold documented. Fasecolda benchmark tables follow.
 
 Contracts live in `src/autovalor/quality/schemas.py` (Pandera) and are checked by
 `make transform`, which validates bronze, runs dbt, and then validates silver and gold.
+The detail layer is validated with `--stage detail`, which the enrichment command runs
+for itself.
 
 ## Layers / Capas
 
 | Layer  | Location       | Content                                                  |
 | ------ | -------------- | -------------------------------------------------------- |
 | bronze | `data/bronze/` | Raw captures, immutable, one file per scraping run       |
+| detail | `data/detail/` | Listing-page attribute tables, one row per listing       |
 | silver | `data/silver/` | Cleaned, typed and deduplicated listings                 |
 | gold   | `data/gold/`   | Analysis-ready tables for models, metrics and the API    |
 
@@ -55,6 +58,68 @@ The first search page is geolocated by IP, so a capture run from a single machin
 over-represents that region. Later pages (`_Desde_N`) are national. Captures should
 sweep explicit location slugs (`--location bogota-dc --location medellin ...`) so the
 sample is not tied to where the scraper happens to run.
+
+## Detail
+
+Written by `src/autovalor/ingest/detail.py`, partitioned as
+`data/detail/source=<site>/vehicle_type=<car|motorcycle>/details_<UTC timestamp>.parquet`.
+
+A **sibling root of bronze, not a directory inside it.** dbt reads bronze as a single
+`read_parquet` union over `bronze/**/*.parquet`; a second schema under that glob would be
+unioned into the capture source and fill silver with null columns.
+
+One row per `listing_id`, not per capture: the attributes describe the vehicle, which does
+not change while the advert is up, so a listing is enriched once and never re-fetched.
+Values are kept as published; parsing happens in `stg_listing_details`.
+
+| Column                  | Type      | Notes                                                 |
+| ----------------------- | --------- | ----------------------------------------------------- |
+| `listing_id`            | string    | Publisher id. Unique in this layer                     |
+| `source`                | string    | Site the listing came from (`tucarro`)                 |
+| `source_url`            | string    | Page the attributes were read from                     |
+| `fetched_at`            | timestamp | Fetch instant, timezone-aware UTC                      |
+| `vehicle_type`          | string    | `car` or `motorcycle`                                  |
+| `attributes_json`       | string    | JSON of the allow-listed label/value pairs             |
+| `detail_schema_version` | int       | Bumped when these columns change                       |
+
+Keys inside `attributes_json`, mapped from the Spanish labels in
+`DETAIL_LABELS`. Coverage is from a 12-page survey plus the first production run:
+
+| Key             | Spanish label                | Coverage  | Notes                                     |
+| --------------- | ---------------------------- | --------- | ----------------------------------------- |
+| `body_type`     | Tipo de moto                 | ~100 %    | Naked, Scooter, Enduro, Calle, Doble propósito. **The reason to run this** |
+| `brand`         | Marca                        | ~100 %    | As the seller filled the form in           |
+| `model`         | Modelo                       | ~100 %    | Model name; some adverts put a year here   |
+| `model_year`    | Año                          | ~100 %    |                                            |
+| `engine_type`   | Motor                        | ~100 %    | Nearly always `4 tiempos`; little variance |
+| `mileage`       | Kilómetros                   | ~100 %    |                                            |
+| `engine_cc`     | Cilindrada                   | ~100 %    | Fills the 19 % the title leaves missing    |
+| `color`         | Color                        | ~100 %    |                                            |
+| `brakes`        | Frenos                       | ~100 %    | Nearly always `Disco`; little variance     |
+| `transmission`  | Transmisión                  | rare      |                                            |
+| `gear_count`    | Numero de velocidades        | ~25 %     | Closest thing to a transmission type       |
+| `single_owner`  | Único dueño                  | ~17 %     | One of the few condition signals           |
+| `power`         | Potencia                     | ~25 %     | Unit inconsistent (`24 W`, `11 hp`)        |
+| `abs`           | Frenos ABS                   | rare      |                                            |
+| `alarm`, `gps`  | Alarma, GPS                  | rare      | Equipment                                  |
+| `charger_type`  | Tipo de cargador             | rare      | Identifies electric motorcycles            |
+| `vehicle_class` | Clasificación del vehículo   | rare      |                                            |
+| `negotiable`    | Con precio negociable        | rare      | About the advert, not the vehicle          |
+
+**`version`, `fuel`, `body_style` and `doors` are on the allow-list but have never
+appeared on a motorcycle page.** They are the car schema. The motorcycle equivalent of a
+body style is `body_type`; there is no version field, and fuel is not stated because
+`engine_type` carries the stroke count instead. They stay listed so that the day one
+appears it is captured rather than dropped.
+
+Only labels on the allow-list can reach this layer, and the Pandera contract is
+`strict=True`, so the column set is closed. That is two independent barriers against a
+seller's name, phone number or e-mail ever landing here (Ley 1581 de 2012); the page
+carries all three, and the raw HTML is never stored either. A test asserts it.
+
+Labels seen but not on the allow-list are counted and reported at the end of a run, which
+is how schema drift surfaces — that report is what added `Transmisión`, `GPS`, `Alarma`
+and `Tipo de cargador` after the first trial run.
 
 ## Silver — `main_silver.silver_listings`
 
@@ -115,6 +180,22 @@ asking price), with everything the models consume.
 | `is_official_store` | boolean   |                                                        |
 | `first_seen_at`     | timestamp |                                                        |
 | `last_seen_at`      | timestamp |                                                        |
+| `has_detail`        | boolean   | Whether the listing page has been read                 |
+| `body_type`         | varchar   | From the detail page; null when not enriched           |
+| `transmission`      | varchar   | idem                                                   |
+| `brakes`            | varchar   | idem                                                   |
+| `color`             | varchar   | idem                                                   |
+| `gear_count`        | bigint    | idem                                                   |
+| `is_single_owner`   | boolean   | idem; null means "not stated", not "no"                |
+
+`engine_cc` takes the detail page's value when there is one and falls back to the token
+mined from the title, so a listing with no detail row keeps exactly the value it had
+before the enrichment existed.
+
+The detail columns are **null for every listing that has not been enriched**, which both
+tree libraries route down their own missing branch — "not enriched" stays a state instead
+of becoming an imputed average. They are off by default in the model specification; see
+`tree_spec(detail_features=...)` and `--only-enriched`.
 
 `valor_fasecolda` is a benchmark only and is never joined into gold or used as a model
 feature (information leakage).

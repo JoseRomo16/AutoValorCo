@@ -30,3 +30,24 @@ sources:
               - accepted_values:
                   arguments:
                     values: ["car", "motorcycle"]
+
+  - name: detail
+    description: >
+      Listing-page attribute tables written by src/autovalor/ingest/detail.py. A sibling
+      root of bronze rather than a directory inside it: bronze is read as one union of a
+      single schema, and a second schema under that glob would be unioned into it.
+      One row per listing — the attributes describe the vehicle, not a moment.
+    meta:
+      external_location: >
+        read_parquet(
+          '{{ env_var("AUTOVALOR_DETAIL_GLOB", "data/detail/**/*.parquet") }}',
+          union_by_name = true
+        )
+    tables:
+      - name: listings
+        description: >
+          One row per enriched listing. Carries no data tests: the enrichment is optional,
+          so this glob matches nothing on a lake that has never run it, and a test on the
+          source would fail where there is simply no data. The contracts live on
+          stg_listing_details, which probes for the files and falls back to an empty
+          relation, and in the Pandera schema BRONZE_DETAILS.
