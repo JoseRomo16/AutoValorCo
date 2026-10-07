@@ -33,6 +33,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 from autovalor.models.dataset import VehicleType
+from autovalor.models.spec import FeatureSpec
+
+__all__ = ["FeatureSpec"]
+"""Re-exported: the type moved to :mod:`autovalor.models.spec` so the API image does not
+have to install scikit-learn to read a model's column list, and every existing import
+of it from here keeps working."""
 
 FeatureSet = Literal["basic", "full"]
 
@@ -49,26 +55,6 @@ estimated from two listings fits those two listings and predicts noise; motorcyc
 
 AGE_SQUARED = "vehicle_age_squared"
 LOG_MILEAGE = "log_mileage_km"
-
-
-@dataclass(frozen=True)
-class FeatureSpec:
-    """Columns a feature set feeds to the regression.
-
-    Attributes:
-        numeric: Columns used as-is, after median imputation.
-        categorical: Columns one-hot encoded.
-        boolean: Columns cast to 0/1.
-    """
-
-    numeric: tuple[str, ...]
-    categorical: tuple[str, ...]
-    boolean: tuple[str, ...]
-
-    @property
-    def columns(self) -> tuple[str, ...]:
-        """All input columns, in a stable order."""
-        return self.numeric + self.categorical + self.boolean
 
 
 def feature_spec(feature_set: FeatureSet, vehicle_type: VehicleType) -> FeatureSpec:

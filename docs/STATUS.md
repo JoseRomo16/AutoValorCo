@@ -844,6 +844,24 @@ el tamaño de la imagen se mide en CI, donde el job `api image builds` ahora lo 
 resumen, falla por encima de 900 MB y además arranca el contenedor para comprobar que
 `/health` y `/model-info` responden de verdad.
 
+**La imagen no arrancaba, y el motivo es la lección del bloque.** Construía bien y el
+contenedor se moría en el `import`: partir las dependencias dejó fuera `duckdb` y
+`scikit-learn`, que la ruta de servicio importaba *a nivel de módulo* sin usarlos —
+`dataset.py` importaba DuckDB para una sola función, y `FeatureSpec`, que es un dataclass de
+strings, vivía en `hedonic.py`, que importa scikit-learn—. Nada de eso se ve en el
+desarrollo, donde todo está instalado. El arreglo fue hacer el `import duckdb` perezoso y
+mover `FeatureSpec` a `models/spec.py`; `tests/api/test_runtime_dependencies.py` ahora
+importa la ruta de servicio con esos paquetes **bloqueados**, y además verifica que la lista
+de bloqueados coincida con los grupos de `pyproject.toml` —lo que inmediatamente encontró
+dos que se me habían pasado—.
+
+Antes de eso creí que el problema era `libgomp1`, que el `python:3.12-slim` no trae y
+LightGBM necesita. Resultó ser un segundo fallo real, latente desde F0 en el `Dockerfile`
+original: CI **construía** la imagen y nunca la arrancaba, así que un contenedor que no
+podía importar nada se veía idéntico a uno que nadie había pedido arrancar. Las dos cosas
+están arregladas y el paso de CI que levanta el contenedor y pega a `/health` es lo que las
+destapó.
+
 Dos cosas que conviene saber antes de tocar esto:
 
 - **`api/features.py` deriva `vehicle_age_years` y `km_per_year` igual que `gold_listings`**,
@@ -937,9 +955,13 @@ inventar una.
 
 ## Deuda conocida
 
-- **`vehicle_age` está implementado dos veces**: `features/age.py` en Python y como SQL en
-  `gold_listings`. Decidir la fuente de verdad antes de que divergan.
-- **Docker nunca se ha construido ni corrido.** No hay docker en la máquina de desarrollo.
+- **`vehicle_age` está implementado tres veces**: `features/age.py`, el SQL de
+  `gold_listings` y ahora `api/features.py`, que tiene que derivarlo sin dbt dentro de la
+  imagen. Hay test que las ata, pero sigue siendo una fuente de verdad pendiente.
+- **Docker sigue sin existir en la máquina de desarrollo**, pero ya no es un punto ciego:
+  CI construye `Dockerfile.api`, imprime el tamaño, falla por encima de 900 MB y
+  **arranca el contenedor** para comprobar que `/health` y `/model-info` responden. Eso
+  es lo que destapó dos fallos que llevaban desde F0 sin verse.
 - **La captura semanal sigue construyendo silver y gold solo con su propia corrida**, no
   con el histórico acumulado. Eso basta para validar que la captura salió bien, pero el
   `gold_listings` del workflow no es el lago completo. `enrich.yml` ya hace lo correcto

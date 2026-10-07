@@ -37,13 +37,13 @@ import lightgbm as lgb
 import pandas as pd
 
 from autovalor.models.dataset import VehicleType
-from autovalor.models.hedonic import FeatureSpec
 from autovalor.models.quantiles import (
     QUANTILES,
     FittedInterval,
     Label,
     LabelPolicy,
 )
+from autovalor.models.spec import FeatureSpec
 from autovalor.models.trees import FittedTree
 
 logger = logging.getLogger("autovalor.models")

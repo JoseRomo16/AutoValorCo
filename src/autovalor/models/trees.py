@@ -20,7 +20,7 @@ import numpy.typing as npt
 import pandas as pd
 
 from autovalor.models.dataset import DEFAULT_SEED, VehicleType
-from autovalor.models.hedonic import FeatureSpec
+from autovalor.models.spec import FeatureSpec
 
 TreeModel = Literal["lightgbm", "catboost"]
 

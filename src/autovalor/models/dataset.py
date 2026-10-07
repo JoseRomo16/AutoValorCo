@@ -26,7 +26,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, get_args
 
-import duckdb
 import pandas as pd
 
 from autovalor.config import get_settings
@@ -137,6 +136,12 @@ def load_gold(
             with ``make transform`` first.
         SplitNotPossibleError: If the vertical has no rows.
     """
+    # Imported here rather than at module scope: this is the only function that touches
+    # DuckDB, and the API image does not install it. Everything else in this module --
+    # the split, the group keys, the span check -- is pandas, and the served model needs
+    # those types without needing the lake they came from.
+    import duckdb
+
     path = duckdb_path or get_settings().duckdb_path
     if not path.exists():
         msg = f"{path} does not exist; run `make transform` to build the lake first"
