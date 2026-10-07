@@ -67,7 +67,9 @@ jobs:
           bytes=$(docker image inspect autovalor-api:ci --format '{{.Size}}')
           megabytes=$((bytes / 1024 / 1024))
           echo "API image: ${megabytes} MB" >> "$GITHUB_STEP_SUMMARY"
-          echo "API image: ${megabytes} MB"
+          # Also as a notice annotation, which unlike the job summary is readable from the
+          # checks API — the only way to see this number without a token.
+          echo "::notice title=API image size::${megabytes} MB"
           if [ "$megabytes" -gt 900 ]; then
             echo "::error::the API image is ${megabytes} MB, over the 900 MB ceiling"
             exit 1
