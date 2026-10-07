@@ -1,0 +1,31 @@
+# Render blueprint for the AutoValor CO API.
+#
+# One free web service, nothing else. No database, no disk, no background worker: the
+# served model is inside the image and the result tables are files, so there is nothing
+# for this service to persist. That is what keeps it on a plan that never asks for a card.
+#
+# Render reads this file when you connect the repository as a Blueprint. The deployment
+# steps you have to do by hand are in docs/deploy-render.md.
+services:
+  - type: web
+    name: autovalor-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.api
+    plan: free
+    region: oregon
+    # The branch Render redeploys from. Change it here rather than in the dashboard, so
+    # the repository stays the source of truth.
+    branch: main
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Origins allowed to call the API from a browser. Replace with the frontend's real
+      # origin once F4's static site is published; a localhost entry is kept so the app
+      # can be developed against the deployed API.
+      - key: AUTOVALOR_CORS_ALLOW_ORIGINS
+        value: http://localhost:3000
+      - key: AUTOVALOR_LOG_LEVEL
+        value: INFO
+      # Uvicorn binds this; Render injects PORT and the Dockerfile's CMD already matches.
+      - key: AUTOVALOR_API_PORT
+        value: "8000"

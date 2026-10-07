@@ -21,7 +21,7 @@ two survives is still an open decision in ``docs/STATUS.md``.
 """
 
 from dataclasses import dataclass
-from typing import Final
+from typing import Any, Final
 
 import numpy as np
 import numpy.typing as npt
@@ -80,12 +80,22 @@ def shap_contributions(fitted: FittedTree, frame: pd.DataFrame) -> tuple[pd.Data
         ValueError: If ``fitted`` is not a LightGBM model.
     """
     _require_lightgbm(fitted)
-    import shap
 
+    # LightGBM's own `pred_contrib` *is* TreeSHAP -- the same exact algorithm the `shap`
+    # package dispatches to for a LightGBM model, implemented inside the library. Using it
+    # directly keeps shap, numba and llvmlite out of the API image, which has to fit in
+    # 512 MB, and :mod:`tests.models.test_explain` pins the two against each other so this
+    # stays a dependency decision rather than a numerical one.
+    #
+    # The returned matrix is (n, n_features + 1): one column per feature, then the base
+    # value repeated on every row.
     prepared = fitted.design_matrix(frame)
-    explainer = shap.TreeExplainer(fitted.estimator)
-    values = np.asarray(explainer.shap_values(prepared), dtype=np.float64)
-    base = float(np.ravel(explainer.expected_value)[0])
+    # Either a fitted LGBMRegressor, which keeps its booster on `booster_`, or a Booster
+    # loaded straight from a bundle, which is already the thing with `pred_contrib`.
+    booster: Any = getattr(fitted.estimator, "booster_", fitted.estimator)
+    raw = np.asarray(booster.predict(prepared, pred_contrib=True), dtype=np.float64)
+    values, base_column = raw[:, :-1], raw[:, -1]
+    base = float(base_column[0])
     return pd.DataFrame(values, index=frame.index, columns=list(fitted.spec.columns)), base
 
 

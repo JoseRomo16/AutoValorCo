@@ -791,10 +791,68 @@ inventaron valores** para dejar el archivo completo: cualquier cifra real que de
 ellos heredaría números que nadie puede verificar. Sin el archivo el índice nominal igual
 funciona y el real queda indefinido, que es lo correcto.
 
-### F4 — Producto
+### F4 — Producto: la API está lista, falta el frontend
 
-`/predict` y `/explain` (hoy solo existen `/health` y un `/model-info` stub), app Next.js
-—**nada del frontend está creado**—, Docker probado, despliegue en Render.
+| Entregable | Estado |
+| --- | --- |
+| `POST /predict` — precio, banda P10–P90, etiqueta o aviso, versión del modelo | hecho |
+| `POST /explain` — los 5 factores principales como factores multiplicativos | hecho |
+| `GET /market` — sirve los JSON de `docs/results` para el dashboard | hecho |
+| `GET /health` y `GET /model-info` reales | hecho |
+| `models/bundle.py` + `make export-model` — el modelo servido, sin MLflow | hecho |
+| `Dockerfile.api` multi-stage con solo el runtime | hecho, **construido en CI** |
+| `render.yaml` + [pasos de despliegue](deploy-render.md) | hecho, **el despliegue lo hace el usuario** |
+| 25 tests de contrato de los endpoints | hecho |
+| App Next.js | **no empezada** |
+
+**El modelo servido viaja dentro de la imagen**, en `artifacts/models/`, no se descarga al
+arrancar. Son los cuatro boosters de LightGBM por vertical —el puntual y los tres
+cuantílicos— en el volcado de texto de la propia librería, más un JSON con el `FeatureSpec`,
+los niveles de categoría congelados, el ensanche conformal, la decisión de etiqueta y la
+huella del lago. **Nada de pickle**: un pickle ata el artefacto a la versión exacta de la
+librería que lo escribió y ejecuta código arbitrario al cargarse.
+
+Gzipeados porque un volcado de LightGBM es texto repetitivo y comprime ~3:1: **47 MB → 16 MB**,
+que es lo que se commitea y lo que entra en la imagen. Un test compara la predicción del
+modelo cargado contra la del modelo en memoria y exige igualdad a 1e-12: si el round-trip
+no es exacto, el modelo servido no es el que mide el MAPE publicado.
+
+**De dónde salen los 512 MB.** `pyproject.toml` quedó partido: `dependencies` es lo que la
+API necesita (pandas, numpy, lightgbm, fastapi, uvicorn, pydantic) y el resto se fue a
+grupos `ingest` / `transform` / `train` / `analysis` / `dev`, que `uv sync` **sigue
+instalando por defecto** vía `[tool.uv] default-groups`, así que ni el desarrollo ni CI
+cambian. Solo `Dockerfile.api` pide `--no-default-groups`.
+
+La pieza que más pesaba era inesperada: **`/explain` ya no importa `shap`**. Los valores
+SHAP salen de `pred_contrib` de LightGBM, que *es* el mismo algoritmo TreeSHAP implementado
+dentro de la librería, y eso saca shap, numba y llvmlite de la imagen. Un test los compara
+numéricamente y exige igualdad a 1e-9, así que es una decisión de empaquetado y no de
+matemática.
+
+**Memoria medida**, con los dos modelos cargados y 250 peticiones encima:
+
+| | RSS |
+| --- | --- |
+| Intérprete vacío | 15 MB |
+| Tras importar la app (pandas + lightgbm + fastapi) | 185 MB |
+| Tras cargar los dos bundles | 237 MB |
+| Tras 200 `/predict` y 50 `/explain` | **240 MB** |
+
+Estable —2,8 MB en 250 peticiones, sin fuga— y con holgura sobre los 512 MB del plan
+gratuito. **Es RSS del proceso, no del contenedor**: esta máquina no tiene Docker, así que
+el tamaño de la imagen se mide en CI, donde el job `api image builds` ahora lo imprime en el
+resumen, falla por encima de 900 MB y además arranca el contenedor para comprobar que
+`/health` y `/model-info` responden de verdad.
+
+Dos cosas que conviene saber antes de tocar esto:
+
+- **`api/features.py` deriva `vehicle_age_years` y `km_per_year` igual que `gold_listings`**,
+  con el mismo piso en cero y el mismo divisor en uno. Es la tercera copia de esa lógica
+  (ya estaba duplicada entre `features/age.py` y el SQL) y está así para no meter dbt y
+  DuckDB en una imagen con presupuesto; el test es lo que mantiene honestas a las tres.
+- **La decisión de etiqueta viaja dentro del bundle.** `/predict` no la vuelve a calcular:
+  si lo hiciera, tendría que re-derivar el gate en tiempo de petición a partir de números
+  que la API no tiene.
 
 ---
 

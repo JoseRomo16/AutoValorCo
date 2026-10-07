@@ -10,7 +10,7 @@
 param(
     [Parameter(Position = 0)]
     [ValidateSet('help', 'setup', 'scrape', 'enrich', 'pull-history', 'push-history',
-        'transform', 'train', 'results', 'serve', 'test', 'lint', 'format', 'docker-build',
+        'transform', 'train', 'export-model', 'results', 'serve', 'test', 'lint', 'format', 'docker-build',
         'docker-up', 'clean')]
     [string]$Target = 'help',
 
@@ -45,6 +45,7 @@ switch ($Target) {
         Write-Host '  push-history   Publish the local captures to the data branch'
         Write-Host '  transform      Run dbt (silver and gold) and the Pandera validations'
         Write-Host '  train          Train the models and log them to MLflow (-Trials N)'
+        Write-Host '  export-model   Train the served model into artifacts/models/'
         Write-Host '  results        Estimate the economic results and export them to docs/'
         Write-Host '  serve          Run the API locally with autoreload'
         Write-Host '  test           Run the test suite with coverage'
@@ -90,6 +91,11 @@ switch ($Target) {
         $trainCommand = @('uv', 'run', 'python', '-m', 'autovalor.models.train')
         if ($Trials -ge 0) { $trainCommand += @('--trials', "$Trials") }
         Invoke-Step $trainCommand
+    }
+    'export-model' {
+        $exportCommand = @('uv', 'run', 'python', '-m', 'autovalor.models.export')
+        if ($Trials -ge 0) { $exportCommand += @('--trials', "$Trials") }
+        Invoke-Step $exportCommand
     }
     'results' {
         $resultsCommand = @('uv', 'run', 'python', '-m', 'autovalor.analysis.cli')

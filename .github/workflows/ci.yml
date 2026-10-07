@@ -56,4 +56,32 @@ jobs:
       # actions, nothing to keep pinned, and the image is small enough that a layer
       # cache is not worth the extra moving parts.
       - name: Build the API image
-        run: docker build --tag autovalor-api:ci .
+        run: docker build --file Dockerfile.api --tag autovalor-api:ci .
+
+      # The development machine has no Docker, so CI is where the F4 size budget is
+      # actually measured. Printed in the summary so the number is visible without
+      # opening logs, and failed outright past the ceiling: an image that does not fit
+      # the free tier is a broken deployment, not a warning.
+      - name: Report and check the image size
+        run: |
+          bytes=$(docker image inspect autovalor-api:ci --format '{{.Size}}')
+          megabytes=$((bytes / 1024 / 1024))
+          echo "API image: ${megabytes} MB" >> "$GITHUB_STEP_SUMMARY"
+          echo "API image: ${megabytes} MB"
+          if [ "$megabytes" -gt 900 ]; then
+            echo "::error::the API image is ${megabytes} MB, over the 900 MB ceiling"
+            exit 1
+          fi
+
+      # Proves the image actually serves before anyone deploys it: a build that succeeds
+      # and a container that answers are different claims.
+      - name: Start it and check /health and /model-info
+        run: |
+          docker run --detach --name api --publish 8000:8000 autovalor-api:ci
+          for _ in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8000/health > /dev/null; then break; fi
+            sleep 2
+          done
+          curl --silent --fail http://127.0.0.1:8000/health
+          curl --silent --fail http://127.0.0.1:8000/model-info
+          docker stop api

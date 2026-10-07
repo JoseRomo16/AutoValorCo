@@ -187,33 +187,22 @@ name = "autovalor"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "beautifulsoup4" },
-    { name = "catboost" },
-    { name = "dbt-duckdb" },
-    { name = "duckdb" },
     { name = "fastapi" },
-    { name = "httpx" },
     { name = "lightgbm" },
-    { name = "lxml" },
-    { name = "matplotlib" },
-    { name = "mlflow" },
-    { name = "optuna" },
+    { name = "numpy", version = "2.3.5", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
     { name = "pandas" },
-    { name = "pandera" },
-    { name = "playwright" },
-    { name = "pyarrow" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
-    { name = "scikit-learn" },
-    { name = "shap" },
-    { name = "statsmodels" },
-    { name = "tenacity" },
-    { name = "truststore" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
 [package.dev-dependencies]
+analysis = [
+    { name = "matplotlib" },
+    { name = "statsmodels" },
+]
 dev = [
     { name = "mypy" },
     { name = "pandas-stubs" },
@@ -222,36 +211,45 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
 ]
+ingest = [
+    { name = "beautifulsoup4" },
+    { name = "httpx" },
+    { name = "lxml" },
+    { name = "playwright" },
+    { name = "tenacity" },
+    { name = "truststore" },
+]
+train = [
+    { name = "catboost" },
+    { name = "mlflow" },
+    { name = "optuna" },
+    { name = "scikit-learn" },
+    { name = "shap" },
+]
+transform = [
+    { name = "dbt-duckdb" },
+    { name = "duckdb" },
+    { name = "pandera" },
+    { name = "pyarrow" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "beautifulsoup4", specifier = ">=4.12" },
-    { name = "catboost", specifier = ">=1.2.7" },
-    { name = "dbt-duckdb", specifier = ">=1.9" },
-    { name = "duckdb", specifier = ">=1.1" },
     { name = "fastapi", specifier = ">=0.115" },
-    { name = "httpx", specifier = ">=0.27" },
     { name = "lightgbm", specifier = ">=4.5" },
-    { name = "lxml", specifier = ">=5.2" },
-    { name = "matplotlib", specifier = ">=3.9" },
-    { name = "mlflow", specifier = ">=2.17" },
-    { name = "optuna", specifier = ">=4.0" },
+    { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", specifier = ">=2.2" },
-    { name = "pandera", specifier = ">=0.20" },
-    { name = "playwright", specifier = ">=1.45" },
-    { name = "pyarrow", specifier = ">=17.0" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "python-dotenv", specifier = ">=1.0" },
-    { name = "scikit-learn", specifier = ">=1.5" },
-    { name = "shap", specifier = ">=0.46" },
-    { name = "statsmodels", specifier = ">=0.14" },
-    { name = "tenacity", specifier = ">=9.0" },
-    { name = "truststore", specifier = ">=0.10" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
 ]
 
 [package.metadata.requires-dev]
+analysis = [
+    { name = "matplotlib", specifier = ">=3.9" },
+    { name = "statsmodels", specifier = ">=0.14" },
+]
 dev = [
     { name = "mypy", specifier = ">=1.13" },
     { name = "pandas-stubs", specifier = ">=2.2" },
@@ -259,6 +257,27 @@ dev = [
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-cov", specifier = ">=5.0" },
     { name = "ruff", specifier = ">=0.7" },
+]
+ingest = [
+    { name = "beautifulsoup4", specifier = ">=4.12" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "lxml", specifier = ">=5.2" },
+    { name = "playwright", specifier = ">=1.45" },
+    { name = "tenacity", specifier = ">=9.0" },
+    { name = "truststore", specifier = ">=0.10" },
+]
+train = [
+    { name = "catboost", specifier = ">=1.2.7" },
+    { name = "mlflow", specifier = ">=2.17" },
+    { name = "optuna", specifier = ">=4.0" },
+    { name = "scikit-learn", specifier = ">=1.5" },
+    { name = "shap", specifier = ">=0.46" },
+]
+transform = [
+    { name = "dbt-duckdb", specifier = ">=1.9" },
+    { name = "duckdb", specifier = ">=1.1" },
+    { name = "pandera", specifier = ">=0.20" },
+    { name = "pyarrow", specifier = ">=17.0" },
 ]
 
 [[package]]

@@ -1,0 +1,64 @@
+# AutoValor CO — the API image, and only the API.
+#
+# Render's free tier gives 512 MB of RAM, which is the constraint this file exists to meet.
+# The repository's other Dockerfile installs everything; this one installs the runtime
+# dependency list alone — no MLflow, no CatBoost, no Playwright, no dbt, no shap — because
+# together those are most of a gigabyte before a line of code is copied.
+#
+# The served model is **baked in**, not downloaded at start-up. A cold start on a free
+# instance already costs a minute; adding a network fetch to it means a request can fail
+# for a reason that has nothing to do with the service, and an artifact store is a bill.
+# See src/autovalor/models/bundle.py.
+#
+# Multi-stage: the builder carries uv and the build toolchain, the runtime carries the
+# virtualenv and the application. Nothing that only existed to install things ships.
+
+FROM python:3.12-slim AS builder
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never
+
+WORKDIR /app
+
+# Dependencies first, so editing code does not reinstall them. --no-default-groups is the
+# whole point: it takes `dependencies` and skips ingest/transform/train/analysis/dev.
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-default-groups --no-install-project
+
+COPY README.md ./
+COPY src ./src
+RUN uv sync --frozen --no-default-groups
+
+
+FROM python:3.12-slim AS runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/app/.venv/bin:$PATH"
+
+WORKDIR /app
+
+COPY --from=builder /app/.venv /app/.venv
+COPY src ./src
+# The served models and the published result tables. Both are read-only data the API
+# serves; neither is derived at runtime.
+COPY artifacts ./artifacts
+COPY docs/results ./docs/results
+
+RUN useradd --create-home --uid 10001 autovalor && chown -R autovalor:autovalor /app
+USER autovalor
+
+EXPOSE 8000
+
+# Hits /health, which reports "degraded" rather than failing when no model is loaded, so
+# this probe answers "is the process serving" and /health's body answers "can it predict".
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()"]
+
+# One worker on purpose: the free tier has 512 MB and each worker loads its own copy of
+# eight boosters. Concurrency comes from the event loop, and the work per request is a
+# handful of milliseconds of tree traversal.
+CMD ["uvicorn", "autovalor.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

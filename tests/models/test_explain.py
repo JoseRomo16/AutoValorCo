@@ -201,3 +201,21 @@ def test_motorcycles_are_explained_with_their_own_feature_set() -> None:
     contributions = explain_predictions(fitted, bikes.head(2)).contributions
 
     assert "is_quad" in set(contributions["feature"])
+
+
+def test_the_native_contributions_match_the_shap_package(gold_cars: pd.DataFrame) -> None:
+    # shap_contributions uses LightGBM's own pred_contrib rather than the shap package, so
+    # that the API image does not have to carry shap, numba and llvmlite. Both are exact
+    # TreeSHAP; this pins that claim numerically, so the swap stays a packaging decision.
+    import shap
+
+    fitted = fit_tree(gold_cars, model_kind="lightgbm", vehicle_type="car", params=FAST)
+    rows = gold_cars.head(40)
+
+    ours, base = shap_contributions(fitted, rows)
+
+    explainer = shap.TreeExplainer(fitted.estimator)
+    theirs = np.asarray(explainer.shap_values(fitted.design_matrix(rows)), dtype=np.float64)
+
+    np.testing.assert_allclose(ours.to_numpy(), theirs, rtol=1e-9, atol=1e-9)
+    assert base == pytest.approx(float(np.ravel(explainer.expected_value)[0]))

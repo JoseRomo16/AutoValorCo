@@ -51,6 +51,19 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     served_model_version: str = "unreleased"
 
+    # Origins allowed to call the API from a browser. The frontend is a static site on
+    # another host, so without this it cannot reach the service at all. An allow-list
+    # rather than "*": the wildcard is refused by browsers as soon as credentials are
+    # involved, and naming the origins costs one environment variable.
+    #
+    # Set it as a comma-separated list, e.g.
+    # AUTOVALOR_CORS_ALLOW_ORIGINS=https://autovalor.pages.dev,http://localhost:3000
+    cors_allow_origins: list[str] = ["http://localhost:3000"]
+
+    # Where `make results` wrote the F3 tables that /market serves. None uses the
+    # repository's docs/results, which is what ships inside the image.
+    results_dir: Path | None = None
+
     @property
     def bronze_dir(self) -> Path:
         """Immutable raw capture layer, one file per scraping run."""

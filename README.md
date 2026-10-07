@@ -107,6 +107,7 @@ Copy-Item .env.example .env
 | `make transform` | Corre dbt (silver y gold) + validaciones Pandera     | F1         |
 | `make train`     | Entrena y registra modelos en MLflow                 | F2         |
 | `make results`   | Estima los resultados económicos y los exporta a `docs/` | F3     |
+| `make export-model` | Entrena el modelo servido en `artifacts/models/`   | F4         |
 | `make serve`     | Levanta la API en local (`:8000`)                    | F0         |
 | `make test`      | pytest con cobertura (mínimo 70 %)                   | F0         |
 | `make lint`      | ruff + mypy                                          | F0         |
@@ -195,9 +196,9 @@ Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs
 | ------ | ----------- | ----------------------------------------------------------------------------------------------------- | ----------- |
 | **F0** | Requisitos  | Repo inicial, estructura, Makefile y CI en verde                                                      | cerrada     |
 | **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada (7.207 / 3.765) |
-| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | en curso    |
-| **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda                        | pendiente   |
-| **F4** | Producto    | API (`/predict`, `/explain`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render     | pendiente   |
+| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | cerrada (carros 11,3 %, motos 22,4 %) |
+| **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda                        | cerrada salvo el índice (necesita 6 meses de histórico) |
+| **F4** | Producto    | API (`/predict`, `/explain`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | API lista; falta el frontend |
 
 ### Datos y ética
 
@@ -286,9 +287,9 @@ Detailed status, open decisions and how to resume: **[`docs/STATUS.md`](docs/STA
 | ------ | ----------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
 | **F0** | Requirements| Initial repo, structure, Makefile and green CI                                                             | closed      |
 | **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed (7,207 / 3,765) |
-| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | in progress |
-| **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, Fasecolda comparison                                        | pending     |
-| **F4** | Product     | API (`/predict`, `/explain`, `/health`, `/model-info`), Next.js app, Docker, Render deployment              | pending     |
+| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | closed      |
+| **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, Fasecolda comparison                                        | closed but the index |
+| **F4** | Product     | API (`/predict`, `/explain`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment   | API done; frontend pending |
 
 ### Data and ethics
 

@@ -17,6 +17,8 @@ frontend
 tests
 dbt
 docs
+# ...except the published result tables, which /market serves out of the image.
+!docs/results
 node_modules
 .env
 .env.*
