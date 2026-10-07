@@ -1,101 +1,143 @@
-alias,brand,applies_to
-chevrolet,Chevrolet,car
-chevy,Chevrolet,car
-renault,Renault,car
-mazda,Mazda,car
-toyota,Toyota,car
-kia,Kia,car
-hyundai,Hyundai,car
-nissan,Nissan,car
-ford,Ford,car
-volkswagen,Volkswagen,car
-vw,Volkswagen,car
-suzuki,Suzuki,both
-mitsubishi,Mitsubishi,car
-jeep,Jeep,car
-subaru,Subaru,car
-peugeot,Peugeot,car
-citroen,Citroen,car
-citroën,Citroen,car
-fiat,Fiat,car
-dodge,Dodge,car
-ram,RAM,car
-chery,Chery,car
-changan,Changan,car
-jac,JAC,car
-byd,BYD,car
-haval,Haval,car
-great wall,GWM,car
-mg,MG,car
-volvo,Volvo,car
-land rover,Land Rover,car
-range rover,Land Rover,car
-lexus,Lexus,car
-porsche,Porsche,car
-mini,Mini,car
-isuzu,Isuzu,car
-ssangyong,SsangYong,car
-foton,Foton,car
-dfsk,DFSK,car
-skoda,Skoda,car
-seat,Seat,car
-opel,Opel,car
-tesla,Tesla,car
-gmc,GMC,car
-chrysler,Chrysler,car
-audi,Audi,car
-mercedes,Mercedes-Benz,car
-mercedes benz,Mercedes-Benz,car
-mercedes-benz,Mercedes-Benz,car
-yamaha,Yamaha,motorcycle
-honda,Honda,both
-bajaj,Bajaj,motorcycle
-akt,AKT,motorcycle
-auteco,Auteco,motorcycle
-ktm,KTM,motorcycle
-benelli,Benelli,motorcycle
-kawasaki,Kawasaki,motorcycle
-ducati,Ducati,motorcycle
-bmw,BMW,both
-harley,Harley-Davidson,motorcycle
-harley davidson,Harley-Davidson,motorcycle
-harley-davidson,Harley-Davidson,motorcycle
-royal enfield,Royal Enfield,motorcycle
-tvs,TVS,motorcycle
-hero,Hero,motorcycle
-victory,Victory,motorcycle
-kymco,Kymco,motorcycle
-vespa,Vespa,motorcycle
-piaggio,Piaggio,motorcycle
-cfmoto,CFMoto,motorcycle
-cf moto,CFMoto,motorcycle
-husqvarna,Husqvarna,motorcycle
-triumph,Triumph,motorcycle
-aprilia,Aprilia,motorcycle
-sym,SYM,motorcycle
-um,UM,motorcycle
-keeway,Keeway,motorcycle
-italika,Italika,motorcycle
-starker,Starker,motorcycle
-ayco,Ayco,motorcycle
-zontes,Zontes,motorcycle
-qj motor,QJ Motor,motorcycle
-fantic,Fantic,motorcycle
-can-am,Can-Am,motorcycle
-can am,Can-Am,motorcycle
-polaris,Polaris,motorcycle
-mv agusta,MV Agusta,motorcycle
-vento,Vento,motorcycle
-kgm,KGM,car
-cupra,Cupra,car
-cadillac,Cadillac,car
-alfa romeo,Alfa Romeo,car
-jetour,Jetour,car
-gwm,GWM,car
-pulsar,Bajaj,motorcycle
-dominar,Bajaj,motorcycle
-boxer,Bajaj,motorcycle
-gixxer,Suzuki,motorcycle
-nmax,Yamaha,motorcycle
-xpulse,Hero,motorcycle
-apache,TVS,motorcycle
+alias,brand,applies_to,alias_kind
+bmw,BMW,both,brand
+honda,Honda,both,brand
+suzuki,Suzuki,both,brand
+alfa romeo,Alfa Romeo,car,brand
+audi,Audi,car,brand
+byd,BYD,car,brand
+cadillac,Cadillac,car,brand
+changan,Changan,car,brand
+chery,Chery,car,brand
+chevrolet,Chevrolet,car,brand
+chevy,Chevrolet,car,brand
+chrysler,Chrysler,car,brand
+citroen,Citroen,car,brand
+citroën,Citroen,car,brand
+cupra,Cupra,car,brand
+dfsk,DFSK,car,brand
+dodge,Dodge,car,brand
+fiat,Fiat,car,brand
+ford,Ford,car,brand
+foton,Foton,car,brand
+gmc,GMC,car,brand
+great wall,GWM,car,brand
+gwm,GWM,car,brand
+haval,Haval,car,brand
+hyundai,Hyundai,car,brand
+isuzu,Isuzu,car,brand
+jac,JAC,car,brand
+jeep,Jeep,car,brand
+jetour,Jetour,car,brand
+kgm,KGM,car,brand
+kia,Kia,car,brand
+land rover,Land Rover,car,brand
+lexus,Lexus,car,brand
+mazda,Mazda,car,brand
+mercedes,Mercedes-Benz,car,brand
+mercedes benz,Mercedes-Benz,car,brand
+mercedes-benz,Mercedes-Benz,car,brand
+mg,MG,car,brand
+mini,Mini,car,brand
+mitsubishi,Mitsubishi,car,brand
+nissan,Nissan,car,brand
+opel,Opel,car,brand
+peugeot,Peugeot,car,brand
+porsche,Porsche,car,brand
+ram,RAM,car,brand
+range rover,Land Rover,car,brand
+renault,Renault,car,brand
+seat,Seat,car,brand
+skoda,Skoda,car,brand
+ssangyong,SsangYong,car,brand
+subaru,Subaru,car,brand
+tesla,Tesla,car,brand
+toyota,Toyota,car,brand
+volkswagen,Volkswagen,car,brand
+volvo,Volvo,car,brand
+vw,Volkswagen,car,brand
+akt,AKT,motorcycle,brand
+aprilia,Aprilia,motorcycle,brand
+auteco,Auteco,motorcycle,brand
+ayco,Ayco,motorcycle,brand
+bajaj,Bajaj,motorcycle,brand
+benelli,Benelli,motorcycle,brand
+can am,Can-Am,motorcycle,brand
+can-am,Can-Am,motorcycle,brand
+cf moto,CFMoto,motorcycle,brand
+cfmoto,CFMoto,motorcycle,brand
+ducati,Ducati,motorcycle,brand
+fantic,Fantic,motorcycle,brand
+harley,Harley-Davidson,motorcycle,brand
+harley davidson,Harley-Davidson,motorcycle,brand
+harley-davidson,Harley-Davidson,motorcycle,brand
+hero,Hero,motorcycle,brand
+husqvarna,Husqvarna,motorcycle,brand
+italika,Italika,motorcycle,brand
+kawasaki,Kawasaki,motorcycle,brand
+keeway,Keeway,motorcycle,brand
+ktm,KTM,motorcycle,brand
+kymco,Kymco,motorcycle,brand
+mv agusta,MV Agusta,motorcycle,brand
+piaggio,Piaggio,motorcycle,brand
+plr,PLR,motorcycle,brand
+polaris,Polaris,motorcycle,brand
+qj motor,QJ Motor,motorcycle,brand
+royal enfield,Royal Enfield,motorcycle,brand
+starker,Starker,motorcycle,brand
+sym,SYM,motorcycle,brand
+triumph,Triumph,motorcycle,brand
+tvs,TVS,motorcycle,brand
+um,UM,motorcycle,brand
+vento,Vento,motorcycle,brand
+vespa,Vespa,motorcycle,brand
+victory,Victory,motorcycle,brand
+yamaha,Yamaha,motorcycle,brand
+zontes,Zontes,motorcycle,brand
+agility,Kymco,motorcycle,model
+apache,TVS,motorcycle,model
+boxer,Bajaj,motorcycle,model
+bws,Yamaha,motorcycle,model
+cb,Honda,motorcycle,model
+cbr,Honda,motorcycle,model
+cf,CFMoto,motorcycle,model
+crox,SYM,motorcycle,model
+crypton,Yamaha,motorcycle,model
+dio,Honda,motorcycle,model
+discover,Bajaj,motorcycle,model
+dominar,Bajaj,motorcycle,model
+dr,Suzuki,motorcycle,model
+duke,KTM,motorcycle,model
+eco,Hero,motorcycle,model
+fino,Yamaha,motorcycle,model
+fz,Yamaha,motorcycle,model
+gixxer,Suzuki,motorcycle,model
+gn,Suzuki,motorcycle,model
+gs,BMW,motorcycle,model
+gsx,Suzuki,motorcycle,model
+himalaya,Royal Enfield,motorcycle,model
+himalayan,Royal Enfield,motorcycle,model
+hunk,Hero,motorcycle,model
+interceptor,Royal Enfield,motorcycle,model
+meteor,Royal Enfield,motorcycle,model
+mrx,Victory,motorcycle,model
+ninja,Kawasaki,motorcycle,model
+nkd,AKT,motorcycle,model
+nmax,Yamaha,motorcycle,model
+ns,Bajaj,motorcycle,model
+pcx,Honda,motorcycle,model
+pulsar,Bajaj,motorcycle,model
+svartpilen,Husqvarna,motorcycle,model
+szr,Yamaha,motorcycle,model
+tiger,Triumph,motorcycle,model
+tt,AKT,motorcycle,model
+ttr,AKT,motorcycle,model
+twist,Kymco,motorcycle,model
+v-strom,Suzuki,motorcycle,model
+versys,Kawasaki,motorcycle,model
+vstrom,Suzuki,motorcycle,model
+xmax,Yamaha,motorcycle,model
+xpulse,Hero,motorcycle,model
+xre,Honda,motorcycle,model
+xtz,Yamaha,motorcycle,model
+ybr,Yamaha,motorcycle,model
+z900,Kawasaki,motorcycle,model

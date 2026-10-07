@@ -163,12 +163,13 @@ Esa es la misma historia que SHAP contó desde el otro lado —el modelo de moto
 identidad y casi no pesa estado— pero medida con un método independiente, que es lo que la
 vuelve una conclusión en vez de una lectura.
 
-**Y el hallazgo que más cambia el plan:** el 24,1 % de error en motos no se reparte parejo.
-Está concentrado en los anuncios cuya marca no se extrae del título —19,6 % de la vertical,
-con 50,2 % de MAPE—; las marcas que sí resuelven van entre 9,7 % y 19,0 %, y **Bajaj ya
-cumple la meta de F2**. Si ese bucket se comportara como el resto, la vertical estaría en
-17,5 %: **el parseo del título vale 6,6 puntos de MAPE**, más que cualquier cosa que haya
-salido del modelado.
+**Y el hallazgo que más cambió el plan:** el error en motos no se repartía parejo. Estaba
+concentrado en los anuncios cuya marca no se extraía del título —19,6 % de la vertical, con
+50,2 % de MAPE—; las marcas que sí resuelven van entre 9,7 % y 19,0 %, y **Bajaj ya cumple
+la meta de F2**. Resolver esa marca con un mapa modelo → marca subió la cobertura de 80,4 %
+a **87,6 %** y bajó la vertical de **24,1 % a 22,4 %**, sin una sola petición nueva: salió
+de títulos ya capturados. Es la mejora más grande que ha dado una sola intervención en el
+proyecto, y no vino del modelado.
 
 ![Error por marca, motos](docs/figures/segment-error-motorcycle.png)
 
@@ -270,10 +271,12 @@ cheapest motorcycles; and **the same car is 8.6 % dearer in Santander than in Bo
 with a far wider regional spread for motorcycles (+28 % in Antioquia, −31 % in Quindío).
 
 Breaking the served model's error down by segment turned up the most actionable result:
-the motorcycle vertical's 24.1 % is concentrated in the listings whose brand cannot be
-parsed out of the title — 19.6 % of the vertical, at 50.2 % MAPE. Every brand that does
-resolve lands between 9.7 % and 19.0 %. **Title parsing is worth 6.6 MAPE points**, more
-than anything modeling produced in F2.
+the motorcycle vertical's 24.1 % was concentrated in the listings whose brand could not be
+parsed out of the title — 19.6 % of the vertical, at 50.2 % MAPE, against 9.7 %–19.0 % for
+every brand that did resolve. Mapping model names back to their make lifted brand coverage
+from 80.4 % to **87.6 %** and the vertical from **24.1 % to 22.4 %**, with no new requests:
+it all came out of titles already captured. The largest single improvement the project has
+had, and it did not come from modeling.
 
 ### Roadmap
 

@@ -89,3 +89,52 @@ models:
                 - model_year_in_future
                 - mileage_missing
                 - mileage_too_high
+
+unit_tests:
+  - name: title_features_resolves_the_make
+    description: >
+      One case per pattern the unresolved-title analysis found. Roughly a fifth of
+      motorcycle titles never name their make, and that bucket carried 50 % MAPE against
+      10-19 % for the makes that did resolve, so each of these is a measured failure mode
+      rather than an invented one.
+    model: stg_title_features
+    given:
+      - input: ref('silver_listings')
+        rows:
+          # The ordinary case: the make is written out and wins outright.
+          - {listing_id: "a", vehicle_type: "motorcycle", title: "Yamaha Xtz 125 2020", model_year: 2020, last_seen_at: "2026-10-01", price_cop: 1}
+          # Model name standing alone, which is the pattern this change exists for.
+          - {listing_id: "b", vehicle_type: "motorcycle", title: "Xtz 150 Impecable", model_year: 2021, last_seen_at: "2026-10-01", price_cop: 1}
+          # A make must beat a model name even when the model alias is longer and the make
+          # does not open the title. Without the alias_kind rank this comes out Kymco.
+          - {listing_id: "c", vehicle_type: "motorcycle", title: "Vendo Suzuki Agility 125", model_year: 2019, last_seen_at: "2026-10-01", price_cop: 1}
+          # "Moto" prefix: the make still resolves and the model token must not be "moto".
+          - {listing_id: "d", vehicle_type: "motorcycle", title: "Moto Hunk 150 Roja", model_year: 2018, last_seen_at: "2026-10-01", price_cop: 1}
+          # Quad with its own make, where "cuatrimoto" is the vertical's word, not a model.
+          - {listing_id: "e", vehicle_type: "motorcycle", title: "Cuatrimoto Plr Shark 250cc", model_year: 2022, last_seen_at: "2026-10-01", price_cop: 1}
+          # No make and no known model: it has to stay unresolved rather than guess.
+          - {listing_id: "f", vehicle_type: "motorcycle", title: "Excelente Estado Papeles Al Dia", model_year: 2017, last_seen_at: "2026-10-01", price_cop: 1}
+          # Motorcycle model aliases must not leak into the car vertical.
+          - {listing_id: "g", vehicle_type: "car", title: "Chevrolet Spark Gt 2018", model_year: 2018, last_seen_at: "2026-10-01", price_cop: 1}
+      - input: ref('vehicle_brands')
+        rows:
+          - {alias: "yamaha", brand: "Yamaha", applies_to: "motorcycle", alias_kind: "brand"}
+          - {alias: "suzuki", brand: "Suzuki", applies_to: "both", alias_kind: "brand"}
+          - {alias: "plr", brand: "PLR", applies_to: "motorcycle", alias_kind: "brand"}
+          - {alias: "chevrolet", brand: "Chevrolet", applies_to: "car", alias_kind: "brand"}
+          - {alias: "xtz", brand: "Yamaha", applies_to: "motorcycle", alias_kind: "model"}
+          - {alias: "agility", brand: "Kymco", applies_to: "motorcycle", alias_kind: "model"}
+          - {alias: "hunk", brand: "Hero", applies_to: "motorcycle", alias_kind: "model"}
+          - {alias: "spark", brand: "Chevrolet", applies_to: "car", alias_kind: "model"}
+    expect:
+      rows:
+        - {listing_id: "a", brand: "Yamaha", model: "xtz"}
+        - {listing_id: "b", brand: "Yamaha", model: "xtz"}
+        # Resolved by the make, so the model falls back to the positional rule, which
+        # takes the first remaining token -- here the seller's verb. Known wart; the
+        # case is kept so a future fix has something to flip.
+        - {listing_id: "c", brand: "Suzuki", model: "vendo"}
+        - {listing_id: "d", brand: "Hero", model: "hunk"}
+        - {listing_id: "e", brand: "PLR", model: "shark"}
+        - {listing_id: "f", brand: "Desconocida", model: "excelente"}
+        - {listing_id: "g", brand: "Chevrolet", model: "spark"}

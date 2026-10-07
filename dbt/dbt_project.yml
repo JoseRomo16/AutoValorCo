@@ -34,6 +34,7 @@ seeds:
         alias: varchar
         brand: varchar
         applies_to: varchar
+        alias_kind: varchar
 
 models:
   autovalor:

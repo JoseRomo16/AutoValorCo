@@ -291,144 +291,144 @@
     "vehicle_type": "motorcycle",
     "brand": "Yamaha",
     "age_years": 1,
-    "retained_value_pct": 99.1419
+    "retained_value_pct": 99.0646
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Yamaha",
     "age_years": 3,
-    "retained_value_pct": 97.4479
+    "retained_value_pct": 97.22
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Yamaha",
     "age_years": 5,
-    "retained_value_pct": 95.7827
+    "retained_value_pct": 95.4097
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Yamaha",
     "age_years": 10,
-    "retained_value_pct": 91.7433
+    "retained_value_pct": 91.0301
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Honda",
     "age_years": 1,
-    "retained_value_pct": 98.0695
+    "retained_value_pct": 98.2479
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Honda",
     "age_years": 3,
-    "retained_value_pct": 94.3196
+    "retained_value_pct": 94.8353
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Honda",
     "age_years": 5,
-    "retained_value_pct": 90.7132
+    "retained_value_pct": 91.5413
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Honda",
     "age_years": 10,
-    "retained_value_pct": 82.2888
+    "retained_value_pct": 83.7981
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Suzuki",
     "age_years": 1,
-    "retained_value_pct": 97.9327
+    "retained_value_pct": 97.3796
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Suzuki",
     "age_years": 3,
-    "retained_value_pct": 93.9254
+    "retained_value_pct": 92.3431
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Suzuki",
     "age_years": 5,
-    "retained_value_pct": 90.0822
+    "retained_value_pct": 87.5671
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Suzuki",
     "age_years": 10,
-    "retained_value_pct": 81.148
+    "retained_value_pct": 76.68
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "BMW",
     "age_years": 1,
-    "retained_value_pct": 96.4621
+    "retained_value_pct": 96.4281
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "BMW",
     "age_years": 3,
-    "retained_value_pct": 89.7574
+    "retained_value_pct": 89.6624
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "BMW",
     "age_years": 5,
-    "retained_value_pct": 83.5188
+    "retained_value_pct": 83.3714
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "BMW",
     "age_years": 10,
-    "retained_value_pct": 69.7539
+    "retained_value_pct": 69.508
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "KTM",
     "age_years": 1,
-    "retained_value_pct": 96.3147
+    "retained_value_pct": 96.3446
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "KTM",
     "age_years": 3,
-    "retained_value_pct": 89.3467
+    "retained_value_pct": 89.4298
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "KTM",
     "age_years": 5,
-    "retained_value_pct": 82.8827
+    "retained_value_pct": 83.0112
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "KTM",
     "age_years": 10,
-    "retained_value_pct": 68.6954
+    "retained_value_pct": 68.9087
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Bajaj",
     "age_years": 1,
-    "retained_value_pct": 93.5021
+    "retained_value_pct": 93.5323
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Bajaj",
     "age_years": 3,
-    "retained_value_pct": 81.7454
+    "retained_value_pct": 81.8248
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Bajaj",
     "age_years": 5,
-    "retained_value_pct": 71.467
+    "retained_value_pct": 71.5827
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Bajaj",
     "age_years": 10,
-    "retained_value_pct": 51.0754
+    "retained_value_pct": 51.2408
   }
 ]

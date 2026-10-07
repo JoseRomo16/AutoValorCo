@@ -257,77 +257,66 @@
     "model": "lightgbm",
     "segment_kind": "brand",
     "segment": "Desconocida",
-    "n": 163,
-    "mape_pct": 50.2482,
-    "median_ape_pct": 21.6745,
-    "sigma_log": 0.6379,
-    "within_10pct": 23.3129
+    "n": 109,
+    "mape_pct": 55.4951,
+    "median_ape_pct": 23.9953,
+    "sigma_log": 0.6763,
+    "within_10pct": 21.1009
   },
   {
     "vehicle_type": "motorcycle",
     "model": "lightgbm",
     "segment_kind": "brand",
     "segment": "Yamaha",
-    "n": 86,
-    "mape_pct": 18.987,
-    "median_ape_pct": 12.7237,
-    "sigma_log": 0.3415,
-    "within_10pct": 39.5349
-  },
-  {
-    "vehicle_type": "motorcycle",
-    "model": "lightgbm",
-    "segment_kind": "brand",
-    "segment": "Suzuki",
-    "n": 69,
-    "mape_pct": 18.5562,
-    "median_ape_pct": 7.6696,
-    "sigma_log": 0.2834,
-    "within_10pct": 56.5217
+    "n": 96,
+    "mape_pct": 19.5743,
+    "median_ape_pct": 11.7316,
+    "sigma_log": 0.3427,
+    "within_10pct": 44.7917
   },
   {
     "vehicle_type": "motorcycle",
     "model": "lightgbm",
     "segment_kind": "brand",
     "segment": "Honda",
-    "n": 52,
-    "mape_pct": 16.5941,
-    "median_ape_pct": 8.7402,
-    "sigma_log": 0.2511,
-    "within_10pct": 53.8462
+    "n": 55,
+    "mape_pct": 17.9532,
+    "median_ape_pct": 11.7803,
+    "sigma_log": 0.258,
+    "within_10pct": 36.3636
   },
   {
     "vehicle_type": "motorcycle",
     "model": "lightgbm",
     "segment_kind": "brand",
     "segment": "BMW",
-    "n": 80,
-    "mape_pct": 15.6659,
-    "median_ape_pct": 10.05,
-    "sigma_log": 0.2492,
-    "within_10pct": 50.0
+    "n": 81,
+    "mape_pct": 15.3884,
+    "median_ape_pct": 10.4329,
+    "sigma_log": 0.2509,
+    "within_10pct": 49.3827
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "model": "lightgbm",
+    "segment_kind": "brand",
+    "segment": "Suzuki",
+    "n": 76,
+    "mape_pct": 15.2382,
+    "median_ape_pct": 9.7666,
+    "sigma_log": 0.2273,
+    "within_10pct": 52.6316
   },
   {
     "vehicle_type": "motorcycle",
     "model": "lightgbm",
     "segment_kind": "brand",
     "segment": "Bajaj",
-    "n": 51,
-    "mape_pct": 9.7417,
-    "median_ape_pct": 8.3027,
-    "sigma_log": 0.1213,
-    "within_10pct": 60.7843
-  },
-  {
-    "vehicle_type": "motorcycle",
-    "model": "lightgbm",
-    "segment_kind": "department",
-    "segment": "Santander",
-    "n": 44,
-    "mape_pct": 35.2142,
-    "median_ape_pct": 20.7903,
-    "sigma_log": 0.468,
-    "within_10pct": 29.5455
+    "n": 53,
+    "mape_pct": 9.4738,
+    "median_ape_pct": 8.7601,
+    "sigma_log": 0.1191,
+    "within_10pct": 60.3774
   },
   {
     "vehicle_type": "motorcycle",
@@ -335,10 +324,21 @@
     "segment_kind": "department",
     "segment": "Valle Del Cauca",
     "n": 106,
-    "mape_pct": 34.5017,
-    "median_ape_pct": 16.0341,
-    "sigma_log": 0.4385,
-    "within_10pct": 34.9057
+    "mape_pct": 34.3365,
+    "median_ape_pct": 13.7998,
+    "sigma_log": 0.4168,
+    "within_10pct": 36.7925
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "model": "lightgbm",
+    "segment_kind": "department",
+    "segment": "Santander",
+    "n": 44,
+    "mape_pct": 33.384,
+    "median_ape_pct": 19.9379,
+    "sigma_log": 0.4628,
+    "within_10pct": 29.5455
   },
   {
     "vehicle_type": "motorcycle",
@@ -346,10 +346,10 @@
     "segment_kind": "department",
     "segment": "Cundinamarca",
     "n": 107,
-    "mape_pct": 31.3553,
-    "median_ape_pct": 16.1022,
-    "sigma_log": 0.4432,
-    "within_10pct": 37.3832
+    "mape_pct": 26.5882,
+    "median_ape_pct": 14.9759,
+    "sigma_log": 0.4175,
+    "within_10pct": 34.5794
   },
   {
     "vehicle_type": "motorcycle",
@@ -357,10 +357,10 @@
     "segment_kind": "department",
     "segment": "Antioquia",
     "n": 244,
-    "mape_pct": 20.2167,
-    "median_ape_pct": 10.68,
-    "sigma_log": 0.3656,
-    "within_10pct": 46.3115
+    "mape_pct": 19.9992,
+    "median_ape_pct": 10.2312,
+    "sigma_log": 0.364,
+    "within_10pct": 48.7705
   },
   {
     "vehicle_type": "motorcycle",
@@ -368,10 +368,10 @@
     "segment_kind": "department",
     "segment": "Bogotá D.C.",
     "n": 268,
-    "mape_pct": 19.0224,
-    "median_ape_pct": 9.3263,
-    "sigma_log": 0.325,
-    "within_10pct": 53.7313
+    "mape_pct": 15.337,
+    "median_ape_pct": 9.4887,
+    "sigma_log": 0.2651,
+    "within_10pct": 53.3582
   },
   {
     "vehicle_type": "motorcycle",
@@ -379,10 +379,10 @@
     "segment_kind": "price_segment",
     "segment": "Q2",
     "n": 202,
-    "mape_pct": 35.1593,
-    "median_ape_pct": 14.5088,
-    "sigma_log": 0.4966,
-    "within_10pct": 36.1386
+    "mape_pct": 36.942,
+    "median_ape_pct": 15.5075,
+    "sigma_log": 0.5191,
+    "within_10pct": 35.1485
   },
   {
     "vehicle_type": "motorcycle",
@@ -390,21 +390,10 @@
     "segment_kind": "price_segment",
     "segment": "Q3",
     "n": 202,
-    "mape_pct": 22.4002,
-    "median_ape_pct": 13.2446,
-    "sigma_log": 0.3455,
-    "within_10pct": 40.099
-  },
-  {
-    "vehicle_type": "motorcycle",
-    "model": "lightgbm",
-    "segment_kind": "price_segment",
-    "segment": "Q1",
-    "n": 203,
-    "mape_pct": 21.4133,
-    "median_ape_pct": 8.8529,
-    "sigma_log": 0.3563,
-    "within_10pct": 54.1872
+    "mape_pct": 19.8309,
+    "median_ape_pct": 12.3289,
+    "sigma_log": 0.3216,
+    "within_10pct": 40.5941
   },
   {
     "vehicle_type": "motorcycle",
@@ -412,9 +401,20 @@
     "segment_kind": "price_segment",
     "segment": "Q4",
     "n": 203,
-    "mape_pct": 17.5767,
-    "median_ape_pct": 11.617,
-    "sigma_log": 0.2773,
-    "within_10pct": 46.3054
+    "mape_pct": 17.7082,
+    "median_ape_pct": 10.7607,
+    "sigma_log": 0.2952,
+    "within_10pct": 47.7833
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "model": "lightgbm",
+    "segment_kind": "price_segment",
+    "segment": "Q1",
+    "n": 203,
+    "mape_pct": 14.9856,
+    "median_ape_pct": 8.7618,
+    "sigma_log": 0.2087,
+    "within_10pct": 53.6946
   }
 ]

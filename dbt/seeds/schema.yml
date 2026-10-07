@@ -4,14 +4,26 @@ version: 2
 seeds:
   - name: vehicle_brands
     description: >
-      Make aliases as they appear in listing titles, mapped to a canonical make.
-      Several aliases per make are expected ("vw" and "volkswagen"); the longest
-      match wins, so "mercedes benz" is not shadowed by "mercedes".
+      Aliases as they appear in listing titles, mapped to a canonical make. Several
+      aliases per make are expected ("vw" and "volkswagen"); the longest match wins,
+      so "mercedes benz" is not shadowed by "mercedes".
 
-      A few entries are model names rather than makes ("dominar" -> Bajaj,
-      "gixxer" -> Suzuki). Listings often name the model without the make, and these
-      were frequent enough in the F1 pilot to be worth the small risk of a false
-      positive. Two-letter aliases were deliberately left out for that reason.
+      Entries come in two kinds, and `alias_kind` says which. A `brand` alias is a make
+      written out. A `model` alias is a model name standing in for its make ("xtz" ->
+      Yamaha, "hunk" -> Hero), which exists because roughly one motorcycle title in five
+      never names its make at all, and that bucket carried 50 % MAPE while every make that
+      did resolve sat between 10 % and 19 %.
+
+      Model aliases are ranked strictly below brand aliases in `stg_title_features`, so
+      they can only fire on a title where no make was found. That is what makes them safe
+      to add: they cannot change a listing that already resolves.
+
+      Which model names are listed is a measurement rather than a guess. A candidate was
+      kept only where, among the titles that already resolve, the token appears with one
+      make and effectively no other -- "gs" is BMW in 261 of 265 resolved titles, so it is
+      in; "mt" is Yamaha in only 58 % and "xr" in 78 %, so they are out. Two-letter
+      aliases were once excluded wholesale for fear of false positives; the word-boundary
+      match plus this concentration check replaces that blanket rule with evidence.
     columns:
       - name: alias
         description: Lowercase alias, matched against the title on word boundaries.
@@ -29,3 +41,12 @@ seeds:
           - accepted_values:
               arguments:
                 values: ["car", "motorcycle", "both"]
+      - name: alias_kind
+        description: >
+          Whether the alias is the make itself or a model name standing in for it.
+          Brand aliases outrank model aliases when a title matches both.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["brand", "model"]

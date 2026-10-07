@@ -48,17 +48,27 @@ cleaned as (
 
 ),
 
--- A title may contain several make aliases ("Honda Xre 300 tipo Bajaj"), so each
--- candidate is ranked: an alias at the start of the title wins, then the longest one,
--- which keeps "mercedes benz" ahead of "mercedes".
+-- A title may contain several aliases ("Honda Xre 300 tipo Bajaj"), so each candidate is
+-- ranked. The order matters and each level earns its place:
+--
+--   1. A real make beats a model name. Roughly a fifth of motorcycle titles never name
+--      their make, so the seed also maps model names to the make that builds them -- but
+--      "Suzuki ... Agility" must stay a Suzuki rather than becoming a Kymco because the
+--      model alias happens to be longer. This level is what makes the model aliases
+--      strictly additive: they can only ever fire on a title where no make was found.
+--   2. An alias at the start of the title wins, since that is where the make usually is.
+--   3. The longest alias wins, which keeps "mercedes benz" ahead of "mercedes".
 brand_candidates as (
 
     select
         cleaned.listing_id,
         brands.brand,
+        brands.alias,
+        brands.alias_kind,
         row_number() over (
             partition by cleaned.listing_id
             order by
+                case when brands.alias_kind = 'brand' then 0 else 1 end,
                 case when lower(cleaned.title) like brands.alias || '%' then 0 else 1 end,
                 length(brands.alias) desc
         ) as candidate_rank
@@ -73,7 +83,14 @@ brand_candidates as (
 
 resolved_brand as (
 
-    select listing_id, brand
+    select
+        listing_id,
+        brand,
+        -- When the make was recognised *through* a model name, that name is the model --
+        -- no guessing needed. The positional rule below is a fallback for titles that
+        -- named their make outright, and it is the weaker of the two: it takes whatever
+        -- token comes first, which on "Vendo Suzuki Agility 125" is "vendo".
+        case when alias_kind = 'model' then alias end as model_from_alias
     from brand_candidates
     where candidate_rank = 1
 
@@ -87,6 +104,7 @@ engine as (
         cleaned.title,
         cleaned.searchable,
         resolved_brand.brand,
+        resolved_brand.model_from_alias,
         -- Cars advertise litres ("1.6"); motorcycles advertise cc, sometimes spelled
         -- out ("690cc") and otherwise as part of the model name ("Xre 300", "G310").
         try_cast(regexp_extract(cleaned.searchable, '([0-9])[.,]([0-9])', 1) as bigint) * 1000
@@ -114,24 +132,37 @@ select
     coalesce(brand, 'Desconocida') as brand,
     -- The first token left after removing the make and the year is the model; the
     -- rest is trim detail that F2 can mine further.
-    nullif(
-        split_part(
-            trim(
-                regexp_replace(
+    --
+    -- The vertical's own name is stripped first. One motorcycle title in six opens with
+    -- "Moto", "Cuatrimoto" or "Motocicleta", and without this the model token of every
+    -- one of them comes out as the word "moto" -- a level with hundreds of listings in it
+    -- that says nothing about the vehicle.
+    coalesce(
+        model_from_alias,
+        nullif(
+            split_part(
+                trim(
                     regexp_replace(
-                        searchable,
-                        '(^|[^a-z])' || lower(coalesce(brand, '~none~')) || '([^a-z]|$)',
-                        ' '
-                    ),
-                    '\s+',
-                    ' ',
-                    'g'
-                )
+                        regexp_replace(
+                            regexp_replace(
+                                searchable,
+                                '(^|[^a-z])' || lower(coalesce(brand, '~none~')) || '([^a-z]|$)',
+                                ' '
+                            ),
+                            '(^|[^a-z])(cuatri)?motos?(cicletas?)?([^a-z]|$)',
+                            ' ',
+                            'g'
+                        ),
+                        '\s+',
+                        ' ',
+                        'g'
+                    )
+                ),
+                ' ',
+                1
             ),
-            ' ',
-            1
-        ),
-        ''
+            ''
+        )
     ) as model,
     case
         when vehicle_type = 'car'

@@ -15,15 +15,15 @@
   },
   {
     "vehicle_type": "motorcycle",
-    "condition_share_pct": 16.1188,
-    "identity_share_pct": 76.9877,
-    "other_share_pct": 6.8936,
-    "identity_over_condition": 4.7763,
+    "condition_share_pct": 15.9706,
+    "identity_share_pct": 77.1638,
+    "other_share_pct": 6.8655,
+    "identity_over_condition": 4.8316,
     "median_age_years": 3.0,
-    "annual_depreciation_pct": 3.3412,
-    "annual_ci_low_pct": 2.4555,
-    "annual_ci_high_pct": 4.2188,
-    "age_slope_log": -0.034,
+    "annual_depreciation_pct": 3.2909,
+    "annual_ci_low_pct": 2.3771,
+    "annual_ci_high_pct": 4.1961,
+    "age_slope_log": -0.0335,
     "age_p_value": 0.0,
     "n": 4052.0
   }

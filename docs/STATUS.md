@@ -14,8 +14,9 @@ qué no. Se actualiza al cerrar cada bloque de trabajo.
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
 validado— con 7.639 carros y 4.052 motos, y las capturas ya no se pierden: viven en la
 rama `data`. Tres modelos entrenados y medidos **fuera de muestra**: el mejor es LightGBM
-con **11,3 % MAPE en carros** y **24,1 % en motos** (con 2.300 motos enriquecidas, 56,8 %
-de la vertical). Carros cumple la meta de F2 (≤ 15 %); motos no. **F2 queda cerrada** con
+con **11,3 % MAPE en carros** y **22,4 % en motos** (con 2.300 motos enriquecidas, 56,8 %
+de la vertical, y la marca resuelta en 87,6 % de los títulos tras el arreglo de parseo:
+eran 24,1 % con 80,4 %). Carros cumple la meta de F2 (≤ 15 %); motos no. **F2 queda cerrada** con
 una regla explícita que decide qué se publica en cada vertical: la etiqueta
 ganga/justo/caro exige una banda con cobertura entre 78 % y 82 % y ancho medio ≤ 60 % del
 estimado, y motos no la alcanza, así que sale con precio estimado, rango y aviso de
@@ -107,8 +108,11 @@ Cobertura de features sacadas del título, sin peticiones extra:
 
 | Vertical | Marca | Cilindrada | Marcas | Modelos |
 | --- | --- | --- | --- | --- |
-| Carros | 99,2 % | 86,0 % | 47 | 498 |
-| Motos | 81,0 % | 80,6 % | 31 | 764 |
+| Carros | 99,2 % | 86,0 % | 47 | 507 |
+| Motos | **87,6 %** | 80,6 % | 33 | 821 |
+
+La marca de motos era 80,4 % hasta el 2026-10-06, cuando el mapa modelo → marca del seed
+subió 290 anuncios. Ver [Resolver la marca de las motos](#resolver-la-marca-de-las-motos).
 
 ### F2 — Modelación (cerrada)
 
@@ -372,8 +376,13 @@ las cifras vigentes; las de la sección anterior quedan como registro de cómo s
 | Carros | CatBoost | 13,4 % | 13,1 % | 0,200 | 0,914 | 13,1 % |
 | Motos | hedónico, edad + km + depto | — | 99,8 % | 0,978 | 0,093 | 101,0 % |
 | Motos | hedónico, + marca/modelo/cc | — | **40,0 %** | 0,525 | 0,738 | 47,8 % |
-| Motos | **LightGBM** | 24,0 % | 24,1 % | 0,377 | 0,865 | 26,7 % |
-| Motos | CatBoost | 24,8 % | **23,6 %** | 0,364 | 0,875 | 26,8 % |
+| Motos | **LightGBM** | 23,2 % | **22,4 %** | 0,355 | 0,880 | 24,1 % |
+| Motos | CatBoost | 24,8 % | 23,6 % | 0,364 | 0,875 | 26,8 % |
+
+> La fila de motos es del 2026-10-06 **después** de resolver la marca; la de CatBoost es de
+> antes, sobre 80,4 % de marcas resueltas en vez de 87,6 %, así que ya no son comparables
+> entre sí. Con los datos viejos CatBoost ganaba el holdout por 0,5 puntos; con los nuevos
+> LightGBM va 1,2 puntos adelante de ese número sin que CatBoost se haya vuelto a medir.
 
 Holdouts de 1.528 y 810 filas, contra 1.441 y 753 antes.
 
@@ -586,23 +595,102 @@ más accionable de F3:
 | Carros | Toyota | 240 | 9,8 % | 0,133 |
 | Carros | Mazda | 134 | 6,8 % | 0,105 |
 
-**El 24,1 % de motos no se reparte parejo: está concentrado en los anuncios cuya marca no
-se pudo extraer del título.** Ese bucket son 163 de las 810 filas del holdout (20,1 %, y
-19,6 % de la vertical) y va en 50,2 % de MAPE. Las marcas que sí resuelven van entre 9,7 %
-y 19,0 %, y **Bajaj ya cumple la meta de F2** con 9,7 %.
+**El 24,1 % de motos no se repartía parejo: estaba concentrado en los anuncios cuya marca
+no se pudo extraer del título.** Ese bucket eran 163 de las 810 filas del holdout (20,1 %,
+y 19,6 % de la vertical) y iba en 50,2 % de MAPE. Las marcas que sí resuelven van entre
+9,7 % y 19,0 %, y **Bajaj ya cumple la meta de F2** con 9,7 %.
+
+(Esta tabla es la medición que *motivó* el arreglo de parseo y se deja como estaba. Con la
+marca resuelta en 87,6 % de los títulos, la vertical bajó a 22,4 % — ver más abajo.)
 
 Haciendo la cuenta al revés: si el bucket desconocido se comportara como el resto, la
 vertical estaría en **17,5 %**. Dicho de otro modo, **el problema de parseo del título vale
 6,6 puntos de MAPE**, más que cualquier cosa que haya salido del modelado en toda F2.
 
 Esto no contradice el diagnóstico de SHAP —dentro de las marcas conocidas sigue faltando
-señal de estado para bajar de 17,5 % a 15 %— pero **cambia cuál es el siguiente trabajo**.
-Era "conseguir señal de estado, que no está en la página de detalle"; ahora el primer
-renglón es **resolver la marca en el 19,6 % de títulos que no la resuelven**, que es
-trabajo de parseo sobre datos que ya están capturados, sin una sola petición nueva. El
-semillero `vehicle_brands` y `stg_title_features` son donde se haría.
+señal de estado para bajar de 17,5 % a 15 %— pero **cambió cuál era el siguiente trabajo**.
+Era "conseguir señal de estado, que no está en la página de detalle"; pasó a ser **resolver
+la marca en el 19,6 % de títulos que no la resuelven**, sobre datos ya capturados y sin una
+sola petición nueva. Eso es lo que hace la sección siguiente.
 
-Dos cosas más del mismo corte:
+### Resolver la marca de las motos
+
+Hecho el 2026-10-06, **sin una sola petición nueva**: todo sale de títulos ya capturados.
+
+El análisis de los 794 títulos sin marca encontró tres patrones:
+
+- **El nombre del modelo sin la marca** — "Xtz 150", "Hunk 150", "Agility Go". Es el grueso.
+- **Una marca que faltaba en el seed**: `PLR`, importador de cuatrimotos, con 53 anuncios.
+- **Ruido que no es vehículo**: la dirección del concesionario ("Potenza Cali Norte Avenida
+  6 #24-37"), el estado ("Excelente Estado", "Papeles Al Día"), o el prefijo "Moto" /
+  "Cuatrimoto" / "Motocicleta" con el que abre uno de cada seis títulos.
+
+El arreglo tiene tres piezas y la primera es la que lo vuelve seguro:
+
+1. **`vehicle_brands` gana una columna `alias_kind`** (`brand` o `model`) y
+   `stg_title_features` ordena los candidatos poniendo las marcas por encima de los
+   modelos. Sin esto, "Vendo **Suzuki** **Agility** 125" se habría vuelto una Kymco, porque
+   el alias de modelo es más largo que el de marca. Con esto, **un alias de modelo solo
+   puede dispararse en un título donde no se encontró ninguna marca**, así que agregarlos es
+   estrictamente aditivo: ningún anuncio que ya resolvía puede cambiar.
+2. **48 aliases de modelo → marca**, elegidos por medición y no por intuición. Un candidato
+   entró solo si, entre los títulos que *ya* resolvían, el token aparece con una marca y
+   prácticamente ninguna otra: `gs` es BMW en 261 de 265, así que entra; `mt` es Yamaha en
+   solo 58 % y `xr` en 78 %, así que quedan fuera. `raptor` también queda fuera, porque es
+   a la vez una Yamaha y una cuatrimoto PLR. La regla vieja de "nada de aliases de dos
+   letras" se reemplazó por esta prueba de concentración, que es evidencia en vez de miedo.
+3. **El nombre del vertical sale del token de modelo** antes de extraerlo, y cuando la marca
+   se resolvió *a través* de un nombre de modelo, ese nombre **es** el modelo —no hay que
+   adivinarlo—.
+
+Resultado, mismo lago, misma semilla, misma partición:
+
+| | Antes | Después |
+| --- | --- | --- |
+| Títulos de moto con marca | 80,4 % | **87,6 %** (+290 anuncios) |
+| Anuncios cuya marca *cambió* | — | **0** |
+| Modelo de moto que era la palabra "moto" | 250 | **1** |
+| Hedónico completo | 40,0 % | **38,4 %** |
+| LightGBM CV | 24,0 % | **23,2 %** |
+| **LightGBM fuera de muestra** | **24,1 %** | **22,4 %** |
+| σ (log) | 0,377 | 0,355 |
+| R² | 0,865 | 0,880 |
+| Cuantiles cruzados | 12,0 % | 9,3 % |
+
+**−1,7 puntos de MAPE por parseo.** Los carros no se movieron: 0 de 7.639 anuncios
+cambiaron de marca o de modelo, que es lo que el diseño prometía.
+
+Que la línea base hedónica haya bajado 1,6 puntos con el mismo modelo es la confirmación de
+que esto fueron datos y no modelado: el estimador es idéntico, lo único que cambió es lo
+que se le da de comer.
+
+**La etiqueta sigue apagada, pero por una condición en vez de dos.** La banda pasó de
+83,6 % de cobertura a **81,6 %, que ya está dentro de la ventana [78 %, 82 %]**. Lo que
+falta es el ancho: 81 % del estimado contra el máximo de 60 %. El gate lo dice solo y con
+precisión —"mean width 81 % of the estimate, above 60 %"—, así que cuando el ancho ceda, la
+etiqueta se enciende sin que nadie toque un umbral.
+
+**Lo que queda del bucket desconocido es más difícil, no menos**, y eso es la confirmación
+de que el parseo ya dio lo que tenía que dar:
+
+| Marca (holdout) | Antes | Después |
+| --- | --- | --- |
+| Desconocida | 163 filas, 50,2 % | **109 filas, 55,5 %** |
+| Yamaha | 86, 19,0 % | 96, 19,6 % |
+| Honda | 52, 16,6 % | 55, 18,0 % |
+| BMW | 80, 15,7 % | 81, 15,4 % |
+| Suzuki | 69, 18,6 % | 76, **15,2 %** |
+| Bajaj | 51, 9,7 % | 53, **9,5 %** |
+
+El bucket encogió un tercio y su MAPE *subió* cinco puntos: los anuncios que se podían
+resolver leyendo el título eran justamente los fáciles —los que al menos nombraban un
+modelo—, y los que quedan son los que de verdad no dicen qué vehículo son ("Excelente
+Estado Papeles Al Día", la dirección de un concesionario). **Esos ya no se arreglan
+parseando**; necesitarían la página de detalle, que es justo lo que está detenido por
+decisión. La ruta para los 7,4 puntos que faltan hasta la meta vuelve a ser la que SHAP
+señaló: señal de estado.
+
+Dos cosas más del corte por segmento:
 
 - **En motos la dispersión por departamento es enorme**: Santander 35,2 % y Valle del Cauca
   34,5 % contra Bogotá 19,0 %. En carros el rango va de 7,8 % a 12,5 %.
@@ -637,16 +725,19 @@ motos llegue a 15 %:
 
 - **Carros cumplen la meta** (11,3 % contra 15 %) y su banda pasa la regla, así que salen
   con estimado, rango y etiqueta.
-- **Motos no llegan** (24,1 %) y su banda falla las dos condiciones, así que salen con
-  estimado, rango y aviso de precisión, **sin etiqueta**. La regla está en el código y hay
-  tests sobre los cuatro modos de fallo, así que no es una nota en un documento: si una
-  corrida futura mejora la banda de motos, la etiqueta se enciende sola.
+- **Motos no llegan** (22,4 %) y su banda falla **una** de las dos condiciones —el ancho,
+  81 % contra 60 %; la cobertura ya entró en la ventana—, así que salen con estimado, rango
+  y aviso de precisión, **sin etiqueta**. La regla está en el código y hay tests sobre los
+  cuatro modos de fallo, así que no es una nota en un documento: cuando el ancho ceda, la
+  etiqueta se enciende sola.
 - **El modelo servido es LightGBM** en ambas verticales. CatBoost sale del camino por
   defecto.
 
 Lo que **no** cierra F2 y pasa a F3 o F4: que motos llegue a 15 %. F3 encontró por dónde
-empezar y no es el modelo — **el 19,6 % de títulos de moto cuya marca no se resuelve va en
-50,2 % de MAPE y se lleva 6,6 puntos de la vertical**. Ver "Dónde se equivoca el modelo".
+empezar y no era el modelo —el bucket de marca sin resolver iba en 50,2 % de MAPE—, y
+arreglarlo valió **1,7 puntos** (24,1 % → 22,4 %). Quedan 7,4 para la meta, y el siguiente
+obstáculo vuelve a ser el que SHAP señaló: falta señal de estado. Ver
+[Resolver la marca de las motos](#resolver-la-marca-de-las-motos).
 
 ### F3 — Resultados
 
