@@ -1,8 +1,9 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-06** · Fase actual: **F2 cerrada**, F3 en curso
-(carros cumplen la meta de MAPE ≤ 15 % y publican etiqueta; motos publican precio y rango
-sin etiqueta, por la regla de calidad de banda)
+Última actualización: **2026-10-07** · Fase actual: **F4**, con la API desplegada en Render
+y el frontend sin empezar. F2 y F3 cerradas salvo el índice de precios, que espera
+histórico. (Carros cumplen la meta de MAPE ≤ 15 % y publican etiqueta; motos publican
+precio y rango sin etiqueta, por la regla de calidad de banda.)
 
 Este documento es el punto de retorno: dice qué funciona, qué falta, qué está decidido y
 qué no. Se actualiza al cerrar cada bloque de trabajo.
@@ -801,7 +802,7 @@ funciona y el real queda indefinido, que es lo correcto.
 | `GET /health` y `GET /model-info` reales | hecho |
 | `models/bundle.py` + `make export-model` — el modelo servido, sin MLflow | hecho |
 | `Dockerfile.api` multi-stage con solo el runtime | hecho, **construido en CI** |
-| `render.yaml` + [pasos de despliegue](deploy-render.md) | hecho, **el despliegue lo hace el usuario** |
+| `render.yaml` + [pasos de despliegue](deploy-render.md) | hecho; **desplegado y probado por el usuario el 2026-10-07** |
 | 25 tests de contrato de los endpoints | hecho |
 | App Next.js | **no empezada** |
 
@@ -1039,6 +1040,26 @@ inventar una.
 ---
 
 ## Cómo retomar
+
+### Dónde quedó esto el 2026-10-07
+
+**Todo está en `main`, sin ramas abiertas y con CI en verde.** La API está desplegada en
+Render y probada. Lo siguiente, en orden:
+
+1. **Ajustes al backend que el usuario va a especificar.** Probó el servicio desplegado y
+   trae observaciones; esas mandan sobre cualquier plan de aquí.
+2. **Después, el frontend Next.js**, que no está empezado y se dejó así a propósito. Tiene
+   todo lo que necesita del lado del servidor: los cinco endpoints, el esquema OpenAPI
+   publicado y CORS por `AUTOVALOR_CORS_ALLOW_ORIGINS`.
+
+Pendiente menor de higiene: hay **siete ramas remotas viejas** —`feat/f2-shap`,
+`fix/review-f1`, `chore/zero-cost` y compañía— cuyo contenido ya está en `main` desde hace
+varios bloques, pero que git no marca como merged porque la historia se rehízo. Borrarlas es
+seguro y no se hizo sin preguntar, por ser una acción sobre el remoto.
+
+Lo que **no** está hecho y no es un olvido: el índice mensual de precios (espera a
+~2027-03-29 por histórico), la comparación con Fasecolda (fuera de alcance por decisión) y
+que motos lleguen a 15 % (faltan 7,4 puntos y la ruta es señal de estado, no más identidad).
 
 ```powershell
 # El entorno local tiene tres particularidades, ver docs/ y .env.example:
