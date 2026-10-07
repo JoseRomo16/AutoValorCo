@@ -11,6 +11,13 @@ ENV PYTHONUNBUFFERED=1 \
     UV_PYTHON_DOWNLOADS=never \
     PATH="/app/.venv/bin:$PATH"
 
+# LightGBM's wheel links against libgomp, which the slim image does not carry. Same fix as
+# Dockerfile.api, and for the same reason it went unnoticed for so long: this image was
+# built in CI but never started.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Layer 1: third-party dependencies only, so code changes do not invalidate them.

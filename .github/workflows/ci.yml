@@ -82,6 +82,9 @@ jobs:
             if curl --silent --fail http://127.0.0.1:8000/health > /dev/null; then break; fi
             sleep 2
           done
+          # The container's own log, always. Without it a failure here is a bare curl exit
+          # code and the actual Python traceback stays inside a container nobody can reach.
+          docker logs api
           curl --silent --fail http://127.0.0.1:8000/health
           curl --silent --fail http://127.0.0.1:8000/model-info
           docker stop api

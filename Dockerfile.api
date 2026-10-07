@@ -39,6 +39,14 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH"
 
+# LightGBM's wheel links against libgomp, which the slim image does not carry. Without it
+# `import lightgbm` fails at start-up with a missing libgomp.so.1 — a failure the old
+# Dockerfile also had and nobody saw, because CI built the image and never ran it. The
+# "start it and check /health" step in ci.yml is what caught this.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
