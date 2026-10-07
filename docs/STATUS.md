@@ -840,9 +840,16 @@ matemática.
 
 Estable —2,8 MB en 250 peticiones, sin fuga— y con holgura sobre los 512 MB del plan
 gratuito. **Es RSS del proceso, no del contenedor**: esta máquina no tiene Docker, así que
-el tamaño de la imagen se mide en CI, donde el job `api image builds` ahora lo imprime en el
-resumen, falla por encima de 900 MB y además arranca el contenedor para comprobar que
-`/health` y `/model-info` responden de verdad.
+el tamaño de la imagen se mide en CI, donde el job `api image builds` lo publica como
+anotación —legible desde la API de checks sin token, a diferencia del resumen del job—,
+falla por encima de 900 MB y además arranca el contenedor para comprobar que `/health` y
+`/model-info` responden de verdad.
+
+**Imagen: 779 MB en disco.** Los dos números miden cosas distintas y los dos importan: los
+779 MB son capas en disco —el sistema base, el intérprete, las ruedas de pandas/LightGBM y
+los 16 MB de modelo— y lo que Render limita a 512 MB es la **memoria**, que son los 240 MB
+medidos. El techo de 900 MB en CI es para que el disco no crezca sin que nadie lo note, no
+porque 900 sea un límite de la plataforma.
 
 **La imagen no arrancaba, y el motivo es la lección del bloque.** Construía bien y el
 contenedor se moría en el `import`: partir las dependencias dejó fuera `duckdb` y

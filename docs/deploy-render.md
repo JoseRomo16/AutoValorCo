@@ -43,8 +43,10 @@ nada al arrancar ni guardar nada entre despliegues.
 - **El servicio se duerme tras 15 minutos sin tráfico**, y la primera petición después de
   eso tarda ~50 s en responder mientras el contenedor arranca. No es un error. Si molesta
   para una demo, abre `/health` un minuto antes.
-- **512 MB de RAM.** La imagen está construida contra ese límite y CI falla si se pasa de
-  900 MB en disco. El consumo medido está en `docs/STATUS.md`.
+- **512 MB de RAM.** Medido: el proceso usa **240 MB** con los dos modelos cargados y
+  estable bajo carga. La imagen pesa **779 MB en disco**, que es otra cosa —Render limita
+  la memoria, no el tamaño de la imagen—; CI falla si el disco pasa de 900 MB para que no
+  crezca sin que nadie lo note.
 - **No hay disco persistente.** Correcto para este servicio: solo lee archivos que vienen
   en la imagen.
 
