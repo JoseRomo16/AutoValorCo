@@ -75,11 +75,23 @@ jobs:
             exit 1
           fi
 
-      # Proves the image actually serves before anyone deploys it: a build that succeeds
-      # and a container that answers are different claims.
-      - name: Start it and check /health and /model-info
+      # The environment Render will pass, read from the blueprint itself rather than
+      # retyped here. A value that breaks Settings used to be discoverable only on the
+      # platform, because nothing in the repository ever loaded render.yaml.
+      - name: Collect the deployment environment from render.yaml
         run: |
-          docker run --detach --name api --publish 8000:8000 autovalor-api:ci
+          python3 -m pip install --quiet --disable-pip-version-check pyyaml
+          PYTHONPATH=src python3 -m autovalor.deploy --service autovalor-api > render-api.env
+          cat render-api.env
+
+      # Proves the image actually serves before anyone deploys it: a build that succeeds
+      # and a container that answers are different claims. Started with the deployment's
+      # own environment, so a CORS allow-list or a port that the service cannot parse
+      # fails here and not after a push to main.
+      - name: Start it with the deployment environment and check it answers
+        run: |
+          docker run --detach --name api --env-file render-api.env \
+            --publish 8000:8000 autovalor-api:ci
           for _ in $(seq 1 30); do
             if curl --silent --fail http://127.0.0.1:8000/health > /dev/null; then break; fi
             sleep 2
@@ -87,6 +99,29 @@ jobs:
           # The container's own log, always. Without it a failure here is a bare curl exit
           # code and the actual Python traceback stays inside a container nobody can reach.
           docker logs api
-          curl --silent --fail http://127.0.0.1:8000/health
-          curl --silent --fail http://127.0.0.1:8000/model-info
+          curl --silent --fail http://127.0.0.1:8000/health --output health.json
+          curl --silent --fail http://127.0.0.1:8000/model-info --output model-info.json
+          curl --silent --fail http://127.0.0.1:8000/catalog --output catalog.json
+          # "200 and some JSON" is not the claim worth checking: a container that starts
+          # without its artifacts answers 200 "degraded" by design, which is exactly the
+          # broken deployment this step exists to catch. So assert both models are loaded
+          # and both catalogues made it into the image.
+          python3 - <<'PY'
+          import json, pathlib, sys
+
+          health = json.loads(pathlib.Path("health.json").read_text())
+          if health["status"] != "ok" or health["models_loaded"] != ["car", "motorcycle"]:
+              sys.exit(f"::error::the container serves no usable model: {health}")
+
+          catalog = json.loads(pathlib.Path("catalog.json").read_text())
+          served = {v["vehicle_type"]: v for v in catalog["verticals"]}
+          if set(served) != {"car", "motorcycle"}:
+              sys.exit(f"::error::/catalog is missing a vertical: {sorted(served)}")
+          for name, vertical in served.items():
+              if not vertical["brands"] or not vertical["departments"]:
+                  sys.exit(f"::error::the {name} catalogue in the image is empty")
+
+          makes = ", ".join(f"{name}: {len(v['brands'])} makes" for name, v in served.items())
+          print(f"::notice title=Image serves::{health['models_loaded']} loaded, {makes}")
+          PY
           docker stop api
