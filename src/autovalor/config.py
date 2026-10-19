@@ -1,9 +1,12 @@
 """Application settings, loaded from environment variables or a local ``.env`` file."""
 
+import json
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated, Any
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -56,13 +59,56 @@ class Settings(BaseSettings):
     # rather than "*": the wildcard is refused by browsers as soon as credentials are
     # involved, and naming the origins costs one environment variable.
     #
-    # Set it as a comma-separated list, e.g.
-    # AUTOVALOR_CORS_ALLOW_ORIGINS=https://autovalor.pages.dev,http://localhost:3000
-    cors_allow_origins: list[str] = ["http://localhost:3000"]
+    # Either form is accepted, see the validator below:
+    # AUTOVALOR_CORS_ALLOW_ORIGINS=https://autovalor-web.onrender.com,http://localhost:3000
+    # AUTOVALOR_CORS_ALLOW_ORIGINS=["https://autovalor-web.onrender.com"]
+    cors_allow_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
 
     # Where `make results` wrote the F3 tables that /market serves. None uses the
     # repository's docs/results, which is what ships inside the image.
     results_dir: Path | None = None
+
+    @field_validator("cors_allow_origins", mode="before")
+    @classmethod
+    def _parse_origins(cls, value: Any) -> Any:
+        """Accept a comma-separated list as well as a JSON array.
+
+        ``NoDecode`` on the field turns off pydantic-settings' own JSON decoding, which is
+        what made this a production bug: a list field only accepted
+        ``["https://a","https://b"]`` and a plain ``https://a,https://b`` — the form a
+        dashboard's env-var box invites — raised a settings error at import time, so the
+        service failed to start rather than starting with the wrong origins. Both forms are
+        handled here, because the JSON form is what any already-deployed value looks like.
+
+        Args:
+            value: Whatever the environment, a ``.env`` file or a direct constructor call
+                supplied.
+
+        Returns:
+            A list of origins, or the value unchanged when it is not a string (a list
+            passed in code needs no parsing).
+
+        Raises:
+            ValueError: If the value looks like JSON but does not parse, or parses into
+                something that is not an array of strings. Guessing at a malformed
+                allow-list would mean serving CORS headers nobody wrote.
+        """
+        if not isinstance(value, str):
+            return value
+
+        text = value.strip()
+        if text.startswith("["):
+            try:
+                decoded = json.loads(text)
+            except json.JSONDecodeError as error:
+                msg = f"cors_allow_origins looks like JSON but does not parse: {error}"
+                raise ValueError(msg) from error
+            if not isinstance(decoded, list):
+                msg = f"cors_allow_origins as JSON must be an array, got {type(decoded).__name__}"
+                raise ValueError(msg)
+            return [str(item).strip() for item in decoded]
+
+        return [origin.strip() for origin in text.split(",") if origin.strip()]
 
     @property
     def bronze_dir(self) -> Path:
