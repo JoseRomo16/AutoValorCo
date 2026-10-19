@@ -34,8 +34,10 @@ from pathlib import Path
 from typing import Any
 
 import lightgbm as lgb
+import numpy as np
 import pandas as pd
 
+from autovalor.models.catalog import VehicleCatalog, load_catalog, save_catalog
 from autovalor.models.dataset import VehicleType
 from autovalor.models.quantiles import (
     QUANTILES,
@@ -81,6 +83,8 @@ class ServedModel:
             the held-out numbers the decision was made on.
         metrics: Held-out error of the point model, for ``/model-info``.
         lake: Which lake the bundle was trained on.
+        catalog: The makes, models, departments and ranges the model was fitted on, for
+            ``/catalog``. ``None`` for a bundle exported before catalogues existed.
     """
 
     vehicle_type: VehicleType
@@ -90,6 +94,7 @@ class ServedModel:
     label: LabelPolicy
     metrics: dict[str, float]
     lake: dict[str, Any]
+    catalog: VehicleCatalog | None = None
 
     def predict_log_price(self, frame: pd.DataFrame) -> Any:
         """Predict ``log(price)`` for a gold-shaped frame."""
@@ -98,6 +103,35 @@ class ServedModel:
     def predict_bounds(self, frame: pd.DataFrame) -> Any:
         """Predict the calibrated ``(lower, median, upper)`` band on the log scale."""
         return self.interval.predict_log_bounds(frame)
+
+    def predict_published_band(self, frame: pd.DataFrame) -> Any:
+        """Return the ``(lower, estimate, upper)`` the product publishes, in log space.
+
+        **The centre is the point model, not the band's P50.** Those are different models
+        and they disagree by a few percent, which is how ``/predict`` and ``/explain`` came
+        to show two different prices for the same vehicle. The point model wins the tie for
+        a reason that is not a coin flip: it is the model whose held-out MAPE is the
+        published one and the model SHAP attributes, so ``base x factors = estimate`` holds
+        exactly. The P50 quantile model's accuracy was never measured.
+
+        The bounds stay the calibrated P10 and P90, widened only if the point estimate
+        lands outside them — which is possible, because three independently fitted quantile
+        models and a point model need not agree on a row. Publishing a range that excludes
+        the number printed next to it would be incoherent on its face, and silently moving
+        the estimate inside the band would mean showing a price the model did not predict.
+
+        Args:
+            frame: Rows to score, gold-shaped.
+
+        Returns:
+            An ``(n, 3)`` array of ``log(price)``: lower bound, published estimate, upper
+            bound, ordered along each row.
+        """
+        bounds = self.interval.predict_log_bounds(frame)
+        estimate = self.point.predict_log_price(frame)
+        return np.column_stack(
+            [np.minimum(bounds[:, 0], estimate), estimate, np.maximum(bounds[:, 2], estimate)]
+        )
 
     def classify(self, asking_log_price: Any, lower: Any, upper: Any) -> list[Label] | None:
         """Label asking prices, or return ``None`` when this vertical withholds the label."""
@@ -143,6 +177,7 @@ def save_bundle(
     label: LabelPolicy,
     metrics: dict[str, float],
     lake: dict[str, Any],
+    catalog: VehicleCatalog | None = None,
 ) -> Path:
     """Write one vertical's served model to ``directory``.
 
@@ -155,6 +190,8 @@ def save_bundle(
         label: The label decision taken on the holdout.
         metrics: Held-out error of the point model.
         lake: Fingerprint of the lake it was trained on.
+        catalog: The lists ``/catalog`` serves, built from the same training frame. Written
+            as a separate file so an older bundle without one is still readable.
 
     Returns:
         The path of the manifest written.
@@ -163,6 +200,8 @@ def save_bundle(
         BundleError: If a model is not LightGBM.
     """
     directory.mkdir(parents=True, exist_ok=True)
+    if catalog is not None:
+        save_catalog(directory, catalog)
     _write_booster(_booster(point), directory / POINT_MODEL_NAME)
     for quantile, model in interval.models.items():
         _write_booster(_booster(model), directory / _quantile_name(quantile))
@@ -264,6 +303,7 @@ def load_bundle(directory: Path) -> ServedModel:
         label=label,
         metrics=manifest["metrics"],
         lake=manifest["lake"],
+        catalog=load_catalog(directory),
     )
 
 

@@ -22,6 +22,7 @@ from pathlib import Path
 
 from autovalor.config import get_settings
 from autovalor.models.bundle import ARTIFACTS_DIR, save_bundle
+from autovalor.models.catalog import build_catalog
 from autovalor.models.dataset import (
     DEFAULT_SEED,
     VEHICLE_TYPES,
@@ -114,6 +115,9 @@ def export(
                     "split_seed": seed,
                     "capture_span_days": round(temporal_span_days(dataset.test), 3),
                 },
+                # Built from the training rows, not the whole lake: the lists /catalog
+                # publishes have to be the levels this model was actually fitted on.
+                catalog=build_catalog(dataset.train, vehicle_type=result.vehicle_type),
             )
         )
     return written

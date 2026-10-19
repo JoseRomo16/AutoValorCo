@@ -19,9 +19,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from autovalor.api import main as api_main
+from autovalor.api.labels import FEATURE_LABELS
 from autovalor.api.schemas import MAX_MILEAGE_KM
 from autovalor.config import get_settings
 from autovalor.models.bundle import load_served_models, save_bundle
+from autovalor.models.catalog import build_catalog
 from autovalor.models.dataset import split_listings
 from autovalor.models.train import train_model
 
@@ -65,6 +67,7 @@ def artifacts(tmp_path_factory: pytest.TempPathFactory) -> Path:
                 "interval_mean_relative_width": result.interval.mean_relative_width,
             },
             lake={"rows": len(frame)},
+            catalog=build_catalog(dataset.train, vehicle_type=vehicle_type),  # type: ignore[arg-type]
         )
     return root
 
@@ -234,10 +237,103 @@ def test_the_explanation_reconciles_with_the_estimate(client: TestClient) -> Non
 
     assert body["estimate_cop"] > 0
     assert body["base_price_cop"] > 0
-    predicted = client.post("/predict", json=CAR).json()["band"]["estimate_cop"]
-    # /explain reports the point model; /predict's centre is the band's median, so these
-    # are close but not identical, and the test says which is which rather than hiding it.
-    assert body["estimate_cop"] == pytest.approx(predicted, rel=0.5)
+
+
+@pytest.mark.parametrize("vehicle_type", ["car", "motorcycle"])
+def test_predict_and_explain_publish_the_same_price(client: TestClient, vehicle_type: str) -> None:
+    # They used to differ: /predict centred its band on the P50 quantile model and /explain
+    # reported the point model, so the product showed two prices for one vehicle and only
+    # one of them was the model whose MAPE is published. Exact equality, not a tolerance —
+    # a tolerance here would let the two models drift apart again.
+    payload = {**CAR, "vehicle_type": vehicle_type}
+
+    predicted = client.post("/predict", json=payload).json()["band"]["estimate_cop"]
+    explained = client.post("/explain", json=payload).json()["estimate_cop"]
+
+    assert predicted == explained
+
+
+def test_the_published_estimate_sits_inside_the_published_range(client: TestClient) -> None:
+    # The point model and the quantile models are fitted separately and can disagree on a
+    # row, so the band is widened to hold the estimate rather than printing a range that
+    # excludes the number next to it.
+    band = client.post("/predict", json=CAR).json()["band"]
+
+    assert band["lower_cop"] <= band["estimate_cop"] <= band["upper_cop"]
+
+
+def test_the_factors_carry_readable_names_and_formatted_values(client: TestClient) -> None:
+    factors = {f["feature"]: f for f in client.post("/explain", json=CAR).json()["factors"]}
+
+    for feature, factor in factors.items():
+        # The technical name survives — a client plotting or logging attributions needs a
+        # stable key, and a translated string is not one — and the readable name is not it.
+        assert factor["label"]["es"] and factor["label"]["en"]
+        assert factor["label"]["es"] != feature
+        assert factor["value_display"]["es"] and factor["value_display"]["en"]
+
+    if "mileage_km" in factors:
+        assert factors["mileage_km"]["value"] == "60000"
+        assert factors["mileage_km"]["value_display"]["es"] == "60.000 km"
+        assert factors["mileage_km"]["value_display"]["en"] == "60,000 km"
+    if "vehicle_age_years" in factors:
+        assert factors["vehicle_age_years"]["value_display"]["es"].endswith("años")
+        assert factors["vehicle_age_years"]["value_display"]["en"].endswith("years")
+
+
+def test_every_served_feature_has_a_human_name(client: TestClient, artifacts: Path) -> None:
+    # Adding a feature to the model without naming it would ship a column name into the
+    # product card. Checked against the bundle's own specification, not a copy of it.
+    models = load_served_models(artifacts)
+    for model in models.values():
+        spec = model.point.spec
+        for feature in (*spec.numeric, *spec.categorical, *spec.boolean):
+            assert feature in FEATURE_LABELS, feature
+
+
+def test_catalog_lists_what_the_form_may_ask(client: TestClient) -> None:
+    body = client.get("/catalog").json()
+
+    assert {v["vehicle_type"] for v in body["verticals"]} == {"car", "motorcycle"}
+    for vertical in body["verticals"]:
+        assert vertical["brands"], "a vertical with no makes would render a dead dropdown"
+        assert vertical["model_version"] == "test.1"
+        assert vertical["trained_on_rows"] > 0
+        assert vertical["model_year"]["min"] <= vertical["model_year"]["max"]
+        for brand in vertical["brands"]:
+            assert brand["listings"] >= 1
+            assert all(model["listings"] >= 1 for model in brand["models"])
+
+
+def test_catalog_can_be_asked_for_one_vertical(client: TestClient) -> None:
+    body = client.get("/catalog", params={"vehicle_type": "motorcycle"}).json()
+
+    assert [v["vehicle_type"] for v in body["verticals"]] == ["motorcycle"]
+
+
+def test_catalog_entries_are_accepted_by_predict(client: TestClient) -> None:
+    # The contract that makes the catalogue worth serving: everything it offers is a valid
+    # request. A list the form cannot submit is worse than no list.
+    vertical = client.get("/catalog", params={"vehicle_type": "car"}).json()["verticals"][0]
+    brand = vertical["brands"][0]
+
+    response = client.post(
+        "/predict",
+        json={
+            "vehicle_type": "car",
+            "brand": brand["name"],
+            "model": brand["models"][0]["name"],
+            "model_year": int(vertical["model_year"]["max"]),
+            "mileage_km": 30_000,
+            "department": vertical["departments"][0]["name"],
+        },
+    )
+
+    assert response.status_code == 200
+
+
+def test_catalog_without_a_model_says_so(empty_client: TestClient) -> None:
+    assert empty_client.get("/catalog").status_code == 503
 
 
 def test_explain_without_a_model_says_so(empty_client: TestClient) -> None:

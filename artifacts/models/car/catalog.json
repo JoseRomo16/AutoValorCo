@@ -1,0 +1,2287 @@
+{
+  "format": 1,
+  "vehicle_type": "car",
+  "n_rows": 6111,
+  "brands": [
+    {
+      "name": "Audi",
+      "listings": 164,
+      "models": [
+        {
+          "name": "a1",
+          "listings": 4
+        },
+        {
+          "name": "a3",
+          "listings": 25
+        },
+        {
+          "name": "a4",
+          "listings": 19
+        },
+        {
+          "name": "a5",
+          "listings": 1
+        },
+        {
+          "name": "a6",
+          "listings": 10
+        },
+        {
+          "name": "e-tron",
+          "listings": 3
+        },
+        {
+          "name": "q2",
+          "listings": 13
+        },
+        {
+          "name": "q3",
+          "listings": 31
+        },
+        {
+          "name": "q5",
+          "listings": 45
+        },
+        {
+          "name": "q7",
+          "listings": 10
+        },
+        {
+          "name": "q8",
+          "listings": 2
+        },
+        {
+          "name": "sq5",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "BMW",
+      "listings": 259,
+      "models": [
+        {
+          "name": "116i",
+          "listings": 1
+        },
+        {
+          "name": "120i",
+          "listings": 1
+        },
+        {
+          "name": "218i",
+          "listings": 2
+        },
+        {
+          "name": "320i",
+          "listings": 1
+        },
+        {
+          "name": "328",
+          "listings": 1
+        },
+        {
+          "name": "330e",
+          "listings": 3
+        },
+        {
+          "name": "330i",
+          "listings": 2
+        },
+        {
+          "name": "420i",
+          "listings": 3
+        },
+        {
+          "name": "cabriolet",
+          "listings": 1
+        },
+        {
+          "name": "f30",
+          "listings": 1
+        },
+        {
+          "name": "gran",
+          "listings": 1
+        },
+        {
+          "name": "i3",
+          "listings": 1
+        },
+        {
+          "name": "ix",
+          "listings": 1
+        },
+        {
+          "name": "ix1",
+          "listings": 4
+        },
+        {
+          "name": "ix2",
+          "listings": 1
+        },
+        {
+          "name": "ix3",
+          "listings": 1
+        },
+        {
+          "name": "m2",
+          "listings": 3
+        },
+        {
+          "name": "m4",
+          "listings": 1
+        },
+        {
+          "name": "serie",
+          "listings": 80
+        },
+        {
+          "name": "x1",
+          "listings": 30
+        },
+        {
+          "name": "x2",
+          "listings": 8
+        },
+        {
+          "name": "x3",
+          "listings": 47
+        },
+        {
+          "name": "x4",
+          "listings": 23
+        },
+        {
+          "name": "x5",
+          "listings": 23
+        },
+        {
+          "name": "x6",
+          "listings": 17
+        },
+        {
+          "name": "x7",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "BYD",
+      "listings": 26,
+      "models": [
+        {
+          "name": "dolphin",
+          "listings": 2
+        },
+        {
+          "name": "qin",
+          "listings": 2
+        },
+        {
+          "name": "seagull",
+          "listings": 4
+        },
+        {
+          "name": "sealion",
+          "listings": 1
+        },
+        {
+          "name": "shark",
+          "listings": 2
+        },
+        {
+          "name": "song",
+          "listings": 5
+        },
+        {
+          "name": "yuan",
+          "listings": 10
+        }
+      ]
+    },
+    {
+      "name": "Cadillac",
+      "listings": 12,
+      "models": [
+        {
+          "name": "escalade",
+          "listings": 11
+        },
+        {
+          "name": "vistiq",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Changan",
+      "listings": 3,
+      "models": [
+        {
+          "name": "cs",
+          "listings": 1
+        },
+        {
+          "name": "cs35",
+          "listings": 1
+        },
+        {
+          "name": "mini",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Chery",
+      "listings": 12,
+      "models": [
+        {
+          "name": "e5",
+          "listings": 2
+        },
+        {
+          "name": "grand",
+          "listings": 1
+        },
+        {
+          "name": "icar",
+          "listings": 4
+        },
+        {
+          "name": "tiggo",
+          "listings": 4
+        },
+        {
+          "name": "yoki",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Chevrolet",
+      "listings": 606,
+      "models": [
+        {
+          "name": "1.2",
+          "listings": 1
+        },
+        {
+          "name": "aveo",
+          "listings": 8
+        },
+        {
+          "name": "beat",
+          "listings": 23
+        },
+        {
+          "name": "blazer",
+          "listings": 8
+        },
+        {
+          "name": "captiva",
+          "listings": 49
+        },
+        {
+          "name": "chevy",
+          "listings": 1
+        },
+        {
+          "name": "cobalt",
+          "listings": 1
+        },
+        {
+          "name": "colorado",
+          "listings": 3
+        },
+        {
+          "name": "corvette",
+          "listings": 6
+        },
+        {
+          "name": "cruze",
+          "listings": 9
+        },
+        {
+          "name": "d-max",
+          "listings": 4
+        },
+        {
+          "name": "equinox",
+          "listings": 32
+        },
+        {
+          "name": "full",
+          "listings": 1
+        },
+        {
+          "name": "grand",
+          "listings": 2
+        },
+        {
+          "name": "impala",
+          "listings": 1
+        },
+        {
+          "name": "joy",
+          "listings": 30
+        },
+        {
+          "name": "luv",
+          "listings": 7
+        },
+        {
+          "name": "malibu",
+          "listings": 1
+        },
+        {
+          "name": "montana",
+          "listings": 7
+        },
+        {
+          "name": "n300",
+          "listings": 4
+        },
+        {
+          "name": "n400",
+          "listings": 6
+        },
+        {
+          "name": "nhr",
+          "listings": 4
+        },
+        {
+          "name": "npr",
+          "listings": 1
+        },
+        {
+          "name": "onix",
+          "listings": 112
+        },
+        {
+          "name": "optra",
+          "listings": 2
+        },
+        {
+          "name": "rodeo",
+          "listings": 3
+        },
+        {
+          "name": "sail",
+          "listings": 40
+        },
+        {
+          "name": "samurai",
+          "listings": 1
+        },
+        {
+          "name": "silverado",
+          "listings": 4
+        },
+        {
+          "name": "sonic",
+          "listings": 18
+        },
+        {
+          "name": "spark",
+          "listings": 43
+        },
+        {
+          "name": "spin",
+          "listings": 2
+        },
+        {
+          "name": "suburban",
+          "listings": 2
+        },
+        {
+          "name": "swift",
+          "listings": 1
+        },
+        {
+          "name": "tahoe",
+          "listings": 7
+        },
+        {
+          "name": "tracker",
+          "listings": 123
+        },
+        {
+          "name": "trailblazer",
+          "listings": 5
+        },
+        {
+          "name": "traverse",
+          "listings": 25
+        },
+        {
+          "name": "trooper",
+          "listings": 1
+        },
+        {
+          "name": "van",
+          "listings": 4
+        },
+        {
+          "name": "vitara",
+          "listings": 1
+        },
+        {
+          "name": "vivant",
+          "listings": 1
+        },
+        {
+          "name": "zafira",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Citroen",
+      "listings": 64,
+      "models": [
+        {
+          "name": "citroën",
+          "listings": 64
+        }
+      ]
+    },
+    {
+      "name": "Cupra",
+      "listings": 19,
+      "models": [
+        {
+          "name": "formentor",
+          "listings": 15
+        },
+        {
+          "name": "terramar",
+          "listings": 4
+        }
+      ]
+    },
+    {
+      "name": "DFSK",
+      "listings": 4,
+      "models": [
+        {
+          "name": "glory",
+          "listings": 1
+        },
+        {
+          "name": "k05s",
+          "listings": 2
+        },
+        {
+          "name": "van",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Desconocida",
+      "listings": 52,
+      "models": [
+        {
+          "name": "brilliance",
+          "listings": 1
+        },
+        {
+          "name": "d.s.",
+          "listings": 2
+        },
+        {
+          "name": "daihatsu",
+          "listings": 4
+        },
+        {
+          "name": "deepal",
+          "listings": 2
+        },
+        {
+          "name": "dongfeng",
+          "listings": 2
+        },
+        {
+          "name": "forland",
+          "listings": 1
+        },
+        {
+          "name": "gac",
+          "listings": 2
+        },
+        {
+          "name": "hummer",
+          "listings": 13
+        },
+        {
+          "name": "infiniti",
+          "listings": 2
+        },
+        {
+          "name": "jaguar",
+          "listings": 4
+        },
+        {
+          "name": "jmc",
+          "listings": 1
+        },
+        {
+          "name": "maserati",
+          "listings": 1
+        },
+        {
+          "name": "mercedez",
+          "listings": 1
+        },
+        {
+          "name": "minicooper",
+          "listings": 1
+        },
+        {
+          "name": "polaris",
+          "listings": 1
+        },
+        {
+          "name": "seres",
+          "listings": 1
+        },
+        {
+          "name": "smart",
+          "listings": 4
+        },
+        {
+          "name": "voyah",
+          "listings": 1
+        },
+        {
+          "name": "xiaomi",
+          "listings": 1
+        },
+        {
+          "name": "zeekr",
+          "listings": 5
+        },
+        {
+          "name": "zhidou",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Dodge",
+      "listings": 33,
+      "models": [
+        {
+          "name": "charger",
+          "listings": 1
+        },
+        {
+          "name": "d",
+          "listings": 1
+        },
+        {
+          "name": "dart",
+          "listings": 1
+        },
+        {
+          "name": "durango",
+          "listings": 2
+        },
+        {
+          "name": "journey",
+          "listings": 28
+        }
+      ]
+    },
+    {
+      "name": "Fiat",
+      "listings": 21,
+      "models": [
+        {
+          "name": "1.4",
+          "listings": 1
+        },
+        {
+          "name": "500",
+          "listings": 1
+        },
+        {
+          "name": "600",
+          "listings": 4
+        },
+        {
+          "name": "fastback",
+          "listings": 1
+        },
+        {
+          "name": "fiorino",
+          "listings": 3
+        },
+        {
+          "name": "idea",
+          "listings": 1
+        },
+        {
+          "name": "mobi",
+          "listings": 1
+        },
+        {
+          "name": "premio",
+          "listings": 1
+        },
+        {
+          "name": "pulse",
+          "listings": 3
+        },
+        {
+          "name": "strada",
+          "listings": 2
+        },
+        {
+          "name": "uno",
+          "listings": 3
+        }
+      ]
+    },
+    {
+      "name": "Ford",
+      "listings": 462,
+      "models": [
+        {
+          "name": "bronco",
+          "listings": 31
+        },
+        {
+          "name": "ecosport",
+          "listings": 56
+        },
+        {
+          "name": "edge",
+          "listings": 28
+        },
+        {
+          "name": "escape",
+          "listings": 115
+        },
+        {
+          "name": "expedition",
+          "listings": 8
+        },
+        {
+          "name": "explorer",
+          "listings": 82
+        },
+        {
+          "name": "f-150",
+          "listings": 31
+        },
+        {
+          "name": "f150",
+          "listings": 4
+        },
+        {
+          "name": "fiesta",
+          "listings": 33
+        },
+        {
+          "name": "focus",
+          "listings": 8
+        },
+        {
+          "name": "fusion",
+          "listings": 7
+        },
+        {
+          "name": "lariat",
+          "listings": 1
+        },
+        {
+          "name": "laser",
+          "listings": 1
+        },
+        {
+          "name": "mustang",
+          "listings": 5
+        },
+        {
+          "name": "ranger",
+          "listings": 47
+        },
+        {
+          "name": "territory",
+          "listings": 5
+        }
+      ]
+    },
+    {
+      "name": "Foton",
+      "listings": 9,
+      "models": [
+        {
+          "name": "aumark",
+          "listings": 1
+        },
+        {
+          "name": "minivan",
+          "listings": 1
+        },
+        {
+          "name": "tunland",
+          "listings": 6
+        },
+        {
+          "name": "view",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "GMC",
+      "listings": 2,
+      "models": [
+        {
+          "name": "hummer",
+          "listings": 1
+        },
+        {
+          "name": "yukon",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "GWM",
+      "listings": 20,
+      "models": [
+        {
+          "name": "great",
+          "listings": 3
+        },
+        {
+          "name": "gwm",
+          "listings": 2
+        },
+        {
+          "name": "haval",
+          "listings": 6
+        },
+        {
+          "name": "jolion",
+          "listings": 1
+        },
+        {
+          "name": "motor",
+          "listings": 1
+        },
+        {
+          "name": "poer",
+          "listings": 5
+        },
+        {
+          "name": "tank",
+          "listings": 1
+        },
+        {
+          "name": "wingle",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Honda",
+      "listings": 112,
+      "models": [
+        {
+          "name": "city",
+          "listings": 9
+        },
+        {
+          "name": "civic",
+          "listings": 5
+        },
+        {
+          "name": "cr-v",
+          "listings": 48
+        },
+        {
+          "name": "crv",
+          "listings": 2
+        },
+        {
+          "name": "fit",
+          "listings": 1
+        },
+        {
+          "name": "hr-v",
+          "listings": 11
+        },
+        {
+          "name": "integra",
+          "listings": 1
+        },
+        {
+          "name": "odyssey",
+          "listings": 1
+        },
+        {
+          "name": "pilot",
+          "listings": 15
+        },
+        {
+          "name": "pioneer",
+          "listings": 1
+        },
+        {
+          "name": "ridgeline",
+          "listings": 1
+        },
+        {
+          "name": "wr-v",
+          "listings": 14
+        },
+        {
+          "name": "zr-v",
+          "listings": 3
+        }
+      ]
+    },
+    {
+      "name": "Hyundai",
+      "listings": 128,
+      "models": [
+        {
+          "name": "1.6",
+          "listings": 1
+        },
+        {
+          "name": "accent",
+          "listings": 10
+        },
+        {
+          "name": "creta",
+          "listings": 8
+        },
+        {
+          "name": "elantra",
+          "listings": 2
+        },
+        {
+          "name": "getz",
+          "listings": 1
+        },
+        {
+          "name": "grand",
+          "listings": 6
+        },
+        {
+          "name": "graviti",
+          "listings": 1
+        },
+        {
+          "name": "h1",
+          "listings": 1
+        },
+        {
+          "name": "hb20",
+          "listings": 6
+        },
+        {
+          "name": "hb20s",
+          "listings": 9
+        },
+        {
+          "name": "i10",
+          "listings": 4
+        },
+        {
+          "name": "kona",
+          "listings": 23
+        },
+        {
+          "name": "palisade",
+          "listings": 1
+        },
+        {
+          "name": "porter",
+          "listings": 2
+        },
+        {
+          "name": "santa",
+          "listings": 15
+        },
+        {
+          "name": "tiburon",
+          "listings": 1
+        },
+        {
+          "name": "tucson",
+          "listings": 33
+        },
+        {
+          "name": "venue",
+          "listings": 4
+        }
+      ]
+    },
+    {
+      "name": "Isuzu",
+      "listings": 2,
+      "models": [
+        {
+          "name": "pick",
+          "listings": 1
+        },
+        {
+          "name": "pickups",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "JAC",
+      "listings": 4,
+      "models": [
+        {
+          "name": "e",
+          "listings": 1
+        },
+        {
+          "name": "s3",
+          "listings": 1
+        },
+        {
+          "name": "t6",
+          "listings": 1
+        },
+        {
+          "name": "t8",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Jeep",
+      "listings": 88,
+      "models": [
+        {
+          "name": "avenger",
+          "listings": 7
+        },
+        {
+          "name": "cherokee",
+          "listings": 4
+        },
+        {
+          "name": "compass",
+          "listings": 23
+        },
+        {
+          "name": "gladiator",
+          "listings": 1
+        },
+        {
+          "name": "grand",
+          "listings": 14
+        },
+        {
+          "name": "renegade",
+          "listings": 14
+        },
+        {
+          "name": "wrangler",
+          "listings": 25
+        }
+      ]
+    },
+    {
+      "name": "Jetour",
+      "listings": 2,
+      "models": [
+        {
+          "name": "x70",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "KGM",
+      "listings": 5,
+      "models": [
+        {
+          "name": "actyon",
+          "listings": 1
+        },
+        {
+          "name": "korando",
+          "listings": 1
+        },
+        {
+          "name": "rexton",
+          "listings": 2
+        },
+        {
+          "name": "torres",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Kia",
+      "listings": 317,
+      "models": [
+        {
+          "name": "carens",
+          "listings": 6
+        },
+        {
+          "name": "carnival",
+          "listings": 1
+        },
+        {
+          "name": "cerato",
+          "listings": 14
+        },
+        {
+          "name": "ev3",
+          "listings": 2
+        },
+        {
+          "name": "ev5",
+          "listings": 10
+        },
+        {
+          "name": "ev9",
+          "listings": 1
+        },
+        {
+          "name": "grand",
+          "listings": 1
+        },
+        {
+          "name": "k3",
+          "listings": 21
+        },
+        {
+          "name": "mohave",
+          "listings": 2
+        },
+        {
+          "name": "new",
+          "listings": 5
+        },
+        {
+          "name": "niro",
+          "listings": 16
+        },
+        {
+          "name": "picanto",
+          "listings": 62
+        },
+        {
+          "name": "rio",
+          "listings": 37
+        },
+        {
+          "name": "seltos",
+          "listings": 10
+        },
+        {
+          "name": "soluto",
+          "listings": 16
+        },
+        {
+          "name": "sonet",
+          "listings": 9
+        },
+        {
+          "name": "sorento",
+          "listings": 4
+        },
+        {
+          "name": "soul",
+          "listings": 5
+        },
+        {
+          "name": "sportage",
+          "listings": 76
+        },
+        {
+          "name": "stonic",
+          "listings": 15
+        },
+        {
+          "name": "stylus",
+          "listings": 1
+        },
+        {
+          "name": "tasman",
+          "listings": 1
+        },
+        {
+          "name": "tonic",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Land Rover",
+      "listings": 30,
+      "models": [
+        {
+          "name": "defender",
+          "listings": 4
+        },
+        {
+          "name": "discovery",
+          "listings": 10
+        },
+        {
+          "name": "freelander",
+          "listings": 1
+        },
+        {
+          "name": "range",
+          "listings": 14
+        },
+        {
+          "name": "santana",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Lexus",
+      "listings": 33,
+      "models": [
+        {
+          "name": "gx",
+          "listings": 9
+        },
+        {
+          "name": "gx550",
+          "listings": 1
+        },
+        {
+          "name": "lx",
+          "listings": 18
+        },
+        {
+          "name": "nx",
+          "listings": 2
+        },
+        {
+          "name": "rx",
+          "listings": 2
+        },
+        {
+          "name": "tx",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "MG",
+      "listings": 10,
+      "models": [
+        {
+          "name": "3",
+          "listings": 1
+        },
+        {
+          "name": "cybester",
+          "listings": 1
+        },
+        {
+          "name": "marvel",
+          "listings": 2
+        },
+        {
+          "name": "mg4",
+          "listings": 1
+        },
+        {
+          "name": "s5",
+          "listings": 1
+        },
+        {
+          "name": "zs",
+          "listings": 4
+        }
+      ]
+    },
+    {
+      "name": "Mazda",
+      "listings": 560,
+      "models": [
+        {
+          "name": "2",
+          "listings": 106
+        },
+        {
+          "name": "3",
+          "listings": 113
+        },
+        {
+          "name": "3z6na7",
+          "listings": 1
+        },
+        {
+          "name": "5",
+          "listings": 2
+        },
+        {
+          "name": "6",
+          "listings": 2
+        },
+        {
+          "name": "allegro",
+          "listings": 1
+        },
+        {
+          "name": "bt-50",
+          "listings": 4
+        },
+        {
+          "name": "bt50",
+          "listings": 6
+        },
+        {
+          "name": "cx-3",
+          "listings": 7
+        },
+        {
+          "name": "cx-30",
+          "listings": 125
+        },
+        {
+          "name": "cx-5",
+          "listings": 118
+        },
+        {
+          "name": "cx-50",
+          "listings": 33
+        },
+        {
+          "name": "cx-60",
+          "listings": 7
+        },
+        {
+          "name": "cx-9",
+          "listings": 22
+        },
+        {
+          "name": "cx-90",
+          "listings": 6
+        },
+        {
+          "name": "cx50",
+          "listings": 1
+        },
+        {
+          "name": "ez6",
+          "listings": 1
+        },
+        {
+          "name": "mazda",
+          "listings": 4
+        },
+        {
+          "name": "mazda2",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Mercedes-Benz",
+      "listings": 373,
+      "models": [
+        {
+          "name": "190",
+          "listings": 1
+        },
+        {
+          "name": "230",
+          "listings": 1
+        },
+        {
+          "name": "a",
+          "listings": 1
+        },
+        {
+          "name": "a200",
+          "listings": 4
+        },
+        {
+          "name": "amg",
+          "listings": 10
+        },
+        {
+          "name": "c",
+          "listings": 4
+        },
+        {
+          "name": "c-200",
+          "listings": 1
+        },
+        {
+          "name": "c180",
+          "listings": 1
+        },
+        {
+          "name": "c200",
+          "listings": 4
+        },
+        {
+          "name": "clase",
+          "listings": 313
+        },
+        {
+          "name": "e",
+          "listings": 3
+        },
+        {
+          "name": "e-350",
+          "listings": 1
+        },
+        {
+          "name": "e200",
+          "listings": 4
+        },
+        {
+          "name": "e220",
+          "listings": 1
+        },
+        {
+          "name": "eqa250+",
+          "listings": 1
+        },
+        {
+          "name": "g63",
+          "listings": 1
+        },
+        {
+          "name": "gla",
+          "listings": 1
+        },
+        {
+          "name": "glc",
+          "listings": 2
+        },
+        {
+          "name": "glc300",
+          "listings": 2
+        },
+        {
+          "name": "glc300e",
+          "listings": 1
+        },
+        {
+          "name": "gle",
+          "listings": 5
+        },
+        {
+          "name": "gle450",
+          "listings": 1
+        },
+        {
+          "name": "glk",
+          "listings": 1
+        },
+        {
+          "name": "hatch",
+          "listings": 1
+        },
+        {
+          "name": "sprinter",
+          "listings": 7
+        },
+        {
+          "name": "vito",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Mini",
+      "listings": 59,
+      "models": [
+        {
+          "name": "aceman",
+          "listings": 2
+        },
+        {
+          "name": "cooper",
+          "listings": 40
+        },
+        {
+          "name": "countryman",
+          "listings": 14
+        },
+        {
+          "name": "countryman hibrid",
+          "listings": 2
+        },
+        {
+          "name": "mini",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Mitsubishi",
+      "listings": 42,
+      "models": [
+        {
+          "name": "1",
+          "listings": 1
+        },
+        {
+          "name": "all",
+          "listings": 1
+        },
+        {
+          "name": "all-outlander",
+          "listings": 3
+        },
+        {
+          "name": "destinator",
+          "listings": 1
+        },
+        {
+          "name": "l200",
+          "listings": 5
+        },
+        {
+          "name": "mirage",
+          "listings": 1
+        },
+        {
+          "name": "montero",
+          "listings": 16
+        },
+        {
+          "name": "nativa",
+          "listings": 3
+        },
+        {
+          "name": "outlander",
+          "listings": 10
+        },
+        {
+          "name": "sportero",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Nissan",
+      "listings": 338,
+      "models": [
+        {
+          "name": "350z",
+          "listings": 1
+        },
+        {
+          "name": "altima",
+          "listings": 1
+        },
+        {
+          "name": "cabstar",
+          "listings": 1
+        },
+        {
+          "name": "d21",
+          "listings": 1
+        },
+        {
+          "name": "d22",
+          "listings": 1
+        },
+        {
+          "name": "frontier",
+          "listings": 36
+        },
+        {
+          "name": "kait",
+          "listings": 1
+        },
+        {
+          "name": "kicks",
+          "listings": 41
+        },
+        {
+          "name": "leaf",
+          "listings": 4
+        },
+        {
+          "name": "march",
+          "listings": 25
+        },
+        {
+          "name": "murano",
+          "listings": 2
+        },
+        {
+          "name": "navara",
+          "listings": 1
+        },
+        {
+          "name": "note",
+          "listings": 1
+        },
+        {
+          "name": "np",
+          "listings": 1
+        },
+        {
+          "name": "np300",
+          "listings": 10
+        },
+        {
+          "name": "pathfinder",
+          "listings": 12
+        },
+        {
+          "name": "patrol",
+          "listings": 2
+        },
+        {
+          "name": "qashgai",
+          "listings": 1
+        },
+        {
+          "name": "qashqai",
+          "listings": 55
+        },
+        {
+          "name": "sentra",
+          "listings": 27
+        },
+        {
+          "name": "tiida",
+          "listings": 9
+        },
+        {
+          "name": "versa",
+          "listings": 52
+        },
+        {
+          "name": "x-trail",
+          "listings": 39
+        },
+        {
+          "name": "xtrail",
+          "listings": 14
+        }
+      ]
+    },
+    {
+      "name": "Opel",
+      "listings": 4,
+      "models": [
+        {
+          "name": "crossland",
+          "listings": 3
+        },
+        {
+          "name": "grandland",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Peugeot",
+      "listings": 76,
+      "models": [
+        {
+          "name": "2008",
+          "listings": 25
+        },
+        {
+          "name": "206",
+          "listings": 2
+        },
+        {
+          "name": "207",
+          "listings": 2
+        },
+        {
+          "name": "208",
+          "listings": 1
+        },
+        {
+          "name": "3008",
+          "listings": 27
+        },
+        {
+          "name": "301",
+          "listings": 1
+        },
+        {
+          "name": "307",
+          "listings": 2
+        },
+        {
+          "name": "408",
+          "listings": 1
+        },
+        {
+          "name": "5008",
+          "listings": 12
+        },
+        {
+          "name": "partner",
+          "listings": 3
+        }
+      ]
+    },
+    {
+      "name": "Porsche",
+      "listings": 11,
+      "models": [
+        {
+          "name": "911",
+          "listings": 4
+        },
+        {
+          "name": "boxster",
+          "listings": 1
+        },
+        {
+          "name": "cayenne",
+          "listings": 3
+        },
+        {
+          "name": "cayman",
+          "listings": 2
+        },
+        {
+          "name": "macan",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "RAM",
+      "listings": 11,
+      "models": [
+        {
+          "name": "1500",
+          "listings": 6
+        },
+        {
+          "name": "700",
+          "listings": 3
+        },
+        {
+          "name": "v700",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Renault",
+      "listings": 470,
+      "models": [
+        {
+          "name": "1.5",
+          "listings": 1
+        },
+        {
+          "name": "alaskan",
+          "listings": 11
+        },
+        {
+          "name": "arkana",
+          "listings": 9
+        },
+        {
+          "name": "captur",
+          "listings": 24
+        },
+        {
+          "name": "clio",
+          "listings": 5
+        },
+        {
+          "name": "duster",
+          "listings": 107
+        },
+        {
+          "name": "fluence",
+          "listings": 2
+        },
+        {
+          "name": "kangoo",
+          "listings": 12
+        },
+        {
+          "name": "kardian",
+          "listings": 10
+        },
+        {
+          "name": "koleos",
+          "listings": 46
+        },
+        {
+          "name": "kwid",
+          "listings": 55
+        },
+        {
+          "name": "logan",
+          "listings": 77
+        },
+        {
+          "name": "master",
+          "listings": 1
+        },
+        {
+          "name": "megane",
+          "listings": 8
+        },
+        {
+          "name": "new",
+          "listings": 1
+        },
+        {
+          "name": "oroch",
+          "listings": 2
+        },
+        {
+          "name": "r12",
+          "listings": 1
+        },
+        {
+          "name": "r19",
+          "listings": 1
+        },
+        {
+          "name": "sandero",
+          "listings": 42
+        },
+        {
+          "name": "scala",
+          "listings": 2
+        },
+        {
+          "name": "scénic",
+          "listings": 1
+        },
+        {
+          "name": "stepway",
+          "listings": 30
+        },
+        {
+          "name": "trafic",
+          "listings": 5
+        },
+        {
+          "name": "twingo",
+          "listings": 16
+        },
+        {
+          "name": "zoe",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Seat",
+      "listings": 22,
+      "models": [
+        {
+          "name": "arona",
+          "listings": 7
+        },
+        {
+          "name": "ateca",
+          "listings": 11
+        },
+        {
+          "name": "ibiza",
+          "listings": 1
+        },
+        {
+          "name": "leon",
+          "listings": 1
+        },
+        {
+          "name": "tarraco",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Skoda",
+      "listings": 1,
+      "models": [
+        {
+          "name": "octavia",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "SsangYong",
+      "listings": 40,
+      "models": [
+        {
+          "name": "actyon",
+          "listings": 3
+        },
+        {
+          "name": "ahora",
+          "listings": 1
+        },
+        {
+          "name": "korando",
+          "listings": 10
+        },
+        {
+          "name": "musso",
+          "listings": 2
+        },
+        {
+          "name": "rexton",
+          "listings": 12
+        },
+        {
+          "name": "tivoli",
+          "listings": 7
+        },
+        {
+          "name": "torres",
+          "listings": 5
+        }
+      ]
+    },
+    {
+      "name": "Subaru",
+      "listings": 31,
+      "models": [
+        {
+          "name": "cross",
+          "listings": 5
+        },
+        {
+          "name": "evoltis",
+          "listings": 3
+        },
+        {
+          "name": "forester",
+          "listings": 9
+        },
+        {
+          "name": "outback",
+          "listings": 3
+        },
+        {
+          "name": "tribeca",
+          "listings": 1
+        },
+        {
+          "name": "xv",
+          "listings": 10
+        }
+      ]
+    },
+    {
+      "name": "Suzuki",
+      "listings": 155,
+      "models": [
+        {
+          "name": "across",
+          "listings": 1
+        },
+        {
+          "name": "alto",
+          "listings": 2
+        },
+        {
+          "name": "baleno",
+          "listings": 9
+        },
+        {
+          "name": "celerio",
+          "listings": 3
+        },
+        {
+          "name": "dzire",
+          "listings": 2
+        },
+        {
+          "name": "e-vitara",
+          "listings": 2
+        },
+        {
+          "name": "ertiga",
+          "listings": 1
+        },
+        {
+          "name": "fronx",
+          "listings": 4
+        },
+        {
+          "name": "grand",
+          "listings": 20
+        },
+        {
+          "name": "ignis",
+          "listings": 1
+        },
+        {
+          "name": "jimny",
+          "listings": 11
+        },
+        {
+          "name": "new",
+          "listings": 3
+        },
+        {
+          "name": "s-cross",
+          "listings": 15
+        },
+        {
+          "name": "spresso",
+          "listings": 1
+        },
+        {
+          "name": "swift",
+          "listings": 44
+        },
+        {
+          "name": "sx4",
+          "listings": 3
+        },
+        {
+          "name": "vitara",
+          "listings": 32
+        },
+        {
+          "name": "xl-7",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Tesla",
+      "listings": 4,
+      "models": [
+        {
+          "name": "model",
+          "listings": 4
+        }
+      ]
+    },
+    {
+      "name": "Toyota",
+      "listings": 1003,
+      "models": [
+        {
+          "name": "4runner",
+          "listings": 79
+        },
+        {
+          "name": "burbuja",
+          "listings": 4
+        },
+        {
+          "name": "bz3x",
+          "listings": 12
+        },
+        {
+          "name": "corolla",
+          "listings": 194
+        },
+        {
+          "name": "fj",
+          "listings": 11
+        },
+        {
+          "name": "fj-40",
+          "listings": 1
+        },
+        {
+          "name": "fortuner",
+          "listings": 132
+        },
+        {
+          "name": "grand",
+          "listings": 2
+        },
+        {
+          "name": "highlander",
+          "listings": 3
+        },
+        {
+          "name": "hilux",
+          "listings": 79
+        },
+        {
+          "name": "land",
+          "listings": 77
+        },
+        {
+          "name": "lc",
+          "listings": 1
+        },
+        {
+          "name": "lc200",
+          "listings": 2
+        },
+        {
+          "name": "prado",
+          "listings": 189
+        },
+        {
+          "name": "rav4",
+          "listings": 45
+        },
+        {
+          "name": "rush",
+          "listings": 1
+        },
+        {
+          "name": "sahara",
+          "listings": 6
+        },
+        {
+          "name": "samurai",
+          "listings": 1
+        },
+        {
+          "name": "sequoia",
+          "listings": 88
+        },
+        {
+          "name": "sienna",
+          "listings": 3
+        },
+        {
+          "name": "tacoma",
+          "listings": 15
+        },
+        {
+          "name": "toyota",
+          "listings": 2
+        },
+        {
+          "name": "tundra",
+          "listings": 11
+        },
+        {
+          "name": "yaris",
+          "listings": 45
+        }
+      ]
+    },
+    {
+      "name": "Volkswagen",
+      "listings": 331,
+      "models": [
+        {
+          "name": "amarok",
+          "listings": 25
+        },
+        {
+          "name": "bora",
+          "listings": 1
+        },
+        {
+          "name": "cross",
+          "listings": 2
+        },
+        {
+          "name": "crossfox",
+          "listings": 6
+        },
+        {
+          "name": "escarabajo",
+          "listings": 1
+        },
+        {
+          "name": "fox",
+          "listings": 2
+        },
+        {
+          "name": "gol",
+          "listings": 36
+        },
+        {
+          "name": "golf",
+          "listings": 8
+        },
+        {
+          "name": "id4",
+          "listings": 1
+        },
+        {
+          "name": "jetta",
+          "listings": 54
+        },
+        {
+          "name": "new",
+          "listings": 1
+        },
+        {
+          "name": "nivus",
+          "listings": 19
+        },
+        {
+          "name": "polo",
+          "listings": 25
+        },
+        {
+          "name": "saveiro",
+          "listings": 7
+        },
+        {
+          "name": "t-cross",
+          "listings": 43
+        },
+        {
+          "name": "taos",
+          "listings": 21
+        },
+        {
+          "name": "tera",
+          "listings": 6
+        },
+        {
+          "name": "teramont",
+          "listings": 8
+        },
+        {
+          "name": "tiguan",
+          "listings": 23
+        },
+        {
+          "name": "touareg",
+          "listings": 3
+        },
+        {
+          "name": "transporter",
+          "listings": 2
+        },
+        {
+          "name": "vento",
+          "listings": 2
+        },
+        {
+          "name": "virtus",
+          "listings": 8
+        },
+        {
+          "name": "voyage",
+          "listings": 27
+        }
+      ]
+    },
+    {
+      "name": "Volvo",
+      "listings": 81,
+      "models": [
+        {
+          "name": "c30",
+          "listings": 1
+        },
+        {
+          "name": "c40",
+          "listings": 2
+        },
+        {
+          "name": "ec40",
+          "listings": 3
+        },
+        {
+          "name": "ex30",
+          "listings": 7
+        },
+        {
+          "name": "ex40",
+          "listings": 1
+        },
+        {
+          "name": "ex90",
+          "listings": 2
+        },
+        {
+          "name": "s60",
+          "listings": 5
+        },
+        {
+          "name": "v40",
+          "listings": 1
+        },
+        {
+          "name": "v90",
+          "listings": 1
+        },
+        {
+          "name": "xc40",
+          "listings": 12
+        },
+        {
+          "name": "xc60",
+          "listings": 33
+        },
+        {
+          "name": "xc90",
+          "listings": 13
+        }
+      ]
+    }
+  ],
+  "departments": [
+    {
+      "name": "Antioquia",
+      "listings": 1000
+    },
+    {
+      "name": "Atlántico",
+      "listings": 1003
+    },
+    {
+      "name": "Bogotá D.C.",
+      "listings": 1061
+    },
+    {
+      "name": "Cauca",
+      "listings": 1
+    },
+    {
+      "name": "Cundinamarca",
+      "listings": 971
+    },
+    {
+      "name": "Meta",
+      "listings": 2
+    },
+    {
+      "name": "Norte De Santander",
+      "listings": 344
+    },
+    {
+      "name": "Quindio",
+      "listings": 14
+    },
+    {
+      "name": "Santander",
+      "listings": 647
+    },
+    {
+      "name": "Valle Del Cauca",
+      "listings": 1039
+    }
+  ],
+  "model_year": {
+    "min": 1955.0,
+    "max": 2027.0
+  },
+  "engine_cc": {
+    "min": 800.0,
+    "max": 6400.0
+  }
+}

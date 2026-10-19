@@ -1,6 +1,6 @@
 """FastAPI application — the F4 product surface.
 
-Five routes, and the shape of each one follows from a decision taken earlier in the project
+Six routes, and the shape of each one follows from a decision taken earlier in the project
 rather than from REST habit:
 
 ``/predict``
@@ -9,6 +9,12 @@ rather than from REST habit:
 ``/explain``
     Multiplicative factors, because SHAP is additive in log space and ``exp(phi)`` is an
     exact factor on the price. Peso deltas would be an approximation dressed as arithmetic.
+    The estimate it reports is the same one ``/predict`` publishes, by construction: both
+    read :meth:`~autovalor.models.bundle.ServedModel.predict_published_band`'s centre.
+``/catalog``
+    The makes, models, departments and ranges the served model was fitted on. The form is
+    built from these because the trees' categories are frozen, so a make outside the list
+    is a question the model cannot answer honestly.
 ``/market``
     The F3 result tables, served from the files ``make results`` wrote. The dashboard reads
     them; it does not recompute them, and neither does this service.
@@ -34,15 +40,22 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from autovalor import __version__
 from autovalor.api.features import to_frame
+from autovalor.api.labels import Localized, feature_label, format_value
 from autovalor.api.schemas import (
+    CatalogBrand,
+    CatalogEntry,
+    CatalogRange,
+    CatalogResponse,
     ErrorResponse,
     ExplainResponse,
     Factor,
     HealthResponse,
+    LocalizedText,
     ModelInfoResponse,
     PredictRequest,
     PredictResponse,
     PriceBand,
+    VerticalCatalog,
     VerticalInfo,
 )
 from autovalor.config import Settings, get_settings
@@ -137,6 +150,83 @@ def model_info(models: ModelsDep) -> ModelInfoResponse:
     return ModelInfoResponse(version=version, target="log_price", verticals=verticals)
 
 
+@app.get(
+    "/catalog",
+    summary="What the valuation form may ask about",
+    responses={503: {"model": ErrorResponse}},
+)
+def catalog(models: ModelsDep, vehicle_type: VehicleType | None = None) -> CatalogResponse:
+    """List the makes, models, departments and ranges the served models were fitted on.
+
+    The frontend's form is built from this, not from a hand-written list: a make the trees
+    have no category for would be routed down their missing branch and still produce a
+    confident-looking estimate, and a list typed by hand goes stale the first time the lake
+    grows. See :mod:`autovalor.models.catalog`.
+
+    Args:
+        models: The loaded bundles.
+        vehicle_type: One vertical; omit for both.
+
+    Returns:
+        One entry per vertical that carries a catalogue.
+
+    Raises:
+        HTTPException: 503 when no model is loaded, or when the loaded bundle predates
+            catalogues — predictions still work, so this says what to re-run rather than
+            returning empty lists a form would render as a dead dropdown.
+    """
+    if vehicle_type is None:
+        wanted = sorted(models)
+    else:
+        # _require so an unloaded vertical answers 503 with "start it with artifacts"
+        # rather than an empty list that looks like "this vertical has no makes".
+        wanted = [_require(models, vehicle_type).vehicle_type]
+
+    verticals = []
+    for key in wanted:
+        model = models[key]
+        if model.catalog is None:
+            continue
+        verticals.append(
+            VerticalCatalog(
+                vehicle_type=model.vehicle_type,
+                model_version=model.version,
+                trained_on_rows=model.catalog.n_rows,
+                brands=[
+                    CatalogBrand(
+                        name=brand.name,
+                        listings=brand.listings,
+                        models=[
+                            CatalogEntry(name=entry.name, listings=entry.listings)
+                            for entry in brand.models
+                        ],
+                    )
+                    for brand in model.catalog.brands
+                ],
+                departments=[
+                    CatalogEntry(name=entry.name, listings=entry.listings)
+                    for entry in model.catalog.departments
+                ],
+                model_year=CatalogRange(
+                    min=model.catalog.model_year.min, max=model.catalog.model_year.max
+                ),
+                engine_cc=None
+                if model.catalog.engine_cc is None
+                else CatalogRange(min=model.catalog.engine_cc.min, max=model.catalog.engine_cc.max),
+            )
+        )
+
+    if not verticals:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "no catalogue is available: the loaded bundle was exported before "
+                "catalogues existed. Re-run `make export-model`."
+            ),
+        )
+    return CatalogResponse(verticals=verticals)
+
+
 @app.post(
     "/predict",
     summary="Estimate a price with its P10-P90 range",
@@ -150,11 +240,15 @@ def predict(request: PredictRequest, models: ModelsDep) -> PredictResponse:
     """
     model = _require(models, request.vehicle_type)
     frame = to_frame(request)
-    bounds = model.predict_bounds(frame)
+    # The published band: calibrated P10 and P90 around the *point* model's estimate, which
+    # is the number /explain attributes and the one whose MAPE is published. See
+    # ServedModel.predict_published_band.
+    bounds = model.predict_published_band(frame)
     lower, estimate, upper = (float(np.exp(value)) for value in bounds[0])
 
     label = None
     if request.asking_price_cop is not None:
+        # Classified against the band the caller is shown, not a different one.
         labels = model.classify(
             [float(np.log(request.asking_price_cop))], [bounds[0, 0]], [bounds[0, 2]]
         )
@@ -190,7 +284,9 @@ def explain(request: PredictRequest, models: ModelsDep) -> ExplainResponse:
     factors = [
         Factor(
             feature=str(feature),
+            label=_localized(feature_label(str(feature))),
             value=_shown(frame.iloc[0].get(feature)),
+            value_display=_localized(format_value(str(feature), frame.iloc[0].get(feature))),
             factor=float(np.exp(contribution)),
             direction="raises" if contribution >= 0 else "lowers",
         )
@@ -198,11 +294,20 @@ def explain(request: PredictRequest, models: ModelsDep) -> ExplainResponse:
     ]
     return ExplainResponse(
         vehicle_type=request.vehicle_type,
+        # The same number /predict publishes, from the same model. These were two different
+        # models until this block: /predict centred its band on the P50 quantile model while
+        # /explain reported the point model, so the product showed two prices for one
+        # vehicle and the SHAP reconciliation only held for one of them.
         estimate_cop=float(np.exp(model.predict_log_price(frame)[0])),
         base_price_cop=float(np.exp(base)),
         factors=factors,
         model_version=model.version,
     )
+
+
+def _localized(text: Localized) -> LocalizedText:
+    """Carry a two-language string from the label table into the response model."""
+    return LocalizedText(es=text.es, en=text.en)
 
 
 def _shown(value: Any) -> str | None:
