@@ -1,6 +1,8 @@
 # AutoValor CO
 
-Sistema de valoración de carros y motos usados en Colombia. Estima el precio de mercado con intervalo P10–P90, clasifica anuncios como ganga / justo / caro, explica cada predicción (SHAP) y publica curvas de depreciación y un índice mensual de precios de usados.
+Sistema de valoración de carros y motos usados en Colombia. Estima el precio de mercado con intervalo P10–P90, clasifica anuncios como ganga / justo / caro (donde la banda lo sostiene), explica cada predicción (SHAP) y publica curvas de depreciación y un índice mensual de precios de usados. La comparación contra Fasecolda queda **fuera de alcance** (ver "Decisiones abiertas" en `docs/STATUS.md`).
+
+API desplegada: https://autovalor-api.onrender.com/docs
 
 Documento de requerimientos completo: https://claude.ai/code/artifact/cbe0b762-b8c4-4344-ade1-6df9230dadf8 (fuente de verdad para alcance, RF y RNF).
 
@@ -14,10 +16,10 @@ Documento de requerimientos completo: https://claude.ai/code/artifact/cbe0b762-b
 
 ```
 src/autovalor/
-  ingest/      # scrapers TuCarro (carros y motos), carga guía Fasecolda
+  ingest/      # scrapers TuCarro (carros y motos) y páginas de detalle
   quality/     # esquemas Pandera
   features/    # features derivadas
-  models/      # train.py, predict.py, explain.py — predicción, se juzga por MAPE
+  models/      # train.py, export.py, bundle.py, catalog.py, explain.py — predicción, se juzga por MAPE
   analysis/    # hedónico con errores HC3 — explicación, se juzga por intervalos
   api/         # FastAPI
 dbt/           # modelos silver y gold
@@ -56,14 +58,14 @@ Restricción de diseño, no una preferencia: **el proyecto opera sin ningún cos
 - **El repositorio se mantiene público**, que es lo que hace gratis a GitHub Actions. Cualquier propuesta que implique volverlo privado tiene que contar ese costo.
 - **El histórico de capturas vive en la rama `data`** del propio repositorio ([ADR 0004](docs/adr/0004-capture-history-storage.md)). Almacenamiento de objetos solo se reconsidera con aprobación explícita.
 - **F4 cabe en el plan gratuito de Render** — y ya está hecho: `Dockerfile.api` instala solo el runtime (`uv sync --no-default-groups`), sin CatBoost, MLflow, Playwright, dbt ni shap, y el modelo servido va **dentro de la imagen** en `artifacts/models/`, no descargado al arrancar. `pyproject.toml` está partido en grupos (`ingest`, `transform`, `train`, `analysis`, `dev`) que `uv sync` sigue instalando por defecto, así que dev y CI no cambian. El frontend Next.js se publica como sitio estático. Pasos de despliegue en [docs/deploy-render.md](docs/deploy-render.md); **el despliegue lo hace el usuario**, no se automatiza desde aquí.
-- **Fasecolda solo por fuentes públicas y gratuitas.** Sin suscripción a la guía.
+- **Fasecolda solo por fuentes públicas y gratuitas.** Sin suscripción a la guía — y como por HTTP público no se consigue, el benchmark está fuera de alcance, no pendiente.
 
 ## Reglas de datos
 
 - Scraping educado: respetar robots.txt, pausas aleatorias entre requests, user-agent identificable, sin paralelismo agresivo.
 - Nunca guardar datos personales de vendedores (nombres, teléfonos, correos). Ley 1581 de 2012.
 - La capa bronze es inmutable: se escribe una vez por captura, con `captured_at` y `source_url`.
-- `valor_fasecolda` no se usa como feature del modelo base (fuga de información); solo como benchmark.
+- `valor_fasecolda` no se usa como feature del modelo base (fuga de información). Era solo un benchmark y ese benchmark quedó fuera de alcance; la regla se mantiene por si alguna vez entra un export manual.
 - Precio modelado como log(precio). Carros y motos son modelos separados.
 
 ## Qué se publica de cada vertical
@@ -84,8 +86,8 @@ contra el holdout lo vuelve una cifra en muestra.
 - F0 Requisitos: repo inicial, CI verde, estructura y Makefile. (cerrada)
 - F1 Datos: piloto de 1.000 anuncios para medir σ del error; cierre con ≥ 6.000 carros y ≥ 2.600 motos limpios (captura bruta ~7.500 y ~3.500). Captura semanal activa desde aquí. (cerrada)
 - F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (**cerrada**: carros 11,3 % y publican etiqueta; motos 24,1 % y publican precio + rango sin etiqueta, por la regla de abajo. El modelo servido es LightGBM.)
-- F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda. (actual)
-- F4 Producto: API (/predict, /explain, /health, /model-info), app Next.js, Docker, despliegue en Render.
+- F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, efectos regionales y costo del kilometraje. (**cerrada** salvo el índice mensual, que espera histórico hasta ~2027-03-29. La comparación con Fasecolda quedó **fuera de alcance**: la guía no se obtiene por HTTP público y la suscripción la descarta la regla de costo cero.)
+- F4 Producto: API (/predict, /explain, /catalog, /market, /health, /model-info), app Next.js, Docker, despliegue en Render. (**actual**: la API está desplegada y probada; el frontend está en curso.)
 
 ## Forma de trabajo
 

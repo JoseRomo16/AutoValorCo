@@ -34,9 +34,22 @@ nada al arrancar ni guardar nada entre despliegues.
    `models_loaded`. Si dice `"degraded"`, la imagen se construyó sin `artifacts/` — mira la
    sección de problemas.
 
-6. **Cuando exista el frontend**, cambia `AUTOVALOR_CORS_ALLOW_ORIGINS` por su origen real
-   (Environment → Edit). Sin eso el navegador bloquea las llamadas desde el sitio estático.
-   Acepta varios separados por coma.
+6. **Revisa `AUTOVALOR_CORS_ALLOW_ORIGINS`** (Environment → Edit). El blueprint trae
+   `https://autovalor-web.onrender.com,http://localhost:3000`; si Render le asignó otro
+   nombre al sitio estático, pon el origen real. Sin eso el navegador bloquea las llamadas
+   desde el sitio.
+
+   Se aceptan **las dos formas**: separados por coma (`https://a,https://b`) o un arreglo
+   JSON (`["https://a","https://b"]`). Antes solo valía la segunda y la primera **impedía
+   arrancar el servicio**, así que si lo tenías en JSON no hace falta cambiarlo.
+
+   Un origen es esquema + host + puerto y nada más: `https://autovalor-web.onrender.com`
+   sirve, `autovalor-web.onrender.com` y `https://autovalor-web.onrender.com/` no — el
+   navegador compara literalmente y una barra al final nunca coincide.
+
+7. **`PORT` tiene que quedar en 8000.** Es lo que le dice a Render dónde sondear: el `CMD`
+   de la imagen le pasa `--port 8000` a uvicorn de forma literal y no lee el entorno. Si
+   antes tenías `AUTOVALOR_API_PORT`, puedes borrarla: no la leía nadie.
 
 ## Lo que te vas a encontrar en el plan gratuito
 
@@ -60,6 +73,10 @@ El modelo servido se reconstruye y se commitea; Render redespliega solo al ver e
 .\make.ps1 results          # si quieres que /market también se actualice
 git add artifacts docs/results && git commit -m "chore(models): re-export the served model"
 ```
+
+`export-model` reescribe también el `catalog.json` de cada vertical, que es lo que
+`/catalog` sirve y de donde el formulario saca sus listas. Van juntos a propósito: un
+catálogo de un lago y un modelo de otro ofrecerían marcas que el modelo no conoce.
 
 `/model-info` reporta la versión del bundle, que lleva la fecha y el tamaño del lago
 (`2026-10-07.11691`), así que siempre se puede saber qué modelo está contestando.

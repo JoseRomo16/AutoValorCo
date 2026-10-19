@@ -5,7 +5,12 @@ _Used car and motorcycle valuation for the Colombian market_
 
 [![CI](https://github.com/JoseRomo16/AutoValorCo/actions/workflows/ci.yml/badge.svg)](https://github.com/JoseRomo16/AutoValorCo/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
-![Status](https://img.shields.io/badge/fase-F2%20modelaci%C3%B3n-blue)
+![Status](https://img.shields.io/badge/fase-F4%20producto-blue)
+
+**API en vivo / Live API: [autovalor-api.onrender.com/docs](https://autovalor-api.onrender.com/docs)**
+· Primera consulta ~1 min: el plan gratuito de Render duerme el servicio y el arranque en
+frío carga los dos modelos. _First request takes ~1 min: Render's free plan sleeps the
+service and a cold start loads both models._
 
 ---
 
@@ -22,13 +27,17 @@ entrega, además del valor puntual, un intervalo de predicción **P10–P90**. C
   la ciudad o la transmisión al precio estimado.
 - **Publica curvas de depreciación** por marca y segmento, y un **índice mensual** de
   precios de usados.
-- **Compara** su estimación contra la guía Fasecolda, que se usa solo como referencia
-  externa y nunca como variable del modelo.
+
+La etiqueta ganga/justo/caro solo se publica donde la banda P10–P90 medida fuera de muestra
+la sostiene: hoy en carros sí, y en motos sale el precio con su rango y un aviso de
+precisión. La comparación contra la guía **Fasecolda queda fuera de alcance** —no se
+obtiene por HTTP público y la suscripción está descartada por la regla de costo cero—; ver
+[`docs/STATUS.md`](docs/STATUS.md).
 
 ### Arquitectura
 
 ```
-TuCarro / Fasecolda
+TuCarro
         │  scraping educado (robots.txt, pausas aleatorias, UA identificable)
         ▼
 ┌──────────────┐   dbt + Pandera   ┌──────────────┐   dbt    ┌────────────┐
@@ -42,9 +51,10 @@ TuCarro / Fasecolda
         ┌─────────────────────────────┐        ┌──────────────────────────┐
         │  MODELOS (log del precio)   │  MLflow│  API FastAPI             │
         │  hedónico OLS  (línea base) │ ─────► │  /predict  /explain      │
-        │  LightGBM / CatBoost        │        │  /health   /model-info   │
-        │  + SHAP, intervalos P10–P90 │        └───────────┬──────────────┘
-        └─────────────────────────────┘                    │
+        │  LightGBM / CatBoost        │        │  /catalog  /market       │
+        │  + SHAP, intervalos P10–P90 │        │  /health   /model-info   │
+        └─────────────────────────────┘        └───────────┬──────────────┘
+                                                           │
                                                            ▼
                                               App Next.js + Tailwind
 ```
@@ -53,17 +63,18 @@ Carros y motos se modelan por separado y el objetivo siempre es `log(precio)`.
 
 ```
 src/autovalor/
-  ingest/      # scrapers TuCarro (carros y motos), carga guía Fasecolda
+  ingest/      # scrapers TuCarro (carros y motos)
   quality/     # esquemas Pandera
   features/    # features derivadas
-  models/      # train.py, predict.py, explain.py
+  models/      # train.py, export.py, bundle.py, explain.py
+  analysis/    # hedónico con errores HC3 (resultados de F3)
   api/         # FastAPI
 dbt/           # modelos silver y gold
 data/          # bronze/ silver/ gold/ (en .gitignore)
 notebooks/     # solo exploración
-frontend/      # Next.js + Tailwind (F4)
+frontend/      # Next.js + Tailwind
 tests/
-docs/          # ADRs y diccionario de datos
+docs/          # ADRs, diccionario de datos, results/ y figures/
 ```
 
 ### Stack
@@ -197,8 +208,8 @@ Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs
 | **F0** | Requisitos  | Repo inicial, estructura, Makefile y CI en verde                                                      | cerrada     |
 | **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada (7.207 / 3.765) |
 | **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | cerrada (carros 11,3 %, motos 22,4 %) |
-| **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación, comparación con Fasecolda                        | cerrada salvo el índice (necesita 6 meses de histórico) |
-| **F4** | Producto    | API (`/predict`, `/explain`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | API lista; falta el frontend |
+| **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación y efectos regionales (Fasecolda: fuera de alcance) | cerrada salvo el índice (necesita 6 meses de histórico) |
+| **F4** | Producto    | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | **actual** — API desplegada; frontend en curso |
 
 ### Datos y ética
 
@@ -225,8 +236,12 @@ returns, besides the point estimate, a **P10–P90** prediction interval. On top
   or transmission contribute to the estimate.
 - **Publishes depreciation curves** by brand and segment, plus a **monthly used-price
   index**.
-- **Benchmarks** its estimate against the Fasecolda guide, which is used as an external
-  reference only and never as a model feature.
+
+The bargain/fair/expensive label ships only where the out-of-sample P10–P90 band supports
+it — today that is cars; motorcycles ship the price with its range and a precision notice.
+Benchmarking against the **Fasecolda guide is out of scope**: it is not available over plain
+HTTP and a subscription is ruled out by the project's zero-cost constraint. See
+[`docs/STATUS.md`](docs/STATUS.md).
 
 ### Architecture
 
@@ -288,8 +303,8 @@ Detailed status, open decisions and how to resume: **[`docs/STATUS.md`](docs/STA
 | **F0** | Requirements| Initial repo, structure, Makefile and green CI                                                             | closed      |
 | **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed (7,207 / 3,765) |
 | **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | closed      |
-| **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, Fasecolda comparison                                        | closed but the index |
-| **F4** | Product     | API (`/predict`, `/explain`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment   | API done; frontend pending |
+| **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, regional effects (Fasecolda: out of scope)                  | closed but the index |
+| **F4** | Product     | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment | **current** — API deployed; frontend in progress |
 
 ### Data and ethics
 
