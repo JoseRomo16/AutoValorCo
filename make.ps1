@@ -10,7 +10,8 @@
 param(
     [Parameter(Position = 0)]
     [ValidateSet('help', 'setup', 'scrape', 'enrich', 'pull-history', 'push-history',
-        'transform', 'train', 'export-model', 'results', 'serve', 'test', 'lint', 'format', 'docker-build',
+        'transform', 'train', 'export-model', 'results', 'serve', 'web', 'web-build', 'web-lint',
+        'test', 'lint', 'format', 'docker-build',
         'docker-up', 'clean')]
     [string]$Target = 'help',
 
@@ -35,6 +36,29 @@ function Invoke-Step {
     if ($LASTEXITCODE -ne 0) { throw "$($Command[0]) exited with code $LASTEXITCODE" }
 }
 
+function Invoke-NpmStep {
+    <#
+    .SYNOPSIS
+    Run an npm script from frontend/.
+
+    .DESCRIPTION
+    Separate from Invoke-Step because npm on Windows is a .cmd shim, and Windows
+    PowerShell splices a splatted argument array into a single string before handing it
+    over: `& npm @('run', 'lint')` reaches npm as the one unknown command "run lint".
+    Passing the whole line through cmd avoids the splice entirely.
+    #>
+    param([Parameter(Mandatory)][string]$Arguments)
+    Write-Host "> npm $Arguments" -ForegroundColor Cyan
+    Push-Location (Join-Path $PSScriptRoot 'frontend')
+    try {
+        cmd /c "npm $Arguments"
+        if ($LASTEXITCODE -ne 0) { throw "npm $Arguments exited with code $LASTEXITCODE" }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 switch ($Target) {
     'help' {
         Write-Host 'AutoValor CO - available targets:'
@@ -48,6 +72,9 @@ switch ($Target) {
         Write-Host '  export-model   Train the served model into artifacts/models/'
         Write-Host '  results        Estimate the economic results and export them to docs/'
         Write-Host '  serve          Run the API locally with autoreload'
+        Write-Host '  web            Run the front end in development'
+        Write-Host '  web-build      Build the static export into frontend/out'
+        Write-Host '  web-lint       Lint and type-check the front end'
         Write-Host '  test           Run the test suite with coverage'
         Write-Host '  lint           Run ruff (lint + format check) and mypy'
         Write-Host '  format         Apply ruff formatting and autofixes'
@@ -59,13 +86,7 @@ switch ($Target) {
         Invoke-Step 'uv', 'sync'
         Invoke-Step 'uv', 'run', 'playwright', 'install', 'chromium'
         Invoke-Step 'uv', 'run', 'pre-commit', 'install'
-        if (Test-Path 'frontend') {
-            Push-Location 'frontend'
-            try { Invoke-Step 'npm', 'install' } finally { Pop-Location }
-        }
-        else {
-            Write-Host 'frontend/ not created yet (F4), skipping npm install'
-        }
+        Invoke-NpmStep 'install'
     }
     'scrape' {
         Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.ingest.cli',
@@ -105,6 +126,12 @@ switch ($Target) {
     'serve' {
         Invoke-Step 'uv', 'run', 'uvicorn', 'autovalor.api.main:app', '--reload',
         '--host', $ApiHost, '--port', "$Port"
+    }
+    'web' { Invoke-NpmStep 'run dev' }
+    'web-build' { Invoke-NpmStep 'run build' }
+    'web-lint' {
+        Invoke-NpmStep 'run lint'
+        Invoke-NpmStep 'run typecheck'
     }
     'test' { Invoke-Step 'uv', 'run', 'pytest' }
     'lint' {
