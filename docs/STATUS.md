@@ -1,9 +1,10 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-07** · Fase actual: **F4**, con la API desplegada en Render
-y el frontend sin empezar. F2 y F3 cerradas salvo el índice de precios, que espera
-histórico. (Carros cumplen la meta de MAPE ≤ 15 % y publican etiqueta; motos publican
-precio y rango sin etiqueta, por la regla de calidad de banda.)
+Última actualización: **2026-10-19** · Fase actual: **F4**, con la API desplegada en Render
+y el frontend en curso. F2 y F3 cerradas salvo el índice de precios, que espera histórico;
+la comparación con Fasecolda quedó **fuera de alcance**. (Carros cumplen la meta de
+MAPE ≤ 15 % y publican etiqueta; motos publican precio y rango sin etiqueta, por la regla
+de calidad de banda.)
 
 Este documento es el punto de retorno: dice qué funciona, qué falta, qué está decidido y
 qué no. Se actualiza al cerrar cada bloque de trabajo.
@@ -87,6 +88,19 @@ Componentes:
   muestreo aleatorio con semilla. Lista blanca de etiquetas, nunca HTML, nada personal.
 
 ### Estado de los datos
+
+> **Hay dos capturas nuevas en la rama `data` que todavía no están medidas.** La captura
+> semanal corrió sola el **2026-10-12** (2.880 carros y 2.228 motos crudos, 264 KB) y el
+> **2026-10-19** (576 carros y 426 motos, 71 KB), y las publicó en la rama. **No se han
+> traído al lago local a propósito**: el modelo que está en `artifacts/models/` se entrenó
+> sobre las 11.691 filas de gold de abajo, y todas las cifras de este documento son de ese
+> lago. Traerlas cambia el lago, el holdout y por tanto todos los números — es el trabajo
+> de volver a medir, no un paso de higiene. Con ellas la rama va en **10 capturas**.
+>
+> Dos cosas que conviene mirar cuando se haga: la corrida del 2026-10-19 trajo una quinta
+> parte de lo que trajo la del 2026-10-12, que puede ser el sitio o puede ser la corrida, y
+> no se ha averiguado; y el lago ya abarcaría ~20 días de `last_seen_at`, por encima de los
+> 14 que exige `--split temporal`, así que esa partición pasa a ser posible por primera vez.
 
 Tras traer el histórico completo de la rama `data` (8 capturas, 2026-09-30 y 2026-10-05):
 
@@ -792,19 +806,110 @@ inventaron valores** para dejar el archivo completo: cualquier cifra real que de
 ellos heredaría números que nadie puede verificar. Sin el archivo el índice nominal igual
 funciona y el real queda indefinido, que es lo correcto.
 
-### F4 — Producto: la API está lista, falta el frontend
+### F4 — Producto: la API está desplegada, el frontend está en curso
 
 | Entregable | Estado |
 | --- | --- |
 | `POST /predict` — precio, banda P10–P90, etiqueta o aviso, versión del modelo | hecho |
-| `POST /explain` — los 5 factores principales como factores multiplicativos | hecho |
+| `POST /explain` — los 5 factores principales, con nombres legibles ES/EN | hecho |
+| `GET /catalog` — marcas, modelos por marca, departamentos y rangos del modelo servido | hecho |
 | `GET /market` — sirve los JSON de `docs/results` para el dashboard | hecho |
 | `GET /health` y `GET /model-info` reales | hecho |
 | `models/bundle.py` + `make export-model` — el modelo servido, sin MLflow | hecho |
-| `Dockerfile.api` multi-stage con solo el runtime | hecho, **construido en CI** |
+| `Dockerfile.api` multi-stage con solo el runtime | hecho, **construido y arrancado en CI** |
 | `render.yaml` + [pasos de despliegue](deploy-render.md) | hecho; **desplegado y probado por el usuario el 2026-10-07** |
-| 25 tests de contrato de los endpoints | hecho |
-| App Next.js | **no empezada** |
+| Tests de contrato de los endpoints | hecho |
+| App Next.js: export estático, ES/EN, tres vistas | hecho; **falta que el usuario la despliegue** |
+| `autovalor-web` en `render.yaml` + CI de frontend | hecho |
+
+#### El frontend
+
+Next.js (App Router) + TypeScript + Tailwind v4 en `frontend/`, **export estático**
+(`output: "export"`), que es lo único que cabe gratis en Render. Español por defecto con
+cambio a inglés —un diccionario de pares `{es, en}`, de modo que una cadena sin traducir no
+compila—, y el idioma se lee de `localStorage` con `useSyncExternalStore` en vez de un
+efecto, así que el HTML prerenderizado sale en español por construcción y no parpadea al
+hidratar.
+
+Tres decisiones que vale la pena no deshacer:
+
+- **Mercado y Metodología no llaman a la API.** Leen `docs/results/` y los `model.json` de
+  los bundles **en tiempo de construcción**. Son archivos commiteados: pedirlos por HTTP
+  costaría un minuto de arranque en frío para números que ya están en el repositorio, y
+  además así la página no puede citar una cifra distinta a la del commit del que salió. El
+  costo es que el sitio es tan fresco como su último despliegue, que es correcto porque
+  `make results` y `make export-model` son commits y un commit redespliega.
+- **El formulario se construye desde `/catalog`.** Es el motivo por el que ese endpoint
+  existe; ver arriba.
+- **Los gráficos son HTML/CSS y SVG escritos a mano**, sin librería de charts. El intervalo
+  de confianza no es decoración —un efecto que cruza el cero significa otra cosa— y los
+  números van impresos como texto al lado de cada barra, así que la figura se lee con un
+  lector de pantalla sin tabla alternativa.
+
+Verificado con Playwright contra la API local: las tres vistas, el camino de carros (con
+etiqueta) y el de motos (con aviso y sin etiqueta), el cambio de idioma, cero errores de
+consola y cero desbordamiento horizontal a 390 px. Las capturas de `docs/screenshots/`
+salieron de esa misma corrida. Dos cosas que encontró y que no se habrían visto leyendo el
+código: un `step` en los campos numéricos hacía que el navegador rechazara en silencio
+precios como 78.000.000 —la validación nativa bloquea el submit antes de que corra el
+`onSubmit`—, y el `min-width` de un gráfico estiraba su columna del grid y hacía scrollear
+la página entera en móvil.
+
+#### Los tres arreglos que salieron de probar el servicio desplegado
+
+**1. `AUTOVALOR_CORS_ALLOW_ORIGINS` no aceptaba la forma en que se escribe.** Es una lista,
+y pydantic-settings decodifica los tipos compuestos como JSON y nada más, así que
+`https://a,https://b` —la forma que invita la caja de variables de un dashboard— no
+arrancaba el servicio: fallaba en el import. Ahora el campo lleva `NoDecode` y un
+`field_validator` que acepta las dos formas, y lo que lo mantiene arreglado no es el
+validador sino dos tests: uno carga `Settings` **con exactamente las envVars de
+render.yaml**, leídas del blueprint por `autovalor.deploy`, y otro recorre
+`Settings.model_fields` y falla si aparece otro campo de tipo colección sin validador. El
+problema de fondo era que **nada en el repositorio leía `render.yaml`**, así que un valor
+que rompía la configuración solo se descubría en la plataforma.
+
+**2. `/predict` y `/explain` publicaban dos precios distintos para el mismo vehículo.**
+`/predict` centraba su banda en el modelo cuantílico P50 y `/explain` reportaba el modelo
+puntual. Gana el puntual, y no por sorteo: es el modelo cuyo MAPE es el publicado (11,3 % y
+22,4 %) y el que SHAP atribuye, así que `base × factores = estimado` se cumple exacto. La
+exactitud del P50 nunca se midió. Los límites siguen siendo la banda conformalizada, y si
+el estimado puntual cae fuera de ella la banda se ensancha hasta contenerlo —publicar un
+rango que excluya el número que va al lado sería incoherente en su propia cara—.
+`ServedModel.predict_published_band` es ahora el único sitio donde se decide "el precio", y
+un test exige igualdad **exacta** entre los dos endpoints: una tolerancia dejaría que los
+dos modelos se separaran otra vez.
+
+**3. `PORT` en vez de `AUTOVALOR_API_PORT`.** El `CMD` de la imagen le pasa `--port 8000` a
+uvicorn de forma literal y no lee el entorno; `AUTOVALOR_API_PORT` solo alimentaba
+`make serve`, así que la variable que estaba en el blueprint no hacía nada y su comentario
+decía lo contrario. `PORT=8000` es lo que le dice a Render dónde sondear, y hay un test que
+lo ata al `--port` del Dockerfile.
+
+Y el paso de CI que las tres cosas necesitaban: el job de Docker ya no solo construye y
+arranca la imagen, la **arranca con el `--env-file` sacado de `render.yaml`** y verifica que
+`/health` responda `ok` con los dos modelos cargados y que `/catalog` traiga las dos
+verticales con marcas. "200 y algo de JSON" no era la afirmación que valía la pena medir:
+un contenedor sin artefactos responde 200 `degraded` por diseño, que es justo el despliegue
+roto que este paso existe para atrapar.
+
+#### `/catalog`, y por qué los listados viven dentro del bundle
+
+El formulario no puede ser texto libre: los árboles se ajustaron con **niveles categóricos
+congelados**, así que una marca que el modelo nunca vio cae fuera de sus categorías, baja
+por la rama de faltante y produce un estimado que se ve igual de confiado que uno real. Así
+que las listas se derivan **de las filas con las que se entrenó el modelo servido**, en el
+mismo `make export-model`, y viajan en `artifacts/models/<vertical>/catalog.json` (42 KB
+carros, 69 KB motos). Esa es la propiedad que vale: el catálogo no puede describir una
+población distinta a la del modelo, porque sale del mismo frame en la misma corrida.
+
+Hoy publica 47 marcas / 487 tokens de modelo / 10 departamentos en carros, y 33 / 855 / 9
+en motos, cada entrada con su conteo de anuncios —el frontend decide si ordena por
+popularidad o esconde los tokens raros; esa decisión no es de la API—. Nada se filtra: un
+nivel raro sigue siendo un nivel que el modelo conoce, y quitarlo volvería un vehículo
+legítimo imposible de consultar. El `catalog.json` de los dos bundles ya commiteados se
+generó sin reentrenar, reconstruyendo la misma partición (mismo lago, misma semilla) y
+**rechazando escribir si el `n_train` reconstruido no coincidía con el que registra el
+manifiesto**, que es lo que prueba que son las filas del modelo y no de un split nuevo.
 
 **El modelo servido viaja dentro de la imagen**, en `artifacts/models/`, no se descarga al
 arrancar. Son los cuatro boosters de LightGBM por vertical —el puntual y los tres
@@ -999,12 +1104,13 @@ inventar una.
 - **Las tarjetas patrocinadas se filtran entre regiones**, así que `department` no es un
   marco de muestreo limpio.
 - **GitHub desactiva los workflows programados** tras 60 días sin actividad en el repo.
-- **La validación temporal sigue sin poderse hacer, y ahora se sabe por cuánto.** Con el
-  histórico completo el lago abarca **5,54 días** (2026-09-29 21:48 → 2026-10-05 10:49, en
-  tres días distintos) contra los **14** que exige `MIN_TEMPORAL_SPAN_DAYS`, así que
-  `--split temporal` sigue fallando a propósito. Faltan ~8 días, es decir **una o dos
-  capturas semanales más**; llega solo. Conviene repetir la medición con `temporal` en ese
-  momento, porque es la partición que exige el índice mensual de F3.
+- **La validación temporal ya es posible, pero sobre un lago que todavía no se ha
+  reconstruido.** El lago medido abarca **5,54 días** (2026-09-29 21:48 → 2026-10-05 10:49)
+  contra los **14** que exige `MIN_TEMPORAL_SPAN_DAYS`, así que `--split temporal` falla hoy
+  a propósito. Las dos capturas semanales que faltaban **ya llegaron solas** —2026-10-12 y
+  2026-10-19, en la rama `data`—, de modo que un `pull-history` llevaría el span a ~20 días.
+  Conviene repetir la medición con `temporal` cuando se haga, porque es la partición que
+  exige el índice mensual de F3.
 - **La cobertura de la banda ya no queda corta — ahora se pasa, y en motos lo bastante
   para costarle la etiqueta.** Era 76,5 % y 76,8 % contra el nominal de 80 %; con el lago
   completo es 81,0 % en carros y **83,6 % en motos**. La hipótesis vieja (filas no
@@ -1041,21 +1147,25 @@ inventar una.
 
 ## Cómo retomar
 
-### Dónde quedó esto el 2026-10-07
+### Dónde quedó esto el 2026-10-19
 
-**Todo está en `main`, sin ramas abiertas y con CI en verde.** La API está desplegada en
-Render y probada. Lo siguiente, en orden:
+**El remoto tiene solo `main` y `data`**: las siete ramas viejas que esta sección listaba
+como pendiente de higiene ya se borraron. La API está desplegada en Render, probada, y con
+los tres arreglos de arriba.
 
-1. **Ajustes al backend que el usuario va a especificar.** Probó el servicio desplegado y
-   trae observaciones; esas mandan sobre cualquier plan de aquí.
-2. **Después, el frontend Next.js**, que no está empezado y se dejó así a propósito. Tiene
-   todo lo que necesita del lado del servidor: los cinco endpoints, el esquema OpenAPI
-   publicado y CORS por `AUTOVALOR_CORS_ALLOW_ORIGINS`.
+**Lo que sigue, todo dentro de F4:**
 
-Pendiente menor de higiene: hay **siete ramas remotas viejas** —`feat/f2-shap`,
-`fix/review-f1`, `chore/zero-cost` y compañía— cuyo contenido ya está en `main` desde hace
-varios bloques, pero que git no marca como merged porque la historia se rehízo. Borrarlas es
-seguro y no se hizo sin preguntar, por ser una acción sobre el remoto.
+1. **Desplegar, que es lo único que cierra F4 y es del lado del usuario.** En Render:
+   aplicar el blueprint otra vez para que cree `autovalor-web`, y confirmar que
+   `AUTOVALOR_CORS_ALLOW_ORIGINS` de la API tiene el origen real del sitio. Los pasos están
+   en [`deploy-render.md`](deploy-render.md); el despliegue no se automatiza desde aquí.
+2. **Volver a medir cuando se quiera incorporar las capturas nuevas** (2026-10-12 y
+   2026-10-19, ya en la rama `data`): `pull-history` → `transform` → `train` →
+   `export-model`, y con eso se actualizan las cifras, el bundle y su catálogo. Es un bloque
+   de trabajo propio porque cambia todos los números publicados, no un paso de
+   mantenimiento. Es también la primera vez que `--split temporal` sería posible.
+3. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
+   motos bajen de 22,4 %, que sigue siendo señal de estado y no más identidad.
 
 Lo que **no** está hecho y no es un olvido: el índice mensual de precios (espera a
 ~2027-03-29 por histórico), la comparación con Fasecolda (fuera de alcance por decisión) y
@@ -1126,7 +1236,8 @@ uv run python -m autovalor.models.train --model lightgbm --vehicle-type motorcyc
     --only-enriched --detail-features --no-intervals --no-mlflow    # con ellas
 ```
 
-Estado de la rama hoy: **8 capturas, 944 KB**, dos commits de backfill. Solo viaja bronze;
+Estado de la rama hoy: **10 capturas, ~1,3 MB** —las ocho medidas más 2026-10-12 y
+2026-10-19, que el lago local **no** tiene—, dos commits de backfill. Solo viaja bronze;
 silver y gold se derivan. `pull-history` nunca sobrescribe un archivo local —bronze es
 inmutable y el nombre lleva el instante UTC, así que una colisión es la misma captura— y
 correrlo dos veces no hace nada la segunda vez.

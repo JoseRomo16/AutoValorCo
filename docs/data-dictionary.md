@@ -1,6 +1,8 @@
 # Data dictionary / Diccionario de datos
 
-Status: bronze, detail, silver and gold documented. Fasecolda benchmark tables follow.
+Status: bronze, detail, silver and gold documented — every layer the project has. The
+Fasecolda benchmark table that used to be listed as "next" is out of scope; see
+[`STATUS.md`](STATUS.md).
 
 Contracts live in `src/autovalor/quality/schemas.py` (Pandera) and are checked by
 `make transform`, which validates bronze, runs dbt, and then validates silver and gold.

@@ -109,11 +109,28 @@ class PredictResponse(BaseModel):
     model_version: str = Field(description="Served model version; matches /model-info.")
 
 
-class Factor(BaseModel):
-    """One feature's contribution, as a multiplicative factor on the price."""
+class LocalizedText(BaseModel):
+    """One string in the two languages the product publishes."""
 
-    feature: str
-    value: str | None = Field(description="The vehicle's value for this feature, as shown.")
+    es: str = Field(description="Spanish, the product's default language.")
+    en: str = Field(description="English.")
+
+
+class Factor(BaseModel):
+    """One feature's contribution, as a multiplicative factor on the price.
+
+    ``feature`` and ``value`` are the technical pair: a stable key and the raw value, which
+    is what a client should log, plot or compare against. ``label`` and ``value_display``
+    are the same thing for a reader — "Edad del vehículo", "8 años" — because a product card
+    showing ``vehicle_age_years = 8.0`` is showing the inside of the model.
+    """
+
+    feature: str = Field(description="Technical column name; stable across languages.")
+    label: LocalizedText = Field(description="The feature's name for a reader.")
+    value: str | None = Field(description="The vehicle's raw value, or null when not supplied.")
+    value_display: LocalizedText = Field(
+        description="The value with its unit, e.g. '60.000 km'. Says so when not supplied."
+    )
     factor: float = Field(
         description=(
             "exp(phi): the exact multiplier this feature applies to the price. 1.15 means "
@@ -175,6 +192,54 @@ class HealthResponse(BaseModel):
     status: Literal["ok", "degraded"]
     version: str = Field(description="Version of the autovalor package.")
     models_loaded: list[VehicleType]
+
+
+class CatalogEntry(BaseModel):
+    """One categorical level the served model has a category for."""
+
+    name: str
+    listings: int = Field(description="Training listings that carried this level.")
+
+
+class CatalogBrand(BaseModel):
+    """One make, with the model tokens seen under it in training."""
+
+    name: str
+    listings: int
+    models: list[CatalogEntry] = Field(description="Model tokens for this make, alphabetically.")
+
+
+class CatalogRange(BaseModel):
+    """The closed range of a numeric input, as training observed it."""
+
+    min: float
+    max: float
+
+
+class VerticalCatalog(BaseModel):
+    """The valid inputs for one vertical.
+
+    Everything here is derived from the rows the served model was fitted on, which is the
+    point: a make outside this list has no category in the trees, so the model would route
+    it down its missing branch and still answer with a confident-looking number. A form
+    built from these lists cannot ask that question.
+    """
+
+    vehicle_type: VehicleType
+    model_version: str = Field(description="Served model these lists came from; matches /predict.")
+    trained_on_rows: int = Field(description="Training rows the lists were derived from.")
+    brands: list[CatalogBrand] = Field(description="Makes, alphabetically, each with its models.")
+    departments: list[CatalogEntry] = Field(description="Departments, alphabetically.")
+    model_year: CatalogRange
+    engine_cc: CatalogRange | None = Field(
+        default=None, description="Null when the vertical records no displacement."
+    )
+
+
+class CatalogResponse(BaseModel):
+    """What the valuation form may offer, per vertical."""
+
+    verticals: list[VerticalCatalog]
 
 
 class ErrorResponse(BaseModel):

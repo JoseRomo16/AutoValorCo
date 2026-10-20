@@ -1,0 +1,3671 @@
+{
+  "format": 1,
+  "vehicle_type": "motorcycle",
+  "n_rows": 3242,
+  "brands": [
+    {
+      "name": "AKT",
+      "listings": 138,
+      "models": [
+        {
+          "name": "125",
+          "listings": 1
+        },
+        {
+          "name": "200",
+          "listings": 1
+        },
+        {
+          "name": "250",
+          "listings": 1
+        },
+        {
+          "name": "250r",
+          "listings": 1
+        },
+        {
+          "name": "25rl",
+          "listings": 1
+        },
+        {
+          "name": "adventour",
+          "listings": 1
+        },
+        {
+          "name": "adventure",
+          "listings": 1
+        },
+        {
+          "name": "ak",
+          "listings": 5
+        },
+        {
+          "name": "ak125",
+          "listings": 1
+        },
+        {
+          "name": "ak125rl",
+          "listings": 1
+        },
+        {
+          "name": "ak125sc-r",
+          "listings": 1
+        },
+        {
+          "name": "ak200",
+          "listings": 1
+        },
+        {
+          "name": "aventura",
+          "listings": 1
+        },
+        {
+          "name": "carguero",
+          "listings": 1
+        },
+        {
+          "name": "cr3",
+          "listings": 1
+        },
+        {
+          "name": "cr4",
+          "listings": 18
+        },
+        {
+          "name": "cr5",
+          "listings": 6
+        },
+        {
+          "name": "dinamic",
+          "listings": 2
+        },
+        {
+          "name": "dinamik",
+          "listings": 1
+        },
+        {
+          "name": "dinamyc",
+          "listings": 1
+        },
+        {
+          "name": "dynamic",
+          "listings": 12
+        },
+        {
+          "name": "dynamique",
+          "listings": 1
+        },
+        {
+          "name": "especial",
+          "listings": 1
+        },
+        {
+          "name": "evo",
+          "listings": 1
+        },
+        {
+          "name": "flex",
+          "listings": 4
+        },
+        {
+          "name": "ganga!!",
+          "listings": 1
+        },
+        {
+          "name": "karguero",
+          "listings": 1
+        },
+        {
+          "name": "motocarro",
+          "listings": 2
+        },
+        {
+          "name": "nkd",
+          "listings": 29
+        },
+        {
+          "name": "nkd125",
+          "listings": 1
+        },
+        {
+          "name": "rtx",
+          "listings": 4
+        },
+        {
+          "name": "rx150",
+          "listings": 1
+        },
+        {
+          "name": "scooters",
+          "listings": 1
+        },
+        {
+          "name": "se",
+          "listings": 1
+        },
+        {
+          "name": "special",
+          "listings": 1
+        },
+        {
+          "name": "sym",
+          "listings": 1
+        },
+        {
+          "name": "tt",
+          "listings": 6
+        },
+        {
+          "name": "tt200",
+          "listings": 1
+        },
+        {
+          "name": "ttds",
+          "listings": 1
+        },
+        {
+          "name": "ttr",
+          "listings": 15
+        },
+        {
+          "name": "ttr200",
+          "listings": 1
+        },
+        {
+          "name": "ttx",
+          "listings": 3
+        },
+        {
+          "name": "voge",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Aprilia",
+      "listings": 5,
+      "models": [
+        {
+          "name": "rs",
+          "listings": 1
+        },
+        {
+          "name": "sr",
+          "listings": 3
+        },
+        {
+          "name": "tuono",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Auteco",
+      "listings": 8,
+      "models": [
+        {
+          "name": "advance",
+          "listings": 1
+        },
+        {
+          "name": "bravo",
+          "listings": 1
+        },
+        {
+          "name": "ceronte",
+          "listings": 1
+        },
+        {
+          "name": "kymco",
+          "listings": 2
+        },
+        {
+          "name": "ns",
+          "listings": 1
+        },
+        {
+          "name": "one",
+          "listings": 1
+        },
+        {
+          "name": "victory",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Ayco",
+      "listings": 1,
+      "models": [
+        {
+          "name": "300",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "BMW",
+      "listings": 357,
+      "models": [
+        {
+          "name": "/",
+          "listings": 1
+        },
+        {
+          "name": "1200",
+          "listings": 1
+        },
+        {
+          "name": "1200gs",
+          "listings": 1
+        },
+        {
+          "name": "1250",
+          "listings": 5
+        },
+        {
+          "name": "310",
+          "listings": 1
+        },
+        {
+          "name": "310gs",
+          "listings": 1
+        },
+        {
+          "name": "310r",
+          "listings": 1
+        },
+        {
+          "name": "650",
+          "listings": 1
+        },
+        {
+          "name": "850",
+          "listings": 2
+        },
+        {
+          "name": "blanca",
+          "listings": 1
+        },
+        {
+          "name": "c",
+          "listings": 3
+        },
+        {
+          "name": "c400",
+          "listings": 2
+        },
+        {
+          "name": "ce",
+          "listings": 9
+        },
+        {
+          "name": "deportiva",
+          "listings": 1
+        },
+        {
+          "name": "edicion",
+          "listings": 1
+        },
+        {
+          "name": "f",
+          "listings": 39
+        },
+        {
+          "name": "f-850",
+          "listings": 1
+        },
+        {
+          "name": "f650",
+          "listings": 2
+        },
+        {
+          "name": "f700",
+          "listings": 10
+        },
+        {
+          "name": "f700gs",
+          "listings": 3
+        },
+        {
+          "name": "f750",
+          "listings": 8
+        },
+        {
+          "name": "f750gs",
+          "listings": 4
+        },
+        {
+          "name": "f800",
+          "listings": 2
+        },
+        {
+          "name": "f800gs",
+          "listings": 3
+        },
+        {
+          "name": "f800gs,",
+          "listings": 1
+        },
+        {
+          "name": "f850",
+          "listings": 9
+        },
+        {
+          "name": "f850gs",
+          "listings": 10
+        },
+        {
+          "name": "f900",
+          "listings": 5
+        },
+        {
+          "name": "f900gs",
+          "listings": 2
+        },
+        {
+          "name": "f900r",
+          "listings": 5
+        },
+        {
+          "name": "f900xr",
+          "listings": 2
+        },
+        {
+          "name": "g",
+          "listings": 29
+        },
+        {
+          "name": "g310",
+          "listings": 6
+        },
+        {
+          "name": "g310gs",
+          "listings": 4
+        },
+        {
+          "name": "g310gs,",
+          "listings": 1
+        },
+        {
+          "name": "g310r",
+          "listings": 3
+        },
+        {
+          "name": "g650",
+          "listings": 1
+        },
+        {
+          "name": "g650gs",
+          "listings": 1
+        },
+        {
+          "name": "gs",
+          "listings": 14
+        },
+        {
+          "name": "gs-310",
+          "listings": 1
+        },
+        {
+          "name": "gs1250",
+          "listings": 1
+        },
+        {
+          "name": "gs310",
+          "listings": 1
+        },
+        {
+          "name": "k50",
+          "listings": 1
+        },
+        {
+          "name": "m",
+          "listings": 1
+        },
+        {
+          "name": "m1000rr",
+          "listings": 1
+        },
+        {
+          "name": "motorrad",
+          "listings": 25
+        },
+        {
+          "name": "ninet",
+          "listings": 1
+        },
+        {
+          "name": "r",
+          "listings": 65
+        },
+        {
+          "name": "r12",
+          "listings": 1
+        },
+        {
+          "name": "r1200",
+          "listings": 4
+        },
+        {
+          "name": "r1200gs",
+          "listings": 7
+        },
+        {
+          "name": "r1250",
+          "listings": 11
+        },
+        {
+          "name": "r1250gs",
+          "listings": 9
+        },
+        {
+          "name": "r12ninet",
+          "listings": 1
+        },
+        {
+          "name": "r1300",
+          "listings": 4
+        },
+        {
+          "name": "r1300gs",
+          "listings": 8
+        },
+        {
+          "name": "r18",
+          "listings": 1
+        },
+        {
+          "name": "r26",
+          "listings": 1
+        },
+        {
+          "name": "rninet",
+          "listings": 2
+        },
+        {
+          "name": "s",
+          "listings": 2
+        },
+        {
+          "name": "s1000",
+          "listings": 2
+        },
+        {
+          "name": "s1000r",
+          "listings": 4
+        },
+        {
+          "name": "s1000rr",
+          "listings": 1
+        },
+        {
+          "name": "s1000xr",
+          "listings": 4
+        },
+        {
+          "name": "se",
+          "listings": 1
+        },
+        {
+          "name": "vendo",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Bajaj",
+      "listings": 202,
+      "models": [
+        {
+          "name": "boxer",
+          "listings": 19
+        },
+        {
+          "name": "ct100",
+          "listings": 1
+        },
+        {
+          "name": "ct125",
+          "listings": 1
+        },
+        {
+          "name": "descripción",
+          "listings": 1
+        },
+        {
+          "name": "discover",
+          "listings": 5
+        },
+        {
+          "name": "dominar",
+          "listings": 43
+        },
+        {
+          "name": "hermosa",
+          "listings": 1
+        },
+        {
+          "name": "marca:",
+          "listings": 1
+        },
+        {
+          "name": "ns",
+          "listings": 7
+        },
+        {
+          "name": "pulsar",
+          "listings": 123
+        }
+      ]
+    },
+    {
+      "name": "Benelli",
+      "listings": 62,
+      "models": [
+        {
+          "name": "180",
+          "listings": 4
+        },
+        {
+          "name": "180s",
+          "listings": 1
+        },
+        {
+          "name": "180s,",
+          "listings": 1
+        },
+        {
+          "name": "251",
+          "listings": 1
+        },
+        {
+          "name": "302s",
+          "listings": 2
+        },
+        {
+          "name": "leoncino",
+          "listings": 8
+        },
+        {
+          "name": "tnt",
+          "listings": 19
+        },
+        {
+          "name": "trk",
+          "listings": 25
+        },
+        {
+          "name": "venpermuto",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "CFMoto",
+      "listings": 37,
+      "models": [
+        {
+          "name": "125",
+          "listings": 1
+        },
+        {
+          "name": "250",
+          "listings": 1
+        },
+        {
+          "name": "400",
+          "listings": 2
+        },
+        {
+          "name": "450",
+          "listings": 1
+        },
+        {
+          "name": "450mt",
+          "listings": 1
+        },
+        {
+          "name": "450sr",
+          "listings": 1
+        },
+        {
+          "name": "450srs",
+          "listings": 1
+        },
+        {
+          "name": "650nk",
+          "listings": 1
+        },
+        {
+          "name": "675nk",
+          "listings": 1
+        },
+        {
+          "name": "675sr-r",
+          "listings": 1
+        },
+        {
+          "name": "800",
+          "listings": 1
+        },
+        {
+          "name": "800nk",
+          "listings": 1
+        },
+        {
+          "name": "cf",
+          "listings": 18
+        },
+        {
+          "name": "cf250",
+          "listings": 1
+        },
+        {
+          "name": "cf650",
+          "listings": 1
+        },
+        {
+          "name": "cf700",
+          "listings": 1
+        },
+        {
+          "name": "se",
+          "listings": 2
+        },
+        {
+          "name": "vendo",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Can-Am",
+      "listings": 30,
+      "models": [
+        {
+          "name": "can",
+          "listings": 16
+        },
+        {
+          "name": "defender",
+          "listings": 4
+        },
+        {
+          "name": "maverick",
+          "listings": 7
+        },
+        {
+          "name": "outlander",
+          "listings": 1
+        },
+        {
+          "name": "renegade",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Desconocida",
+      "listings": 395,
+      "models": [
+        {
+          "name": "**características:**",
+          "listings": 1
+        },
+        {
+          "name": ",",
+          "listings": 2
+        },
+        {
+          "name": "-",
+          "listings": 2
+        },
+        {
+          "name": "125",
+          "listings": 2
+        },
+        {
+          "name": "1390",
+          "listings": 1
+        },
+        {
+          "name": "155",
+          "listings": 1
+        },
+        {
+          "name": "200",
+          "listings": 3
+        },
+        {
+          "name": "200cc",
+          "listings": 2
+        },
+        {
+          "name": "250",
+          "listings": 1
+        },
+        {
+          "name": "250cc",
+          "listings": 1
+        },
+        {
+          "name": "350cc",
+          "listings": 1
+        },
+        {
+          "name": "50",
+          "listings": 1
+        },
+        {
+          "name": "690",
+          "listings": 1
+        },
+        {
+          "name": "9:10,",
+          "listings": 1
+        },
+        {
+          "name": "a",
+          "listings": 2
+        },
+        {
+          "name": "adx",
+          "listings": 4
+        },
+        {
+          "name": "adxtg",
+          "listings": 1
+        },
+        {
+          "name": "aeroz",
+          "listings": 1
+        },
+        {
+          "name": "africa",
+          "listings": 2
+        },
+        {
+          "name": "agricola",
+          "listings": 1
+        },
+        {
+          "name": "ahorrador",
+          "listings": 1
+        },
+        {
+          "name": "al",
+          "listings": 1
+        },
+        {
+          "name": "alquiler",
+          "listings": 1
+        },
+        {
+          "name": "apolo",
+          "listings": 1
+        },
+        {
+          "name": "arizona",
+          "listings": 3
+        },
+        {
+          "name": "automatica",
+          "listings": 2
+        },
+        {
+          "name": "automática",
+          "listings": 1
+        },
+        {
+          "name": "automática150",
+          "listings": 1
+        },
+        {
+          "name": "avenida",
+          "listings": 9
+        },
+        {
+          "name": "ax4",
+          "listings": 1
+        },
+        {
+          "name": "azul",
+          "listings": 1
+        },
+        {
+          "name": "banshee",
+          "listings": 2
+        },
+        {
+          "name": "benlli",
+          "listings": 1
+        },
+        {
+          "name": "bera",
+          "listings": 1
+        },
+        {
+          "name": "best",
+          "listings": 1
+        },
+        {
+          "name": "bet",
+          "listings": 1
+        },
+        {
+          "name": "bicicleta",
+          "listings": 4
+        },
+        {
+          "name": "bicilindrica,",
+          "listings": 1
+        },
+        {
+          "name": "bicimoto",
+          "listings": 1
+        },
+        {
+          "name": "bien",
+          "listings": 1
+        },
+        {
+          "name": "body",
+          "listings": 1
+        },
+        {
+          "name": "bomber",
+          "listings": 2
+        },
+        {
+          "name": "boss",
+          "listings": 3
+        },
+        {
+          "name": "buen",
+          "listings": 1
+        },
+        {
+          "name": "buggie",
+          "listings": 3
+        },
+        {
+          "name": "buggy",
+          "listings": 3
+        },
+        {
+          "name": "burgman",
+          "listings": 1
+        },
+        {
+          "name": "cafe",
+          "listings": 1
+        },
+        {
+          "name": "cambio",
+          "listings": 1
+        },
+        {
+          "name": "canam",
+          "listings": 2
+        },
+        {
+          "name": "capacidad:",
+          "listings": 1
+        },
+        {
+          "name": "carburada",
+          "listings": 2
+        },
+        {
+          "name": "carro",
+          "listings": 3
+        },
+        {
+          "name": "carro,",
+          "listings": 1
+        },
+        {
+          "name": "cilindraje:",
+          "listings": 1
+        },
+        {
+          "name": "color",
+          "listings": 2
+        },
+        {
+          "name": "commander",
+          "listings": 1
+        },
+        {
+          "name": "como",
+          "listings": 1
+        },
+        {
+          "name": "completamente",
+          "listings": 1
+        },
+        {
+          "name": "con",
+          "listings": 3
+        },
+        {
+          "name": "cr4",
+          "listings": 3
+        },
+        {
+          "name": "cripton",
+          "listings": 1
+        },
+        {
+          "name": "cross",
+          "listings": 1
+        },
+        {
+          "name": "cyber",
+          "listings": 2
+        },
+        {
+          "name": "de",
+          "listings": 3
+        },
+        {
+          "name": "de.",
+          "listings": 1
+        },
+        {
+          "name": "desertx",
+          "listings": 1
+        },
+        {
+          "name": "dinamic",
+          "listings": 1
+        },
+        {
+          "name": "diseño",
+          "listings": 1
+        },
+        {
+          "name": "doble",
+          "listings": 1
+        },
+        {
+          "name": "documentos",
+          "listings": 2
+        },
+        {
+          "name": "dt",
+          "listings": 1
+        },
+        {
+          "name": "ducari",
+          "listings": 1
+        },
+        {
+          "name": "ducaty",
+          "listings": 1
+        },
+        {
+          "name": "dyn",
+          "listings": 1
+        },
+        {
+          "name": "dynamic",
+          "listings": 3
+        },
+        {
+          "name": "ebox",
+          "listings": 2
+        },
+        {
+          "name": "electrica",
+          "listings": 2
+        },
+        {
+          "name": "eléctrica",
+          "listings": 10
+        },
+        {
+          "name": "em",
+          "listings": 1
+        },
+        {
+          "name": "en",
+          "listings": 18
+        },
+        {
+          "name": "enduro",
+          "listings": 2
+        },
+        {
+          "name": "esta",
+          "listings": 1
+        },
+        {
+          "name": "estacas,",
+          "listings": 1
+        },
+        {
+          "name": "está",
+          "listings": 1
+        },
+        {
+          "name": "evobike",
+          "listings": 1
+        },
+        {
+          "name": "excelente",
+          "listings": 12
+        },
+        {
+          "name": "exclusividad",
+          "listings": 1
+        },
+        {
+          "name": "execelente",
+          "listings": 1
+        },
+        {
+          "name": "exelente",
+          "listings": 2
+        },
+        {
+          "name": "extrenando",
+          "listings": 1
+        },
+        {
+          "name": "f.z.",
+          "listings": 1
+        },
+        {
+          "name": "f800r",
+          "listings": 1
+        },
+        {
+          "name": "falcon",
+          "listings": 1
+        },
+        {
+          "name": "fazzer",
+          "listings": 1
+        },
+        {
+          "name": "forrada",
+          "listings": 1
+        },
+        {
+          "name": "freewin",
+          "listings": 1
+        },
+        {
+          "name": "full",
+          "listings": 1
+        },
+        {
+          "name": "fzn150",
+          "listings": 1
+        },
+        {
+          "name": "gas",
+          "listings": 3
+        },
+        {
+          "name": "gris",
+          "listings": 1
+        },
+        {
+          "name": "grizzly",
+          "listings": 2
+        },
+        {
+          "name": "gsxr-150",
+          "listings": 1
+        },
+        {
+          "name": "guzzi",
+          "listings": 1
+        },
+        {
+          "name": "hammer",
+          "listings": 2
+        },
+        {
+          "name": "hermosa",
+          "listings": 3
+        },
+        {
+          "name": "highper",
+          "listings": 1
+        },
+        {
+          "name": "hornet1000",
+          "listings": 1
+        },
+        {
+          "name": "ignitor",
+          "listings": 1
+        },
+        {
+          "name": "impecable",
+          "listings": 1
+        },
+        {
+          "name": "impo",
+          "listings": 1
+        },
+        {
+          "name": "intruder",
+          "listings": 1
+        },
+        {
+          "name": "joy",
+          "listings": 1
+        },
+        {
+          "name": "joyride",
+          "listings": 1
+        },
+        {
+          "name": "junior",
+          "listings": 1
+        },
+        {
+          "name": "kawaski",
+          "listings": 1
+        },
+        {
+          "name": "keweey",
+          "listings": 1
+        },
+        {
+          "name": "kit",
+          "listings": 1
+        },
+        {
+          "name": "kle",
+          "listings": 1
+        },
+        {
+          "name": "kmt",
+          "listings": 1
+        },
+        {
+          "name": "kymko",
+          "listings": 1
+        },
+        {
+          "name": "la",
+          "listings": 1
+        },
+        {
+          "name": "ledo",
+          "listings": 1
+        },
+        {
+          "name": "llanta",
+          "listings": 1
+        },
+        {
+          "name": "llantas",
+          "listings": 1
+        },
+        {
+          "name": "lo",
+          "listings": 1
+        },
+        {
+          "name": "marca",
+          "listings": 1
+        },
+        {
+          "name": "matriculada",
+          "listings": 1
+        },
+        {
+          "name": "mela",
+          "listings": 1
+        },
+        {
+          "name": "meteoro",
+          "listings": 1
+        },
+        {
+          "name": "modelo",
+          "listings": 3
+        },
+        {
+          "name": "modelo:",
+          "listings": 1
+        },
+        {
+          "name": "modificada",
+          "listings": 1
+        },
+        {
+          "name": "montesa",
+          "listings": 1
+        },
+        {
+          "name": "motocarro",
+          "listings": 2
+        },
+        {
+          "name": "motocross",
+          "listings": 3
+        },
+        {
+          "name": "motosiclera",
+          "listings": 1
+        },
+        {
+          "name": "mt",
+          "listings": 11
+        },
+        {
+          "name": "mt-15",
+          "listings": 1
+        },
+        {
+          "name": "mt03",
+          "listings": 1
+        },
+        {
+          "name": "mt09",
+          "listings": 1
+        },
+        {
+          "name": "mt15",
+          "listings": 1
+        },
+        {
+          "name": "multistrada",
+          "listings": 4
+        },
+        {
+          "name": "muy",
+          "listings": 2
+        },
+        {
+          "name": "n",
+          "listings": 1
+        },
+        {
+          "name": "n-max",
+          "listings": 2
+        },
+        {
+          "name": "naked",
+          "listings": 1
+        },
+        {
+          "name": "negra,",
+          "listings": 1
+        },
+        {
+          "name": "nemax",
+          "listings": 1
+        },
+        {
+          "name": "nhr",
+          "listings": 1
+        },
+        {
+          "name": "nmx",
+          "listings": 1
+        },
+        {
+          "name": "no",
+          "listings": 1
+        },
+        {
+          "name": "norden",
+          "listings": 2
+        },
+        {
+          "name": "nqi",
+          "listings": 1
+        },
+        {
+          "name": "nueva",
+          "listings": 2
+        },
+        {
+          "name": "nueva,",
+          "listings": 2
+        },
+        {
+          "name": "ofero",
+          "listings": 3
+        },
+        {
+          "name": "panther",
+          "listings": 2
+        },
+        {
+          "name": "papeles",
+          "listings": 8
+        },
+        {
+          "name": "para",
+          "listings": 1
+        },
+        {
+          "name": "patineta",
+          "listings": 1
+        },
+        {
+          "name": "perfecto",
+          "listings": 1
+        },
+        {
+          "name": "pit",
+          "listings": 3
+        },
+        {
+          "name": "potenza",
+          "listings": 4
+        },
+        {
+          "name": "propietario",
+          "listings": 1
+        },
+        {
+          "name": "pulsarn250",
+          "listings": 1
+        },
+        {
+          "name": "r15",
+          "listings": 1
+        },
+        {
+          "name": "raider",
+          "listings": 2
+        },
+        {
+          "name": "raptor",
+          "listings": 1
+        },
+        {
+          "name": "rayder",
+          "listings": 1
+        },
+        {
+          "name": "re",
+          "listings": 1
+        },
+        {
+          "name": "recién",
+          "listings": 1
+        },
+        {
+          "name": "robusta",
+          "listings": 1
+        },
+        {
+          "name": "royal",
+          "listings": 2
+        },
+        {
+          "name": "rtx",
+          "listings": 1
+        },
+        {
+          "name": "s1000",
+          "listings": 1
+        },
+        {
+          "name": "scooter",
+          "listings": 2
+        },
+        {
+          "name": "scrambler",
+          "listings": 1
+        },
+        {
+          "name": "se",
+          "listings": 4
+        },
+        {
+          "name": "seat",
+          "listings": 1
+        },
+        {
+          "name": "shark",
+          "listings": 1
+        },
+        {
+          "name": "sin",
+          "listings": 1
+        },
+        {
+          "name": "soat",
+          "listings": 6
+        },
+        {
+          "name": "soat.",
+          "listings": 1
+        },
+        {
+          "name": "solo",
+          "listings": 1
+        },
+        {
+          "name": "sport",
+          "listings": 1
+        },
+        {
+          "name": "srm",
+          "listings": 2
+        },
+        {
+          "name": "streetglide",
+          "listings": 1
+        },
+        {
+          "name": "super",
+          "listings": 2
+        },
+        {
+          "name": "switch",
+          "listings": 1
+        },
+        {
+          "name": "tacometro",
+          "listings": 1
+        },
+        {
+          "name": "talaria",
+          "listings": 1
+        },
+        {
+          "name": "tarjeta",
+          "listings": 1
+        },
+        {
+          "name": "tiene",
+          "listings": 1
+        },
+        {
+          "name": "titan",
+          "listings": 2
+        },
+        {
+          "name": "tmax",
+          "listings": 2
+        },
+        {
+          "name": "tornado",
+          "listings": 2
+        },
+        {
+          "name": "ttds200",
+          "listings": 1
+        },
+        {
+          "name": "tv's",
+          "listings": 1
+        },
+        {
+          "name": "unico",
+          "listings": 4
+        },
+        {
+          "name": "v-stron",
+          "listings": 1
+        },
+        {
+          "name": "v3",
+          "listings": 1
+        },
+        {
+          "name": "vehículo",
+          "listings": 2
+        },
+        {
+          "name": "vendo",
+          "listings": 1
+        },
+        {
+          "name": "venom",
+          "listings": 1
+        },
+        {
+          "name": "versión",
+          "listings": 1
+        },
+        {
+          "name": "victoria",
+          "listings": 1
+        },
+        {
+          "name": "viper",
+          "listings": 1
+        },
+        {
+          "name": "viva",
+          "listings": 3
+        },
+        {
+          "name": "vogepro",
+          "listings": 1
+        },
+        {
+          "name": "vogue",
+          "listings": 1
+        },
+        {
+          "name": "vstron",
+          "listings": 1
+        },
+        {
+          "name": "víctory",
+          "listings": 1
+        },
+        {
+          "name": "wincher-maleta-exploradoras",
+          "listings": 1
+        },
+        {
+          "name": "x",
+          "listings": 1
+        },
+        {
+          "name": "x-adv",
+          "listings": 1
+        },
+        {
+          "name": "x-max",
+          "listings": 1
+        },
+        {
+          "name": "x-pulse",
+          "listings": 1
+        },
+        {
+          "name": "xr",
+          "listings": 3
+        },
+        {
+          "name": "xt660",
+          "listings": 1
+        },
+        {
+          "name": "xtown",
+          "listings": 1
+        },
+        {
+          "name": "ycf",
+          "listings": 2
+        },
+        {
+          "name": "yz450f",
+          "listings": 1
+        },
+        {
+          "name": "yzx",
+          "listings": 1
+        },
+        {
+          "name": "z",
+          "listings": 1
+        },
+        {
+          "name": "zx10r",
+          "listings": 1
+        },
+        {
+          "name": "¡se",
+          "listings": 1
+        },
+        {
+          "name": "única",
+          "listings": 3
+        },
+        {
+          "name": "único",
+          "listings": 7
+        }
+      ]
+    },
+    {
+      "name": "Ducati",
+      "listings": 135,
+      "models": [
+        {
+          "name": "desert",
+          "listings": 11
+        },
+        {
+          "name": "desertx",
+          "listings": 4
+        },
+        {
+          "name": "diavel",
+          "listings": 6
+        },
+        {
+          "name": "díavel",
+          "listings": 1
+        },
+        {
+          "name": "hypermotard",
+          "listings": 17
+        },
+        {
+          "name": "marca:",
+          "listings": 1
+        },
+        {
+          "name": "monster",
+          "listings": 13
+        },
+        {
+          "name": "multiestrada",
+          "listings": 1
+        },
+        {
+          "name": "multistrada",
+          "listings": 35
+        },
+        {
+          "name": "multristrada",
+          "listings": 1
+        },
+        {
+          "name": "panigale",
+          "listings": 14
+        },
+        {
+          "name": "scrambler",
+          "listings": 19
+        },
+        {
+          "name": "streetfighter",
+          "listings": 7
+        },
+        {
+          "name": "v4",
+          "listings": 1
+        },
+        {
+          "name": "vendo",
+          "listings": 1
+        },
+        {
+          "name": "x",
+          "listings": 2
+        },
+        {
+          "name": "xdiavel",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Harley-Davidson",
+      "listings": 32,
+      "models": [
+        {
+          "name": "breakout",
+          "listings": 1
+        },
+        {
+          "name": "dyna",
+          "listings": 1
+        },
+        {
+          "name": "fat",
+          "listings": 1
+        },
+        {
+          "name": "harley",
+          "listings": 24
+        },
+        {
+          "name": "ra1250s",
+          "listings": 2
+        },
+        {
+          "name": "sportster",
+          "listings": 2
+        },
+        {
+          "name": "xg",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Hero",
+      "listings": 102,
+      "models": [
+        {
+          "name": "dash",
+          "listings": 3
+        },
+        {
+          "name": "eco",
+          "listings": 6
+        },
+        {
+          "name": "hunk",
+          "listings": 45
+        },
+        {
+          "name": "ignitor",
+          "listings": 5
+        },
+        {
+          "name": "se",
+          "listings": 1
+        },
+        {
+          "name": "splendor",
+          "listings": 3
+        },
+        {
+          "name": "thriller",
+          "listings": 7
+        },
+        {
+          "name": "xoom",
+          "listings": 1
+        },
+        {
+          "name": "xpulse",
+          "listings": 31
+        }
+      ]
+    },
+    {
+      "name": "Honda",
+      "listings": 245,
+      "models": [
+        {
+          "name": "adv",
+          "listings": 2
+        },
+        {
+          "name": "adv350",
+          "listings": 2
+        },
+        {
+          "name": "adv350,",
+          "listings": 1
+        },
+        {
+          "name": "adv75r",
+          "listings": 1
+        },
+        {
+          "name": "africa",
+          "listings": 4
+        },
+        {
+          "name": "atv",
+          "listings": 1
+        },
+        {
+          "name": "c70",
+          "listings": 1
+        },
+        {
+          "name": "cali,",
+          "listings": 1
+        },
+        {
+          "name": "cb",
+          "listings": 45
+        },
+        {
+          "name": "cb100",
+          "listings": 1
+        },
+        {
+          "name": "cb1000r",
+          "listings": 2
+        },
+        {
+          "name": "cb1000ral",
+          "listings": 1
+        },
+        {
+          "name": "cb125f",
+          "listings": 2
+        },
+        {
+          "name": "cb160f",
+          "listings": 1
+        },
+        {
+          "name": "cb190",
+          "listings": 2
+        },
+        {
+          "name": "cb190r",
+          "listings": 11
+        },
+        {
+          "name": "cb250",
+          "listings": 1
+        },
+        {
+          "name": "cb300",
+          "listings": 1
+        },
+        {
+          "name": "cb500f",
+          "listings": 1
+        },
+        {
+          "name": "cb500x",
+          "listings": 1
+        },
+        {
+          "name": "cb650r",
+          "listings": 1
+        },
+        {
+          "name": "cbf",
+          "listings": 2
+        },
+        {
+          "name": "cbf125f",
+          "listings": 1
+        },
+        {
+          "name": "cbr",
+          "listings": 6
+        },
+        {
+          "name": "cbr1000",
+          "listings": 1
+        },
+        {
+          "name": "cbr500r",
+          "listings": 1
+        },
+        {
+          "name": "cbx",
+          "listings": 1
+        },
+        {
+          "name": "click",
+          "listings": 3
+        },
+        {
+          "name": "como",
+          "listings": 1
+        },
+        {
+          "name": "crf",
+          "listings": 6
+        },
+        {
+          "name": "crf1100",
+          "listings": 1
+        },
+        {
+          "name": "dio",
+          "listings": 10
+        },
+        {
+          "name": "dió",
+          "listings": 1
+        },
+        {
+          "name": "dream",
+          "listings": 1
+        },
+        {
+          "name": "dtc90",
+          "listings": 1
+        },
+        {
+          "name": "elite",
+          "listings": 2
+        },
+        {
+          "name": "expectacular",
+          "listings": 1
+        },
+        {
+          "name": "goldwing",
+          "listings": 1
+        },
+        {
+          "name": "hornet",
+          "listings": 1
+        },
+        {
+          "name": "jialing",
+          "listings": 1
+        },
+        {
+          "name": "magna",
+          "listings": 1
+        },
+        {
+          "name": "marca",
+          "listings": 1
+        },
+        {
+          "name": "maxiscooter",
+          "listings": 1
+        },
+        {
+          "name": "motocross",
+          "listings": 1
+        },
+        {
+          "name": "navi",
+          "listings": 9
+        },
+        {
+          "name": "nc",
+          "listings": 1
+        },
+        {
+          "name": "nc750",
+          "listings": 1
+        },
+        {
+          "name": "nc750x",
+          "listings": 1
+        },
+        {
+          "name": "nx",
+          "listings": 3
+        },
+        {
+          "name": "nx190",
+          "listings": 1
+        },
+        {
+          "name": "pcx",
+          "listings": 9
+        },
+        {
+          "name": "pcx150",
+          "listings": 2
+        },
+        {
+          "name": "pcx160",
+          "listings": 3
+        },
+        {
+          "name": "pioneer",
+          "listings": 1
+        },
+        {
+          "name": "preciosa",
+          "listings": 1
+        },
+        {
+          "name": "replica",
+          "listings": 1
+        },
+        {
+          "name": "repuesto",
+          "listings": 1
+        },
+        {
+          "name": "se",
+          "listings": 2
+        },
+        {
+          "name": "shadow",
+          "listings": 1
+        },
+        {
+          "name": "tornado",
+          "listings": 2
+        },
+        {
+          "name": "transalp",
+          "listings": 2
+        },
+        {
+          "name": "trx",
+          "listings": 1
+        },
+        {
+          "name": "vendo",
+          "listings": 3
+        },
+        {
+          "name": "venta",
+          "listings": 1
+        },
+        {
+          "name": "vtx",
+          "listings": 1
+        },
+        {
+          "name": "wave",
+          "listings": 4
+        },
+        {
+          "name": "x-adv",
+          "listings": 7
+        },
+        {
+          "name": "x-blade",
+          "listings": 3
+        },
+        {
+          "name": "xadv",
+          "listings": 13
+        },
+        {
+          "name": "xadv-750",
+          "listings": 2
+        },
+        {
+          "name": "xadv750,",
+          "listings": 1
+        },
+        {
+          "name": "xl",
+          "listings": 4
+        },
+        {
+          "name": "xr",
+          "listings": 12
+        },
+        {
+          "name": "xr190l",
+          "listings": 1
+        },
+        {
+          "name": "xr250",
+          "listings": 1
+        },
+        {
+          "name": "xre",
+          "listings": 14
+        },
+        {
+          "name": "xre190",
+          "listings": 1
+        },
+        {
+          "name": "xre300",
+          "listings": 4
+        },
+        {
+          "name": "áfrica",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Husqvarna",
+      "listings": 63,
+      "models": [
+        {
+          "name": "401",
+          "listings": 1
+        },
+        {
+          "name": "701",
+          "listings": 13
+        },
+        {
+          "name": "ee3",
+          "listings": 1
+        },
+        {
+          "name": "enduro",
+          "listings": 2
+        },
+        {
+          "name": "fe",
+          "listings": 1
+        },
+        {
+          "name": "fe250",
+          "listings": 1
+        },
+        {
+          "name": "norden",
+          "listings": 12
+        },
+        {
+          "name": "scrambler",
+          "listings": 1
+        },
+        {
+          "name": "svartpilen",
+          "listings": 29
+        },
+        {
+          "name": "tc50",
+          "listings": 1
+        },
+        {
+          "name": "vitpilen",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "KTM",
+      "listings": 171,
+      "models": [
+        {
+          "name": "1050",
+          "listings": 1
+        },
+        {
+          "name": "1190",
+          "listings": 1
+        },
+        {
+          "name": "1290",
+          "listings": 9
+        },
+        {
+          "name": "1390",
+          "listings": 5
+        },
+        {
+          "name": "200",
+          "listings": 10
+        },
+        {
+          "name": "250",
+          "listings": 8
+        },
+        {
+          "name": "300",
+          "listings": 2
+        },
+        {
+          "name": "350",
+          "listings": 2
+        },
+        {
+          "name": "390",
+          "listings": 38
+        },
+        {
+          "name": "450",
+          "listings": 1
+        },
+        {
+          "name": "50",
+          "listings": 2
+        },
+        {
+          "name": "650",
+          "listings": 1
+        },
+        {
+          "name": "690",
+          "listings": 13
+        },
+        {
+          "name": "790",
+          "listings": 4
+        },
+        {
+          "name": "890",
+          "listings": 19
+        },
+        {
+          "name": "90",
+          "listings": 1
+        },
+        {
+          "name": "950",
+          "listings": 1
+        },
+        {
+          "name": "990",
+          "listings": 4
+        },
+        {
+          "name": "adventure",
+          "listings": 2
+        },
+        {
+          "name": "aventure",
+          "listings": 1
+        },
+        {
+          "name": "duke",
+          "listings": 35
+        },
+        {
+          "name": "exc",
+          "listings": 1
+        },
+        {
+          "name": "ktm",
+          "listings": 1
+        },
+        {
+          "name": "naked",
+          "listings": 1
+        },
+        {
+          "name": "rc",
+          "listings": 3
+        },
+        {
+          "name": "superduke",
+          "listings": 1
+        },
+        {
+          "name": "sx-f",
+          "listings": 1
+        },
+        {
+          "name": "súper",
+          "listings": 1
+        },
+        {
+          "name": "vendo",
+          "listings": 1
+        },
+        {
+          "name": "venta",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Kawasaki",
+      "listings": 86,
+      "models": [
+        {
+          "name": "500",
+          "listings": 1
+        },
+        {
+          "name": "en",
+          "listings": 2
+        },
+        {
+          "name": "er",
+          "listings": 1
+        },
+        {
+          "name": "er6n",
+          "listings": 3
+        },
+        {
+          "name": "ex",
+          "listings": 1
+        },
+        {
+          "name": "kle",
+          "listings": 2
+        },
+        {
+          "name": "kle300",
+          "listings": 1
+        },
+        {
+          "name": "kle500",
+          "listings": 1
+        },
+        {
+          "name": "klx",
+          "listings": 2
+        },
+        {
+          "name": "klz1000epfnn",
+          "listings": 1
+        },
+        {
+          "name": "kmx",
+          "listings": 1
+        },
+        {
+          "name": "kx",
+          "listings": 6
+        },
+        {
+          "name": "mule",
+          "listings": 1
+        },
+        {
+          "name": "ninja",
+          "listings": 11
+        },
+        {
+          "name": "teryx4",
+          "listings": 1
+        },
+        {
+          "name": "vendo",
+          "listings": 1
+        },
+        {
+          "name": "versys",
+          "listings": 21
+        },
+        {
+          "name": "versys-x",
+          "listings": 1
+        },
+        {
+          "name": "vulcan",
+          "listings": 1
+        },
+        {
+          "name": "z",
+          "listings": 6
+        },
+        {
+          "name": "z1000",
+          "listings": 3
+        },
+        {
+          "name": "z1000sx",
+          "listings": 1
+        },
+        {
+          "name": "z1100",
+          "listings": 2
+        },
+        {
+          "name": "z250",
+          "listings": 1
+        },
+        {
+          "name": "z400",
+          "listings": 2
+        },
+        {
+          "name": "z500",
+          "listings": 1
+        },
+        {
+          "name": "z900",
+          "listings": 7
+        },
+        {
+          "name": "zr1000",
+          "listings": 1
+        },
+        {
+          "name": "zr900",
+          "listings": 1
+        },
+        {
+          "name": "zx10-r",
+          "listings": 1
+        },
+        {
+          "name": "zx6r",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Kymco",
+      "listings": 61,
+      "models": [
+        {
+          "name": "agility",
+          "listings": 27
+        },
+        {
+          "name": "aguility",
+          "listings": 1
+        },
+        {
+          "name": "downtown",
+          "listings": 3
+        },
+        {
+          "name": "dowton",
+          "listings": 1
+        },
+        {
+          "name": "fly",
+          "listings": 2
+        },
+        {
+          "name": "like",
+          "listings": 1
+        },
+        {
+          "name": "mongoose",
+          "listings": 1
+        },
+        {
+          "name": "rocket",
+          "listings": 5
+        },
+        {
+          "name": "super",
+          "listings": 3
+        },
+        {
+          "name": "twist",
+          "listings": 11
+        },
+        {
+          "name": "urban",
+          "listings": 2
+        },
+        {
+          "name": "vendo",
+          "listings": 2
+        },
+        {
+          "name": "xciting",
+          "listings": 1
+        },
+        {
+          "name": "xtown",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "MV Agusta",
+      "listings": 7,
+      "models": [
+        {
+          "name": "brutale",
+          "listings": 2
+        },
+        {
+          "name": "f3",
+          "listings": 1
+        },
+        {
+          "name": "lxp",
+          "listings": 1
+        },
+        {
+          "name": "rivale",
+          "listings": 1
+        },
+        {
+          "name": "turismo",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "PLR",
+      "listings": 43,
+      "models": [
+        {
+          "name": "110",
+          "listings": 1
+        },
+        {
+          "name": "125cc",
+          "listings": 1
+        },
+        {
+          "name": "300",
+          "listings": 1
+        },
+        {
+          "name": "320cc",
+          "listings": 1
+        },
+        {
+          "name": "buggie",
+          "listings": 1
+        },
+        {
+          "name": "buggy",
+          "listings": 2
+        },
+        {
+          "name": "commander",
+          "listings": 3
+        },
+        {
+          "name": "cuatriciclo",
+          "listings": 1
+        },
+        {
+          "name": "electrica",
+          "listings": 1
+        },
+        {
+          "name": "enduro",
+          "listings": 2
+        },
+        {
+          "name": "f320",
+          "listings": 1
+        },
+        {
+          "name": "moto",
+          "listings": 1
+        },
+        {
+          "name": "motocross",
+          "listings": 5
+        },
+        {
+          "name": "panther",
+          "listings": 3
+        },
+        {
+          "name": "pitbike",
+          "listings": 2
+        },
+        {
+          "name": "racing",
+          "listings": 1
+        },
+        {
+          "name": "raptor",
+          "listings": 6
+        },
+        {
+          "name": "rhino",
+          "listings": 2
+        },
+        {
+          "name": "shark",
+          "listings": 2
+        },
+        {
+          "name": "viper",
+          "listings": 1
+        },
+        {
+          "name": "xavage",
+          "listings": 4
+        },
+        {
+          "name": "xpedition",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Piaggio",
+      "listings": 3,
+      "models": [
+        {
+          "name": "ape501",
+          "listings": 1
+        },
+        {
+          "name": "beverly",
+          "listings": 1
+        },
+        {
+          "name": "vespa",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Polaris",
+      "listings": 20,
+      "models": [
+        {
+          "name": "general",
+          "listings": 1
+        },
+        {
+          "name": "ranger",
+          "listings": 1
+        },
+        {
+          "name": "rzr",
+          "listings": 15
+        },
+        {
+          "name": "sportsman",
+          "listings": 2
+        },
+        {
+          "name": "xp",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Royal Enfield",
+      "listings": 70,
+      "models": [
+        {
+          "name": "-",
+          "listings": 2
+        },
+        {
+          "name": "350",
+          "listings": 1
+        },
+        {
+          "name": "bear",
+          "listings": 1
+        },
+        {
+          "name": "calle",
+          "listings": 1
+        },
+        {
+          "name": "classic",
+          "listings": 3
+        },
+        {
+          "name": "continental",
+          "listings": 1
+        },
+        {
+          "name": "grr",
+          "listings": 1
+        },
+        {
+          "name": "grr450",
+          "listings": 1
+        },
+        {
+          "name": "hermosa",
+          "listings": 1
+        },
+        {
+          "name": "himalaya",
+          "listings": 2
+        },
+        {
+          "name": "himalayan",
+          "listings": 27
+        },
+        {
+          "name": "himlayan",
+          "listings": 1
+        },
+        {
+          "name": "hntr",
+          "listings": 3
+        },
+        {
+          "name": "interceptor",
+          "listings": 4
+        },
+        {
+          "name": "meteor",
+          "listings": 11
+        },
+        {
+          "name": "scram",
+          "listings": 5
+        },
+        {
+          "name": "se",
+          "listings": 1
+        },
+        {
+          "name": "super",
+          "listings": 2
+        },
+        {
+          "name": "tbx",
+          "listings": 1
+        },
+        {
+          "name": "vendo",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "SYM",
+      "listings": 38,
+      "models": [
+        {
+          "name": "adx",
+          "listings": 9
+        },
+        {
+          "name": "adx150",
+          "listings": 1
+        },
+        {
+          "name": "adxtg",
+          "listings": 10
+        },
+        {
+          "name": "av12w",
+          "listings": 1
+        },
+        {
+          "name": "crox",
+          "listings": 5
+        },
+        {
+          "name": "drg",
+          "listings": 1
+        },
+        {
+          "name": "joymax",
+          "listings": 1
+        },
+        {
+          "name": "maxiscooter",
+          "listings": 1
+        },
+        {
+          "name": "maxsym",
+          "listings": 1
+        },
+        {
+          "name": "me20b",
+          "listings": 1
+        },
+        {
+          "name": "new",
+          "listings": 2
+        },
+        {
+          "name": "nhr",
+          "listings": 1
+        },
+        {
+          "name": "nht300",
+          "listings": 1
+        },
+        {
+          "name": "nhx",
+          "listings": 1
+        },
+        {
+          "name": "touring",
+          "listings": 1
+        },
+        {
+          "name": "vendo",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Suzuki",
+      "listings": 213,
+      "models": [
+        {
+          "name": "access",
+          "listings": 1
+        },
+        {
+          "name": "adventure",
+          "listings": 1
+        },
+        {
+          "name": "ax",
+          "listings": 1
+        },
+        {
+          "name": "ax4",
+          "listings": 3
+        },
+        {
+          "name": "best",
+          "listings": 1
+        },
+        {
+          "name": "burgman",
+          "listings": 1
+        },
+        {
+          "name": "dl",
+          "listings": 1
+        },
+        {
+          "name": "dr",
+          "listings": 19
+        },
+        {
+          "name": "dr150",
+          "listings": 3
+        },
+        {
+          "name": "dr650",
+          "listings": 3
+        },
+        {
+          "name": "gixxer",
+          "listings": 86
+        },
+        {
+          "name": "gn",
+          "listings": 7
+        },
+        {
+          "name": "gs",
+          "listings": 2
+        },
+        {
+          "name": "gsr",
+          "listings": 2
+        },
+        {
+          "name": "gsx",
+          "listings": 11
+        },
+        {
+          "name": "gsx-r",
+          "listings": 1
+        },
+        {
+          "name": "gsx-s",
+          "listings": 7
+        },
+        {
+          "name": "gsx-s1000",
+          "listings": 1
+        },
+        {
+          "name": "gsx-s1000za",
+          "listings": 1
+        },
+        {
+          "name": "gsx-s150",
+          "listings": 2
+        },
+        {
+          "name": "gsx-s150abs",
+          "listings": 1
+        },
+        {
+          "name": "gsx125r",
+          "listings": 1
+        },
+        {
+          "name": "gsxr-600",
+          "listings": 1
+        },
+        {
+          "name": "gsxs",
+          "listings": 2
+        },
+        {
+          "name": "gsxs750",
+          "listings": 1
+        },
+        {
+          "name": "gz",
+          "listings": 1
+        },
+        {
+          "name": "hayate",
+          "listings": 1
+        },
+        {
+          "name": "sv",
+          "listings": 1
+        },
+        {
+          "name": "v",
+          "listings": 1
+        },
+        {
+          "name": "v-store",
+          "listings": 1
+        },
+        {
+          "name": "v-strom",
+          "listings": 22
+        },
+        {
+          "name": "vendo/permuto",
+          "listings": 1
+        },
+        {
+          "name": "viva",
+          "listings": 1
+        },
+        {
+          "name": "vstrom",
+          "listings": 21
+        },
+        {
+          "name": "vstrom250sx",
+          "listings": 1
+        },
+        {
+          "name": "xr",
+          "listings": 1
+        },
+        {
+          "name": "¡vendo",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "TVS",
+      "listings": 109,
+      "models": [
+        {
+          "name": "apache",
+          "listings": 79
+        },
+        {
+          "name": "max",
+          "listings": 1
+        },
+        {
+          "name": "n125",
+          "listings": 1
+        },
+        {
+          "name": "ntorq",
+          "listings": 4
+        },
+        {
+          "name": "raider",
+          "listings": 15
+        },
+        {
+          "name": "se",
+          "listings": 1
+        },
+        {
+          "name": "sport",
+          "listings": 6
+        },
+        {
+          "name": "stryker",
+          "listings": 1
+        },
+        {
+          "name": "unico",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Triumph",
+      "listings": 38,
+      "models": [
+        {
+          "name": "bonneville",
+          "listings": 1
+        },
+        {
+          "name": "espectacular",
+          "listings": 1
+        },
+        {
+          "name": "naked",
+          "listings": 1
+        },
+        {
+          "name": "rocket",
+          "listings": 1
+        },
+        {
+          "name": "scrambler",
+          "listings": 12
+        },
+        {
+          "name": "speed",
+          "listings": 5
+        },
+        {
+          "name": "street",
+          "listings": 1
+        },
+        {
+          "name": "tiger",
+          "listings": 14
+        },
+        {
+          "name": "trident",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "UM",
+      "listings": 4,
+      "models": [
+        {
+          "name": "renegade",
+          "listings": 3
+        },
+        {
+          "name": "rev",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Vento",
+      "listings": 3,
+      "models": [
+        {
+          "name": "screamer",
+          "listings": 3
+        }
+      ]
+    },
+    {
+      "name": "Vespa",
+      "listings": 13,
+      "models": [
+        {
+          "name": "150",
+          "listings": 2
+        },
+        {
+          "name": "con",
+          "listings": 1
+        },
+        {
+          "name": "gts",
+          "listings": 2
+        },
+        {
+          "name": "gtv",
+          "listings": 1
+        },
+        {
+          "name": "primavera",
+          "listings": 1
+        },
+        {
+          "name": "px",
+          "listings": 1
+        },
+        {
+          "name": "sei",
+          "listings": 1
+        },
+        {
+          "name": "sprint",
+          "listings": 1
+        },
+        {
+          "name": "vxl",
+          "listings": 3
+        }
+      ]
+    },
+    {
+      "name": "Victory",
+      "listings": 121,
+      "models": [
+        {
+          "name": "advance",
+          "listings": 5
+        },
+        {
+          "name": "arizona",
+          "listings": 1
+        },
+        {
+          "name": "bet",
+          "listings": 1
+        },
+        {
+          "name": "black",
+          "listings": 7
+        },
+        {
+          "name": "blackline",
+          "listings": 1
+        },
+        {
+          "name": "bold",
+          "listings": 3
+        },
+        {
+          "name": "bomber",
+          "listings": 15
+        },
+        {
+          "name": "combat",
+          "listings": 2
+        },
+        {
+          "name": "en",
+          "listings": 1
+        },
+        {
+          "name": "hunter",
+          "listings": 4
+        },
+        {
+          "name": "life",
+          "listings": 6
+        },
+        {
+          "name": "mach",
+          "listings": 1
+        },
+        {
+          "name": "mrx",
+          "listings": 27
+        },
+        {
+          "name": "new",
+          "listings": 7
+        },
+        {
+          "name": "nitro",
+          "listings": 2
+        },
+        {
+          "name": "one",
+          "listings": 7
+        },
+        {
+          "name": "scooter",
+          "listings": 1
+        },
+        {
+          "name": "se",
+          "listings": 1
+        },
+        {
+          "name": "switch",
+          "listings": 12
+        },
+        {
+          "name": "venom",
+          "listings": 9
+        },
+        {
+          "name": "venun",
+          "listings": 1
+        },
+        {
+          "name": "x1",
+          "listings": 1
+        },
+        {
+          "name": "zontes",
+          "listings": 4
+        },
+        {
+          "name": "zs",
+          "listings": 2
+        }
+      ]
+    },
+    {
+      "name": "Yamaha",
+      "listings": 412,
+      "models": [
+        {
+          "name": "aerox",
+          "listings": 13
+        },
+        {
+          "name": "af115s",
+          "listings": 1
+        },
+        {
+          "name": "areox",
+          "listings": 1
+        },
+        {
+          "name": "at115",
+          "listings": 1
+        },
+        {
+          "name": "banshee",
+          "listings": 2
+        },
+        {
+          "name": "bwis",
+          "listings": 1
+        },
+        {
+          "name": "bws",
+          "listings": 16
+        },
+        {
+          "name": "bws-x",
+          "listings": 1
+        },
+        {
+          "name": "bwsx",
+          "listings": 1
+        },
+        {
+          "name": "crypton",
+          "listings": 8
+        },
+        {
+          "name": "deportiva",
+          "listings": 1
+        },
+        {
+          "name": "disco",
+          "listings": 1
+        },
+        {
+          "name": "dt",
+          "listings": 5
+        },
+        {
+          "name": "enduro",
+          "listings": 1
+        },
+        {
+          "name": "fazer",
+          "listings": 2
+        },
+        {
+          "name": "fino",
+          "listings": 2
+        },
+        {
+          "name": "fz",
+          "listings": 52
+        },
+        {
+          "name": "fz25",
+          "listings": 4
+        },
+        {
+          "name": "fz8n",
+          "listings": 1
+        },
+        {
+          "name": "fz8s",
+          "listings": 1
+        },
+        {
+          "name": "fzn",
+          "listings": 1
+        },
+        {
+          "name": "fzn-150-a",
+          "listings": 1
+        },
+        {
+          "name": "fzn-150d",
+          "listings": 1
+        },
+        {
+          "name": "grizzly",
+          "listings": 1
+        },
+        {
+          "name": "impecable",
+          "listings": 1
+        },
+        {
+          "name": "jog",
+          "listings": 2
+        },
+        {
+          "name": "mt",
+          "listings": 32
+        },
+        {
+          "name": "mt-03",
+          "listings": 2
+        },
+        {
+          "name": "mt-09",
+          "listings": 5
+        },
+        {
+          "name": "mt-15",
+          "listings": 3
+        },
+        {
+          "name": "mt03",
+          "listings": 3
+        },
+        {
+          "name": "mt07",
+          "listings": 1
+        },
+        {
+          "name": "mt09",
+          "listings": 2
+        },
+        {
+          "name": "mt15",
+          "listings": 4
+        },
+        {
+          "name": "mt15-",
+          "listings": 1
+        },
+        {
+          "name": "mtn",
+          "listings": 1
+        },
+        {
+          "name": "n-max",
+          "listings": 10
+        },
+        {
+          "name": "naked",
+          "listings": 2
+        },
+        {
+          "name": "nmax",
+          "listings": 49
+        },
+        {
+          "name": "nmax155",
+          "listings": 3
+        },
+        {
+          "name": "r",
+          "listings": 1
+        },
+        {
+          "name": "r15",
+          "listings": 16
+        },
+        {
+          "name": "r15/",
+          "listings": 1
+        },
+        {
+          "name": "r3",
+          "listings": 2
+        },
+        {
+          "name": "r6",
+          "listings": 3
+        },
+        {
+          "name": "raptor",
+          "listings": 6
+        },
+        {
+          "name": "royal",
+          "listings": 1
+        },
+        {
+          "name": "se",
+          "listings": 2
+        },
+        {
+          "name": "super",
+          "listings": 6
+        },
+        {
+          "name": "supertenere",
+          "listings": 1
+        },
+        {
+          "name": "sz",
+          "listings": 2
+        },
+        {
+          "name": "szr",
+          "listings": 5
+        },
+        {
+          "name": "tenere",
+          "listings": 3
+        },
+        {
+          "name": "tmax",
+          "listings": 2
+        },
+        {
+          "name": "tracer",
+          "listings": 3
+        },
+        {
+          "name": "unicornio",
+          "listings": 1
+        },
+        {
+          "name": "va",
+          "listings": 1
+        },
+        {
+          "name": "vendo",
+          "listings": 2
+        },
+        {
+          "name": "wr",
+          "listings": 1
+        },
+        {
+          "name": "wr250f",
+          "listings": 1
+        },
+        {
+          "name": "x",
+          "listings": 2
+        },
+        {
+          "name": "x-max",
+          "listings": 4
+        },
+        {
+          "name": "x-max300",
+          "listings": 1
+        },
+        {
+          "name": "xj6f",
+          "listings": 1
+        },
+        {
+          "name": "xmax",
+          "listings": 19
+        },
+        {
+          "name": "xsr",
+          "listings": 2
+        },
+        {
+          "name": "xt",
+          "listings": 4
+        },
+        {
+          "name": "xt1200",
+          "listings": 1
+        },
+        {
+          "name": "xt1200ze",
+          "listings": 1
+        },
+        {
+          "name": "xt225",
+          "listings": 1
+        },
+        {
+          "name": "xt660r",
+          "listings": 2
+        },
+        {
+          "name": "xt660z",
+          "listings": 2
+        },
+        {
+          "name": "xtz",
+          "listings": 34
+        },
+        {
+          "name": "xtz150",
+          "listings": 2
+        },
+        {
+          "name": "xtz250",
+          "listings": 1
+        },
+        {
+          "name": "xtz690",
+          "listings": 1
+        },
+        {
+          "name": "xv",
+          "listings": 1
+        },
+        {
+          "name": "ybr",
+          "listings": 1
+        },
+        {
+          "name": "ybr125",
+          "listings": 1
+        },
+        {
+          "name": "yc",
+          "listings": 1
+        },
+        {
+          "name": "yc-z",
+          "listings": 1
+        },
+        {
+          "name": "ycz",
+          "listings": 2
+        },
+        {
+          "name": "yfm250r",
+          "listings": 1
+        },
+        {
+          "name": "yfz",
+          "listings": 2
+        },
+        {
+          "name": "yfz350",
+          "listings": 1
+        },
+        {
+          "name": "yw125",
+          "listings": 1
+        },
+        {
+          "name": "yw125x",
+          "listings": 3
+        },
+        {
+          "name": "yz",
+          "listings": 7
+        },
+        {
+          "name": "yzf",
+          "listings": 3
+        },
+        {
+          "name": "yzf-r1",
+          "listings": 2
+        },
+        {
+          "name": "yzf-r15",
+          "listings": 2
+        },
+        {
+          "name": "ztx",
+          "listings": 1
+        },
+        {
+          "name": "¡se",
+          "listings": 1
+        }
+      ]
+    },
+    {
+      "name": "Zontes",
+      "listings": 18,
+      "models": [
+        {
+          "name": "155u",
+          "listings": 1
+        },
+        {
+          "name": "310",
+          "listings": 2
+        },
+        {
+          "name": "310m",
+          "listings": 2
+        },
+        {
+          "name": "350",
+          "listings": 1
+        },
+        {
+          "name": "368",
+          "listings": 1
+        },
+        {
+          "name": "368g",
+          "listings": 5
+        },
+        {
+          "name": "703",
+          "listings": 1
+        },
+        {
+          "name": "703f",
+          "listings": 2
+        },
+        {
+          "name": "adv",
+          "listings": 1
+        },
+        {
+          "name": "se",
+          "listings": 1
+        },
+        {
+          "name": "t2",
+          "listings": 1
+        }
+      ]
+    }
+  ],
+  "departments": [
+    {
+      "name": "Antioquia",
+      "listings": 983
+    },
+    {
+      "name": "Atlántico",
+      "listings": 69
+    },
+    {
+      "name": "Bogotá D.C.",
+      "listings": 1135
+    },
+    {
+      "name": "Cauca",
+      "listings": 3
+    },
+    {
+      "name": "Cundinamarca",
+      "listings": 385
+    },
+    {
+      "name": "Norte De Santander",
+      "listings": 23
+    },
+    {
+      "name": "Quindio",
+      "listings": 34
+    },
+    {
+      "name": "Santander",
+      "listings": 186
+    },
+    {
+      "name": "Valle Del Cauca",
+      "listings": 423
+    }
+  ],
+  "model_year": {
+    "min": 1958.0,
+    "max": 2027.0
+  },
+  "engine_cc": {
+    "min": 50.0,
+    "max": 2500.0
+  }
+}

@@ -45,6 +45,45 @@ jobs:
       - name: Tests with coverage
         run: uv run pytest --cov-report=xml
 
+  frontend:
+    name: frontend builds and lints
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      # The static export is what Render publishes, so building it here is the same
+      # command the platform runs. It also reads docs/results and artifacts/models from
+      # the repository, which means a missing or malformed result table fails the build
+      # rather than rendering an empty page.
+      - name: Build the static export
+        run: npm run build
+
+      - name: Check the export produced every page
+        run: |
+          for page in index.html mercado/index.html metodologia/index.html; do
+            test -s "out/$page" || { echo "::error::out/$page is missing or empty"; exit 1; }
+          done
+          echo "::notice title=Static export::$(du -sh out | cut -f1) in $(find out -name '*.html' | wc -l) pages"
+
   docker:
     name: api image builds
     runs-on: ubuntu-latest
@@ -75,11 +114,29 @@ jobs:
             exit 1
           fi
 
-      # Proves the image actually serves before anyone deploys it: a build that succeeds
-      # and a container that answers are different claims.
-      - name: Start it and check /health and /model-info
+      # setup-python rather than the runner's system interpreter: Ubuntu marks that one
+      # externally managed, so `pip install` into it fails outright.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The environment Render will pass, read from the blueprint itself rather than
+      # retyped here. A value that breaks Settings used to be discoverable only on the
+      # platform, because nothing in the repository ever loaded render.yaml.
+      - name: Collect the deployment environment from render.yaml
         run: |
-          docker run --detach --name api --publish 8000:8000 autovalor-api:ci
+          python -m pip install --quiet --disable-pip-version-check pyyaml
+          PYTHONPATH=src python -m autovalor.deploy --service autovalor-api > render-api.env
+          cat render-api.env
+
+      # Proves the image actually serves before anyone deploys it: a build that succeeds
+      # and a container that answers are different claims. Started with the deployment's
+      # own environment, so a CORS allow-list or a port that the service cannot parse
+      # fails here and not after a push to main.
+      - name: Start it with the deployment environment and check it answers
+        run: |
+          docker run --detach --name api --env-file render-api.env \
+            --publish 8000:8000 autovalor-api:ci
           for _ in $(seq 1 30); do
             if curl --silent --fail http://127.0.0.1:8000/health > /dev/null; then break; fi
             sleep 2
@@ -87,6 +144,29 @@ jobs:
           # The container's own log, always. Without it a failure here is a bare curl exit
           # code and the actual Python traceback stays inside a container nobody can reach.
           docker logs api
-          curl --silent --fail http://127.0.0.1:8000/health
-          curl --silent --fail http://127.0.0.1:8000/model-info
+          curl --silent --fail http://127.0.0.1:8000/health --output health.json
+          curl --silent --fail http://127.0.0.1:8000/model-info --output model-info.json
+          curl --silent --fail http://127.0.0.1:8000/catalog --output catalog.json
+          # "200 and some JSON" is not the claim worth checking: a container that starts
+          # without its artifacts answers 200 "degraded" by design, which is exactly the
+          # broken deployment this step exists to catch. So assert both models are loaded
+          # and both catalogues made it into the image.
+          python - <<'PY'
+          import json, pathlib, sys
+
+          health = json.loads(pathlib.Path("health.json").read_text())
+          if health["status"] != "ok" or health["models_loaded"] != ["car", "motorcycle"]:
+              sys.exit(f"::error::the container serves no usable model: {health}")
+
+          catalog = json.loads(pathlib.Path("catalog.json").read_text())
+          served = {v["vehicle_type"]: v for v in catalog["verticals"]}
+          if set(served) != {"car", "motorcycle"}:
+              sys.exit(f"::error::/catalog is missing a vertical: {sorted(served)}")
+          for name, vertical in served.items():
+              if not vertical["brands"] or not vertical["departments"]:
+                  sys.exit(f"::error::the {name} catalogue in the image is empty")
+
+          makes = ", ".join(f"{name}: {len(v['brands'])} makes" for name, v in served.items())
+          print(f"::notice title=Image serves::{health['models_loaded']} loaded, {makes}")
+          PY
           docker stop api

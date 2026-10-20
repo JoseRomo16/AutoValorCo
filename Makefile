@@ -54,6 +54,15 @@ results: ## Estimate the economic results and export them to docs/ (TRIALS=N)
 serve: ## Run the API locally with autoreload
 	$(RUN) uvicorn autovalor.api.main:app --reload --host $(HOST) --port $(PORT)
 
+web: ## Run the front end in development (expects `make serve` on :8000)
+	cd frontend && npm run dev
+
+web-build: ## Build the static export Render publishes, into frontend/out
+	cd frontend && npm run build
+
+web-lint: ## Lint and type-check the front end
+	cd frontend && npm run lint && npm run typecheck
+
 test: ## Run the test suite with coverage
 	$(RUN) pytest
 
