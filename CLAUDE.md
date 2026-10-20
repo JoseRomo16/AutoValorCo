@@ -39,6 +39,7 @@ docs/          # ADRs, diccionario de datos, results/ (JSON y CSV versionados) y
 - `make export-model` entrena el modelo servido y lo escribe en `artifacts/models/` (es lo que va dentro de la imagen)
 - `make results` estima los resultados económicos de F3 y los exporta a `docs/results` y `docs/figures`
 - `make serve` levanta la API en local
+- `make web` levanta el frontend en local; `make web-build` hace el export estático; `make web-lint` corre ESLint + tsc
 - `make test` corre pytest; `make lint` corre ruff + mypy
 
 ## Convenciones
@@ -57,6 +58,7 @@ Restricción de diseño, no una preferencia: **el proyecto opera sin ningún cos
 - **No propongas servicios que pidan tarjeta o suscripción** —Cloudflare R2, AWS, Apify, planes pagos de Render, APIs de pago— sin preguntar primero. Si una solución necesita uno, dilo y espera decisión en vez de asumirlo.
 - **El repositorio se mantiene público**, que es lo que hace gratis a GitHub Actions. Cualquier propuesta que implique volverlo privado tiene que contar ese costo.
 - **El histórico de capturas vive en la rama `data`** del propio repositorio ([ADR 0004](docs/adr/0004-capture-history-storage.md)). Almacenamiento de objetos solo se reconsidera con aprobación explícita.
+- **El frontend es un export estático** (`output: "export"`), servido por el plan `static` de Render, que es gratis y no tiene proceso que mantener despierto. Las vistas Mercado y Metodología leen `docs/results/` y `artifacts/models/*/model.json` **en tiempo de construcción**, no por HTTP: son archivos del repositorio y pedirlos a la API costaría un arranque en frío por nada. Solo el formulario de Valorar llama al servicio.
 - **F4 cabe en el plan gratuito de Render** — y ya está hecho: `Dockerfile.api` instala solo el runtime (`uv sync --no-default-groups`), sin CatBoost, MLflow, Playwright, dbt ni shap, y el modelo servido va **dentro de la imagen** en `artifacts/models/`, no descargado al arrancar. `pyproject.toml` está partido en grupos (`ingest`, `transform`, `train`, `analysis`, `dev`) que `uv sync` sigue instalando por defecto, así que dev y CI no cambian. El frontend Next.js se publica como sitio estático. Pasos de despliegue en [docs/deploy-render.md](docs/deploy-render.md); **el despliegue lo hace el usuario**, no se automatiza desde aquí.
 - **Fasecolda solo por fuentes públicas y gratuitas.** Sin suscripción a la guía — y como por HTTP público no se consigue, el benchmark está fuera de alcance, no pendiente.
 

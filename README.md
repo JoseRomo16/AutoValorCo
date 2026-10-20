@@ -7,10 +7,17 @@ _Used car and motorcycle valuation for the Colombian market_
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Status](https://img.shields.io/badge/fase-F4%20producto-blue)
 
-**API en vivo / Live API: [autovalor-api.onrender.com/docs](https://autovalor-api.onrender.com/docs)**
-· Primera consulta ~1 min: el plan gratuito de Render duerme el servicio y el arranque en
+**Demo: [autovalor-web.onrender.com](https://autovalor-web.onrender.com)** ·
+**API: [autovalor-api.onrender.com/docs](https://autovalor-api.onrender.com/docs)**
+
+Primera consulta ~1 min: el plan gratuito de Render duerme el servicio y el arranque en
 frío carga los dos modelos. _First request takes ~1 min: Render's free plan sleeps the
 service and a cold start loads both models._
+
+| Valorar · _Value_ | Mercado · _Market_ |
+| --- | --- |
+| [![Resultado de una valoración](docs/screenshots/valorar-resultado.png)](https://autovalor-web.onrender.com) | [![Depreciación anual por marca](docs/screenshots/mercado-top.png)](https://autovalor-web.onrender.com/mercado/) |
+| Precio, rango P10–P90, etiqueta cuando la banda la sostiene, y los cinco factores que mueven el estimado. | Depreciación por marca con intervalos, costo del kilometraje y diferencias regionales, cada uno con su lectura económica. |
 
 ---
 
@@ -120,6 +127,9 @@ Copy-Item .env.example .env
 | `make results`   | Estima los resultados económicos y los exporta a `docs/` | F3     |
 | `make export-model` | Entrena el modelo servido en `artifacts/models/`   | F4         |
 | `make serve`     | Levanta la API en local (`:8000`)                    | F0         |
+| `make web`       | Levanta el frontend en local (`:3000`)               | F4         |
+| `make web-build` | Construye el sitio estático en `frontend/out`        | F4         |
+| `make web-lint`  | ESLint + TypeScript del frontend                     | F4         |
 | `make test`      | pytest con cobertura (mínimo 70 %)                   | F0         |
 | `make lint`      | ruff + mypy                                          | F0         |
 
@@ -198,6 +208,46 @@ Los otros dos resultados:
   mercado.
 
 ![Diferencias regionales, motos](docs/figures/regional-motorcycle.png)
+
+### La app
+
+Next.js (App Router) + TypeScript + Tailwind en `frontend/`, publicada como **sitio
+estático** —`output: "export"`— porque es lo único que cabe gratis en Render. Español por
+defecto con cambio a inglés, y tres vistas:
+
+- **Valorar** — formulario cuyas listas salen de `GET /catalog`, es decir de las filas con
+  las que se entrenó el modelo servido. No es un detalle: los árboles llevan niveles
+  categóricos congelados, así que una marca que el modelo nunca vio saldría por la rama de
+  faltante y devolvería un número igual de confiado. El resultado trae precio, rango
+  P10–P90, etiqueta cuando la vertical la tiene, y los cinco factores de `/explain` como
+  barras de sube/baja.
+- **Mercado** — los resultados de F3, cada gráfico con una frase de lectura económica.
+- **Metodología** — datos, modelos, métricas fuera de muestra, la regla de la etiqueta y
+  las limitaciones, sin suavizarlas.
+
+**Mercado y Metodología no llaman a la API**: leen `docs/results/` y
+`artifacts/models/*/model.json` **en tiempo de construcción**, así que renderizan al
+instante y no pueden citar una cifra distinta a la del commit del que salieron. Solo
+Valorar habla con el servicio, y por eso el aviso del arranque en frío está en pantalla
+antes de que nadie pulse el botón.
+
+| Motos: precio y rango, **sin etiqueta** | En inglés |
+| --- | --- |
+| ![Resultado para una moto](docs/screenshots/valorar-moto.png) | ![El mismo formulario en inglés](docs/screenshots/valorar-english.png) |
+
+| Metodología y métricas del modelo servido | En móvil y en tema oscuro |
+| --- | --- |
+| ![Página de metodología](docs/screenshots/metodologia.png) | ![Mercado en móvil](docs/screenshots/movil-mercado.png) ![Mercado en tema oscuro](docs/screenshots/mercado-oscuro.png) |
+
+En local, contra la API desplegada o contra una local:
+
+```bash
+make serve                                    # opcional: la API en :8000
+echo "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > frontend/.env.local
+make web                                      # http://localhost:3000
+```
+
+Sin `.env.local` el frontend apunta a `https://autovalor-api.onrender.com`.
 
 ### Roadmap
 
@@ -293,6 +343,28 @@ every brand that did resolve. Mapping model names back to their make lifted bran
 from 80.4 % to **87.6 %** and the vertical from **24.1 % to 22.4 %**, with no new requests:
 it all came out of titles already captured. The largest single improvement the project has
 had, and it did not come from modeling.
+
+### The app
+
+Next.js (App Router) + TypeScript + Tailwind in `frontend/`, published as a **static
+export**, which is the only front end that is free on Render. Spanish by default with an
+English switch, and three views: **Value** (a form whose lists come from `GET /catalog` —
+the served model's own training rows, because the trees carry frozen categorical levels and
+a make they never saw would still get a confident-looking answer), **Market** (the F3
+results, every chart with the sentence that says what it means in money) and
+**Methodology** (data, models, out-of-sample metrics, the label rule and the limitations).
+
+Market and Methodology **never call the API**: they read `docs/results/` and the served
+bundles' manifests at build time, so they render instantly, work with the service asleep,
+and cannot quote a figure that disagrees with the commit they were built from. Only the
+valuation form talks to the service, which is why the cold-start notice is on screen before
+anyone presses the button.
+
+```bash
+make serve                                    # optional: the API on :8000
+echo "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > frontend/.env.local
+make web                                      # http://localhost:3000
+```
 
 ### Roadmap
 

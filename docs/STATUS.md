@@ -819,7 +819,41 @@ funciona y el real queda indefinido, que es lo correcto.
 | `Dockerfile.api` multi-stage con solo el runtime | hecho, **construido y arrancado en CI** |
 | `render.yaml` + [pasos de despliegue](deploy-render.md) | hecho; **desplegado y probado por el usuario el 2026-10-07** |
 | Tests de contrato de los endpoints | hecho |
-| App Next.js | en curso |
+| App Next.js: export estático, ES/EN, tres vistas | hecho; **falta que el usuario la despliegue** |
+| `autovalor-web` en `render.yaml` + CI de frontend | hecho |
+
+#### El frontend
+
+Next.js (App Router) + TypeScript + Tailwind v4 en `frontend/`, **export estático**
+(`output: "export"`), que es lo único que cabe gratis en Render. Español por defecto con
+cambio a inglés —un diccionario de pares `{es, en}`, de modo que una cadena sin traducir no
+compila—, y el idioma se lee de `localStorage` con `useSyncExternalStore` en vez de un
+efecto, así que el HTML prerenderizado sale en español por construcción y no parpadea al
+hidratar.
+
+Tres decisiones que vale la pena no deshacer:
+
+- **Mercado y Metodología no llaman a la API.** Leen `docs/results/` y los `model.json` de
+  los bundles **en tiempo de construcción**. Son archivos commiteados: pedirlos por HTTP
+  costaría un minuto de arranque en frío para números que ya están en el repositorio, y
+  además así la página no puede citar una cifra distinta a la del commit del que salió. El
+  costo es que el sitio es tan fresco como su último despliegue, que es correcto porque
+  `make results` y `make export-model` son commits y un commit redespliega.
+- **El formulario se construye desde `/catalog`.** Es el motivo por el que ese endpoint
+  existe; ver arriba.
+- **Los gráficos son HTML/CSS y SVG escritos a mano**, sin librería de charts. El intervalo
+  de confianza no es decoración —un efecto que cruza el cero significa otra cosa— y los
+  números van impresos como texto al lado de cada barra, así que la figura se lee con un
+  lector de pantalla sin tabla alternativa.
+
+Verificado con Playwright contra la API local: las tres vistas, el camino de carros (con
+etiqueta) y el de motos (con aviso y sin etiqueta), el cambio de idioma, cero errores de
+consola y cero desbordamiento horizontal a 390 px. Las capturas de `docs/screenshots/`
+salieron de esa misma corrida. Dos cosas que encontró y que no se habrían visto leyendo el
+código: un `step` en los campos numéricos hacía que el navegador rechazara en silencio
+precios como 78.000.000 —la validación nativa bloquea el submit antes de que corra el
+`onSubmit`—, y el `min-width` de un gráfico estiraba su columna del grid y hacía scrollear
+la página entera en móvil.
 
 #### Los tres arreglos que salieron de probar el servicio desplegado
 
@@ -1121,18 +1155,17 @@ los tres arreglos de arriba.
 
 **Lo que sigue, todo dentro de F4:**
 
-1. **Terminar el frontend Next.js** en `frontend/`: export estático, español por defecto con
-   cambio a inglés, las tres vistas (Valorar / Mercado / Metodología) y el sitio estático
-   `autovalor-web` declarado en `render.yaml`. Es lo único que falta para cerrar F4.
-2. **En Render, del lado del usuario**: actualizar
-   `AUTOVALOR_CORS_ALLOW_ORIGINS` al origen real del sitio estático y crear ese sitio desde
-   el blueprint. Los pasos están en [`deploy-render.md`](deploy-render.md); el despliegue no
-   se automatiza desde aquí.
-3. **Volver a medir cuando se quiera incorporar las capturas nuevas** (2026-10-12 y
+1. **Desplegar, que es lo único que cierra F4 y es del lado del usuario.** En Render:
+   aplicar el blueprint otra vez para que cree `autovalor-web`, y confirmar que
+   `AUTOVALOR_CORS_ALLOW_ORIGINS` de la API tiene el origen real del sitio. Los pasos están
+   en [`deploy-render.md`](deploy-render.md); el despliegue no se automatiza desde aquí.
+2. **Volver a medir cuando se quiera incorporar las capturas nuevas** (2026-10-12 y
    2026-10-19, ya en la rama `data`): `pull-history` → `transform` → `train` →
    `export-model`, y con eso se actualizan las cifras, el bundle y su catálogo. Es un bloque
    de trabajo propio porque cambia todos los números publicados, no un paso de
    mantenimiento. Es también la primera vez que `--split temporal` sería posible.
+3. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
+   motos bajen de 22,4 %, que sigue siendo señal de estado y no más identidad.
 
 Lo que **no** está hecho y no es un olvido: el índice mensual de precios (espera a
 ~2027-03-29 por histórico), la comparación con Fasecolda (fuera de alcance por decisión) y
