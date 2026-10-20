@@ -9,7 +9,14 @@ from pathlib import Path
 
 import pytest
 
-from autovalor.deploy import API_SERVICE, BlueprintError, main, service, service_env_vars
+from autovalor.deploy import (
+    API_SERVICE,
+    WEB_SERVICE,
+    BlueprintError,
+    main,
+    service,
+    service_env_vars,
+)
 
 BLUEPRINT = """\
 services:
@@ -85,3 +92,27 @@ def test_the_cli_fails_loudly_on_an_unknown_service(
 def test_the_repository_blueprint_describes_the_api() -> None:
     assert service(API_SERVICE)["runtime"] == "docker"
     assert service(API_SERVICE)["healthCheckPath"] == "/health"
+
+
+def test_the_blueprint_describes_the_static_site_too() -> None:
+    # F4 ships two things: the API and the site that calls it. Both in one blueprint, so
+    # connecting the repository once is the whole deployment.
+    web = service(WEB_SERVICE)
+
+    assert web["runtime"] == "static"
+    assert web["rootDir"] == "frontend"
+    assert web["staticPublishPath"] == "out"
+
+
+def test_the_site_is_built_against_the_api_this_blueprint_deploys() -> None:
+    # The front end bakes the API's URL in at build time, so a blueprint that points the
+    # site at one service while deploying another would produce a site that cannot talk
+    # to anything — and it would still deploy green.
+    base_url = service_env_vars(WEB_SERVICE)["NEXT_PUBLIC_API_BASE_URL"]
+    allowed = service_env_vars(API_SERVICE)["AUTOVALOR_CORS_ALLOW_ORIGINS"].split(",")
+
+    assert base_url.startswith("https://")
+    assert not base_url.endswith("/")
+    # And the API has to allow the site's own origin, or every request fails in the
+    # browser with a CORS error that says nothing about the cause.
+    assert f"https://{WEB_SERVICE}.onrender.com" in [origin.strip() for origin in allowed]

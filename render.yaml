@@ -1,8 +1,11 @@
-# Render blueprint for the AutoValor CO API.
+# Render blueprint for AutoValor CO.
 #
-# One free web service, nothing else. No database, no disk, no background worker: the
+# Two free services and nothing else. No database, no disk, no background worker: the
 # served model is inside the image and the result tables are files, so there is nothing
-# for this service to persist. That is what keeps it on a plan that never asks for a card.
+# for either service to persist. That is what keeps this on plans that never ask for a card.
+#
+#   autovalor-api  a Docker web service, the FastAPI app
+#   autovalor-web  a static site, the Next.js export that calls it
 #
 # Render reads this file when you connect the repository as a Blueprint. The deployment
 # steps you have to do by hand are in docs/deploy-render.md.
@@ -33,3 +36,22 @@ services:
       # to the same 8000 is what tells the platform where to probe instead of guessing.
       - key: PORT
         value: "8000"
+
+  # The front end: a static export, so it is free and there is no server to keep awake.
+  # It builds from the repository root (rootDir frontend) and reads docs/results and
+  # artifacts/models at build time, which is why the market and methodology pages render
+  # instantly even when the API is asleep.
+  - type: web
+    name: autovalor-web
+    runtime: static
+    plan: free
+    branch: main
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: out
+    autoDeploy: true
+    envVars:
+      # Baked into the bundle at build time by Next, so it is a build input and not a
+      # runtime setting: changing it requires a redeploy, which is what `autoDeploy` does.
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://autovalor-api.onrender.com
