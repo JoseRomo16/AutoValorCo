@@ -45,6 +45,45 @@ jobs:
       - name: Tests with coverage
         run: uv run pytest --cov-report=xml
 
+  frontend:
+    name: frontend builds and lints
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      # The static export is what Render publishes, so building it here is the same
+      # command the platform runs. It also reads docs/results and artifacts/models from
+      # the repository, which means a missing or malformed result table fails the build
+      # rather than rendering an empty page.
+      - name: Build the static export
+        run: npm run build
+
+      - name: Check the export produced every page
+        run: |
+          for page in index.html mercado/index.html metodologia/index.html; do
+            test -s "out/$page" || { echo "::error::out/$page is missing or empty"; exit 1; }
+          done
+          echo "::notice title=Static export::$(du -sh out | cut -f1) in $(find out -name '*.html' | wc -l) pages"
+
   docker:
     name: api image builds
     runs-on: ubuntu-latest
