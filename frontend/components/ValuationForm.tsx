@@ -383,7 +383,13 @@ export function ValuationForm() {
           className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm dark:border-red-800 dark:bg-red-950/30"
         >
           <p className="font-semibold">{t(copy.result.error)}</p>
-          <p className="mt-1 break-words text-slate-700 dark:text-slate-300">{error}</p>
+          {/* The two causes worth naming. A 404 on /catalog means the deployed image
+              predates this site, which is exactly what a first deploy looks like for a
+              few minutes; anything else on the first load is usually the cold start. */}
+          <p className="mt-1 text-slate-700 dark:text-slate-300">
+            {error.includes("404") ? t(copy.result.errorOutdated) : t(copy.result.errorOffline)}
+          </p>
+          <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">{error}</p>
           <button
             type="button"
             onClick={() => {

@@ -125,6 +125,14 @@ export const copy = {
     basePrice: { es: "Precio base del modelo", en: "Model base price" },
     modelVersion: { es: "Modelo", en: "Model" },
     error: { es: "No se pudo consultar la API", en: "Could not reach the API" },
+    errorOutdated: {
+      es: "La API desplegada es anterior a este sitio: todavía no tiene /catalog. Se arregla sola cuando Render termine de desplegar el último commit.",
+      en: "The deployed API is older than this site: it does not serve /catalog yet. This fixes itself once Render finishes deploying the latest commit.",
+    },
+    errorOffline: {
+      es: "Si acabas de abrir la página, lo más probable es que el servicio siga arrancando: espera unos segundos y reintenta.",
+      en: "If you have just opened the page, the service is most likely still booting: wait a few seconds and retry.",
+    },
     retry: { es: "Reintentar", en: "Retry" },
   },
   market: {
