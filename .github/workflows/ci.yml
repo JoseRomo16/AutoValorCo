@@ -114,13 +114,19 @@ jobs:
             exit 1
           fi
 
+      # setup-python rather than the runner's system interpreter: Ubuntu marks that one
+      # externally managed, so `pip install` into it fails outright.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       # The environment Render will pass, read from the blueprint itself rather than
       # retyped here. A value that breaks Settings used to be discoverable only on the
       # platform, because nothing in the repository ever loaded render.yaml.
       - name: Collect the deployment environment from render.yaml
         run: |
-          python3 -m pip install --quiet --disable-pip-version-check pyyaml
-          PYTHONPATH=src python3 -m autovalor.deploy --service autovalor-api > render-api.env
+          python -m pip install --quiet --disable-pip-version-check pyyaml
+          PYTHONPATH=src python -m autovalor.deploy --service autovalor-api > render-api.env
           cat render-api.env
 
       # Proves the image actually serves before anyone deploys it: a build that succeeds
@@ -145,7 +151,7 @@ jobs:
           # without its artifacts answers 200 "degraded" by design, which is exactly the
           # broken deployment this step exists to catch. So assert both models are loaded
           # and both catalogues made it into the image.
-          python3 - <<'PY'
+          python - <<'PY'
           import json, pathlib, sys
 
           health = json.loads(pathlib.Path("health.json").read_text())
