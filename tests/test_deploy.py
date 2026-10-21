@@ -100,8 +100,10 @@ def test_the_blueprint_describes_the_static_site_too() -> None:
     web = service(WEB_SERVICE)
 
     assert web["runtime"] == "static"
-    assert web["rootDir"] == "frontend"
-    assert web["staticPublishPath"] == "out"
+    assert "plan" not in web, "Render static sites take no plan"
+    assert "rootDir" not in web, "rootDir hides docs/ and artifacts/ from the build"
+    assert web["buildCommand"].startswith("cd frontend")
+    assert web["staticPublishPath"] == "frontend/out"
 
 
 def test_the_site_is_built_against_the_api_this_blueprint_deploys() -> None:
