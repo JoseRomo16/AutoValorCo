@@ -25,6 +25,14 @@ on:
           everything it fetched.
         required: false
         default: "800"
+      first_seen_after:
+        description: >-
+          Only enrich listings first captured on or after this date (YYYY-MM-DD). Leave
+          empty to consider every motorcycle without a detail row. The sample is random
+          over candidates, so setting this is what makes "catch up what the last capture
+          brought" a different job from "resume a pass that was stopped on purpose".
+        required: false
+        default: ""
 
 concurrency:
   # Shares the group with the weekly capture: never two scrapers on the site at once.
@@ -34,6 +42,7 @@ concurrency:
 env:
   UV_FROZEN: "1"
   ENRICH_BUDGET: ${{ inputs.enrich_budget || '800' }}
+  FIRST_SEEN_AFTER: ${{ inputs.first_seen_after }}
 
 jobs:
   enrich:
@@ -72,7 +81,8 @@ jobs:
         run: |
           uv run python -m autovalor.ingest.detail_cli \
             --vehicle-type motorcycle \
-            --budget "$ENRICH_BUDGET"
+            --budget "$ENRICH_BUDGET" \
+            ${FIRST_SEEN_AFTER:+--since "$FIRST_SEEN_AFTER"}
 
       - name: Validate the detail layer
         run: uv run python -m autovalor.quality.cli --stage detail

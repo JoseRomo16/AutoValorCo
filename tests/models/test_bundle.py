@@ -44,6 +44,8 @@ def saved(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, pd.DataFrame,
         label=result.label,
         metrics={"mape": result.test_report.mape},
         lake={"rows": len(cars)},
+        uncalibrated=result.interval_uncalibrated,
+        metrics_temporal={"mape": 0.5, "n_test": 30.0},
     )
     return directory, dataset.test, result
 
@@ -189,3 +191,136 @@ def test_export_writes_one_bundle_per_vertical(gold_duckdb: Path, tmp_path: Path
 
     assert [path.name for path in written] == [MANIFEST_NAME]
     assert load_bundle(tmp_path / "car").version == "dev"
+
+
+def test_the_uncalibrated_band_is_recorded_next_to_the_calibrated_one(
+    saved: tuple[Path, pd.DataFrame, ModelResult],
+) -> None:
+    # The whole case for conformalising is the gap between these two numbers, and the
+    # methodology page shows them side by side. Recorded rather than measured once and
+    # typed into a document.
+    import json
+
+    directory, _, result = saved
+    manifest = json.loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
+    assert result.interval_uncalibrated is not None
+
+    assert manifest["interval"]["uncalibrated_coverage"] == pytest.approx(
+        result.interval_uncalibrated.coverage
+    )
+    assert manifest["interval"]["uncalibrated_mean_relative_width"] == pytest.approx(
+        result.interval_uncalibrated.mean_relative_width
+    )
+
+
+def test_the_raw_band_is_narrower_than_the_calibrated_one(
+    saved: tuple[Path, pd.DataFrame, ModelResult],
+) -> None:
+    # Which is the direction the conformal step corrects: the quantile models pin their
+    # levels to the training rows, so the raw band comes out too narrow on new ones. A
+    # calibrated band that is not wider than the raw one means the widening did nothing.
+    _, rows, result = saved
+    assert result.interval_model is not None
+
+    raw = result.interval_model.predict_raw_log_bounds(rows)
+    calibrated = result.interval_model.predict_log_bounds(rows)
+
+    assert (raw[:, 2] - raw[:, 0]).mean() < (calibrated[:, 2] - calibrated[:, 0]).mean()
+
+
+def test_the_temporal_measurement_travels_but_is_not_the_published_one(
+    saved: tuple[Path, pd.DataFrame, ModelResult],
+) -> None:
+    directory, _, _ = saved
+    loaded = load_bundle(directory)
+
+    assert loaded.metrics_temporal is not None
+    assert loaded.metrics_temporal["mape"] == pytest.approx(0.5)
+    # The served model is the grouped-random fit, so the published MAPE is the one in
+    # `metrics`. A reader that confused the two would quote a number for a model nobody
+    # exported.
+    assert loaded.metrics["mape"] != loaded.metrics_temporal["mape"]
+
+
+def test_a_bundle_without_the_new_fields_still_loads(
+    saved: tuple[Path, pd.DataFrame, ModelResult], tmp_path: Path
+) -> None:
+    # The service and the bundle are deployed separately, so a loader that required the
+    # fields this format added would turn an ordinary deploy order into an outage.
+    import json
+    import shutil
+
+    directory, rows, _ = saved
+    copy = tmp_path / "car"
+    shutil.copytree(directory, copy)
+    manifest = json.loads((copy / MANIFEST_NAME).read_text(encoding="utf-8"))
+    manifest["format"] = 1
+    manifest.pop("metrics_temporal")
+    manifest["label"].pop("failure_codes")
+    manifest["interval"].pop("uncalibrated_coverage")
+    manifest["interval"].pop("uncalibrated_mean_relative_width")
+    (copy / MANIFEST_NAME).write_text(json.dumps(manifest), encoding="utf-8")
+
+    loaded = load_bundle(copy)
+
+    assert loaded.metrics_temporal is None
+    assert loaded.label.failure_codes == ()
+    assert len(loaded.predict_log_price(rows)) == len(rows)
+
+
+def test_the_label_failures_travel_as_text_and_as_codes(
+    saved: tuple[Path, pd.DataFrame, ModelResult],
+) -> None:
+    # Both, saying the same thing: the text is what shipped and what an older reader looks
+    # for, the codes are what a reader translating the sentence needs.
+    import json
+
+    directory, _, _ = saved
+    manifest = json.loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
+
+    assert len(manifest["label"]["failures"]) == len(manifest["label"]["failure_codes"])
+    for text, code in zip(
+        manifest["label"]["failures"], manifest["label"]["failure_codes"], strict=True
+    ):
+        assert code["message"] == text
+        assert 0.0 <= code["value"] <= 10.0
+        assert 0.0 <= code["limit"] <= 1.0
+
+
+def test_export_records_the_baseline_it_beats(gold_duckdb: Path, tmp_path: Path) -> None:
+    # "LightGBM reduces the error by N points" has to be a figure the site reads, not a
+    # sentence somebody typed, so the reference is measured on the same partition and
+    # written next to the served model's own error.
+    export(
+        ("car",),
+        directory=tmp_path,
+        n_trials=0,
+        version="dev",
+        duckdb_path=gold_duckdb,
+        temporal=False,
+    )
+
+    loaded = load_bundle(tmp_path / "car")
+
+    assert loaded.metrics["baseline_mape"] > 0.0
+    assert loaded.metrics["baseline_r2_log"] <= 1.0
+    # Skipped on request, so the field says "not measured" rather than carrying a stale
+    # number from some earlier run.
+    assert loaded.metrics_temporal is None
+
+
+def test_a_lake_too_young_for_a_temporal_split_still_exports(
+    gold_duckdb: Path, tmp_path: Path
+) -> None:
+    # The temporal partition is an extra measurement. A lake that cannot support one has
+    # to produce a bundle with the field null, not a failed export.
+    export(
+        ("car",),
+        directory=tmp_path,
+        n_trials=0,
+        version="dev",
+        duckdb_path=gold_duckdb,
+        temporal=True,
+    )
+
+    assert load_bundle(tmp_path / "car").metrics_temporal is None

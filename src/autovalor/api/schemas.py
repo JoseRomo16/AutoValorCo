@@ -87,6 +87,21 @@ class PriceBand(BaseModel):
     )
 
 
+class PrecisionCode(BaseModel):
+    """One reason the bargain/fair/expensive label is withheld, as data.
+
+    The product has to explain a withheld label in the reader's language, and a translated
+    sentence cannot be derived from an English one. `code` is one of `coverage_below_min`,
+    `coverage_above_max` or `width_above_max`; `value` and `limit` are fractions, so a
+    client formats "81 % against a maximum of 60 %" itself.
+    """
+
+    code: str
+    value: float = Field(description="What was measured on the holdout, as a fraction.")
+    limit: float = Field(description="The threshold it failed against, as a fraction.")
+    message: str = Field(description="The English sentence, unchanged.")
+
+
 class PredictResponse(BaseModel):
     """An estimate, its range, and the label when the vertical has earned one."""
 
@@ -103,7 +118,17 @@ class PredictResponse(BaseModel):
         default=None,
         description=(
             "Why no label is shown, when the reason is the band's quality rather than a "
-            "missing asking price. Render it next to the estimate."
+            "missing asking price. Render it next to the estimate. English, because it is "
+            "the wording this field shipped with; `precision_codes` is what a client "
+            "translates."
+        ),
+    )
+    precision_codes: list[PrecisionCode] = Field(
+        default_factory=list,
+        description=(
+            "The same reasons as codes with the numbers behind them, for a client that "
+            "renders them in its own language. Empty when a label is published, and also "
+            "on a bundle exported before the codes existed."
         ),
     )
     model_version: str = Field(description="Served model version; matches /model-info.")
@@ -168,7 +193,34 @@ class VerticalInfo(BaseModel):
     interval_mean_relative_width: float
     publishes_label: bool = Field(description="Whether this vertical shows bargain/fair/expensive.")
     label_withheld_because: list[str] = Field(
-        default_factory=list, description="Empty when the label is published."
+        default_factory=list, description="Empty when the label is published. English."
+    )
+    label_withheld_codes: list[PrecisionCode] = Field(
+        default_factory=list,
+        description="The same reasons as codes with their values. Empty when published.",
+    )
+    baseline_mape: float | None = Field(
+        default=None,
+        description=(
+            "Held-out MAPE of the OLS reference on the same partition, so the gain from "
+            "the served model is a figure rather than a claim. Null on a bundle exported "
+            "before it was recorded."
+        ),
+    )
+    interval_uncalibrated_coverage: float | None = Field(
+        default=None,
+        description=(
+            "Coverage the three quantile models reach on their own, before the conformal "
+            "widening. The gap against interval_coverage is what calibrating bought."
+        ),
+    )
+    metrics_temporal: dict[str, float] | None = Field(
+        default=None,
+        description=(
+            "The same model family measured on a time-ordered partition instead of the "
+            "grouped random one. A second measurement, never the published figure. Null "
+            "when the lake does not span enough days for that partition."
+        ),
     )
     trained_on_rows: int
 
