@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mercado · AutoValor CO</title>
+<meta name="description" content="Cuánto se deprecian los carros y motos usados en Colombia, cuánto cuesta el kilometraje y dónde se piden más caros.">
+<script>try{var t=localStorage.getItem("autovalor.theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="design.css">
+<style>
+  .wrap--wide { max-width: 1200px; }
+  .share { display: grid; gap: 22px; }
+  .share__row { display: grid; grid-template-columns: 7rem minmax(0, 1fr) 6rem; gap: 16px; align-items: center; }
+  .share__bar { display: flex; height: 30px; border-radius: 3px; overflow: hidden; background: var(--grid); }
+  .share__bar span { display: grid; place-items: center; font: 500 var(--t-xs)/1 var(--font-mono); white-space: nowrap; overflow: hidden; }
+  .share__id { background: var(--fg); color: var(--bg); }
+  .share__cond { background: var(--bar); color: var(--bg); }
+  .share__other { background: var(--bar-muted); }
+  .share__ratio { text-align: right; font: 500 var(--t-md)/1 var(--font-mono); }
+  .share__ratio span { display: block; font-size: var(--t-xs); color: var(--muted); font-weight: 400; margin-top: 4px; }
+  @media (max-width: 560px) { .share__row { grid-template-columns: 1fr auto; } .share__bar { grid-column: 1 / -1; order: 3; } }
+  .section__note { font-size: var(--t-sm); color: var(--muted); margin-top: 14px; }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Saltar al contenido</a>
+
+<header class="nav">
+  <div class="wrap nav__in">
+    <a class="logo" href="valorar.html" aria-label="AutoValor CO, inicio">AutoValor <span class="plate">CO</span></a>
+    <nav class="nav__links" aria-label="Principal">
+      <a href="valorar.html">Valorar</a>
+      <a href="mercado.html" aria-current="page">Mercado</a>
+      <a href="metodologia.html">Metodología</a>
+    </nav>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="tools">Ajustes</button>
+    <div class="nav__tools" id="tools">
+      <div class="seg" role="group" aria-label="Idioma">
+        <button type="button" data-lang-choice="es" aria-pressed="true">ES</button>
+        <button type="button" data-lang-choice="en" aria-pressed="false">EN</button>
+      </div>
+      <div class="seg" role="group" aria-label="Tema">
+        <button type="button" data-theme-choice="light" aria-pressed="false">Claro</button>
+        <button type="button" data-theme-choice="auto" aria-pressed="true">Auto</button>
+        <button type="button" data-theme-choice="dark" aria-pressed="false">Oscuro</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="content">
+  <section class="hero">
+    <div class="wrap wrap--wide">
+      <p class="eyebrow">Mercado</p>
+      <h1>Qué dice el mercado de usados.</h1>
+      <p class="lede">Cuánto valor pierde cada marca con los años, cuánto cuesta el kilometraje y dónde se pide más por el mismo vehículo. Cada cifra trae su margen de error.</p>
+      <div class="chips">
+        <span class="chip chip--key">Datos del 7 oct 2026</span>
+        <span class="chip">7.639 carros</span>
+        <span class="chip">4.052 motos</span>
+        <span class="chip">Intervalos de confianza al 95&nbsp;%</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-label="Hallazgos principales">
+    <div class="wrap wrap--wide">
+      <div class="figures">
+        <div class="figure">
+          <div class="figure__num">0,9<small>%</small></div>
+          <div class="figure__label">Pierde una Yamaha al año</div>
+          <p>Con estos datos no se distingue de cero. Una Bajaj pierde 6,5&nbsp;%.</p>
+          <a class="more" href="#depreciacion">Depreciación ›</a>
+        </div>
+        <div class="figure">
+          <div class="figure__num">$216<small>mil</small></div>
+          <div class="figure__label">Cuestan 10.000 km</div>
+          <p>En un carro mediano de $89 millones. En los carros más caros, $323 mil.</p>
+          <a class="more" href="#kilometraje">Kilometraje ›</a>
+        </div>
+        <div class="figure">
+          <div class="figure__num">+29,5<small>%</small></div>
+          <div class="figure__label">La misma moto en Antioquia</div>
+          <p>Frente a Bogotá, con el mismo modelo, edad y kilometraje.</p>
+          <a class="more" href="#regiones">Regiones ›</a>
+        </div>
+        <div class="figure">
+          <div class="figure__num">4,8<small>×</small></div>
+          <div class="figure__label">Pesa la marca en motos</div>
+          <p>Marca y modelo explican el precio 4,8 veces más que la edad y el kilometraje.</p>
+          <a class="more" href="#identidad">Marca o estado ›</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Depreciation -->
+  <section class="section" id="depreciacion" aria-labelledby="dep-title">
+    <div class="wrap wrap--wide">
+      <div class="section__head">
+        <h2 id="dep-title">Depreciación anual por marca</h2>
+        <p class="body">Cuánto valor pierde un vehículo por cada año que cumple, con el kilometraje típico de un año ya incluido.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Tipo de vehículo" data-vehicle-tabs>
+        <button role="tab" id="dep-tab-car" aria-controls="dep-car" data-vehicle="car">Carros</button>
+        <button role="tab" id="dep-tab-moto" aria-controls="dep-moto" data-vehicle="motorcycle">Motos</button>
+      </div>
+      <div role="tabpanel" id="dep-car" aria-labelledby="dep-tab-car">
+        <div id="chart-dep-car"></div>
+        <div class="insight"><span class="insight__tag">Lectura</span><p>Toyota, Mazda y Kia pierden entre 5&nbsp;% y 6&nbsp;% al año. Audi, BMW, Mercedes-Benz y Ford pierden cerca del 9&nbsp;%. En un carro de $90 millones, esa diferencia ronda los $3,5 millones por año.</p></div>
+      </div>
+      <div role="tabpanel" id="dep-moto" aria-labelledby="dep-tab-moto" hidden>
+        <div id="chart-dep-moto"></div>
+        <div class="insight"><span class="insight__tag">Lectura</span><p>Es el hallazgo principal del proyecto. Una Yamaha pierde 0,9&nbsp;% al año y su intervalo incluye el cero. Una Bajaj pierde 6,5&nbsp;%. En las marcas que conservan su valor, una moto usada se pide casi al precio de una nueva.</p></div>
+      </div>
+      <div class="legend"><span><i style="background:var(--bar)"></i>Estimado</span><span><i style="background:var(--bar-muted)"></i>No se distingue de cero</span><span>├─┤ intervalo al 95&nbsp;%</span></div>
+    </div>
+  </section>
+
+  <!-- Retained value -->
+  <section class="section" id="retenido" aria-labelledby="ret-title">
+    <div class="wrap wrap--wide">
+      <div class="section__head">
+        <h2 id="ret-title">Valor que conserva con la edad</h2>
+        <p class="body">Qué porcentaje del precio inicial queda a cada edad. Mostramos la marca que más conserva, una intermedia y la que menos.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Tipo de vehículo" data-vehicle-tabs>
+        <button role="tab" id="ret-tab-car" aria-controls="ret-car" data-vehicle="car">Carros</button>
+        <button role="tab" id="ret-tab-moto" aria-controls="ret-moto" data-vehicle="motorcycle">Motos</button>
+      </div>
+      <div role="tabpanel" id="ret-car" aria-labelledby="ret-tab-car"><div class="chart-scroll"><div id="chart-ret-car" style="min-width:520px;max-width:820px"></div></div></div>
+      <div role="tabpanel" id="ret-moto" aria-labelledby="ret-tab-moto" hidden><div class="chart-scroll"><div id="chart-ret-moto" style="min-width:520px;max-width:820px"></div></div></div>
+      <div class="insight"><span class="insight__tag">Lectura</span><p>A los diez años, un carro conserva entre el 36&nbsp;% y el 61&nbsp;% de su valor según la marca. Una Yamaha conserva el 91&nbsp;%. Comprar carro usado ahorra mucho; en motos de esas marcas, la diferencia con una nueva es pequeña.</p></div>
+    </div>
+  </section>
+
+  <!-- Mileage -->
+  <section class="section" id="kilometraje" aria-labelledby="km-title">
+    <div class="wrap wrap--wide">
+      <div class="section__head">
+        <h2 id="km-title">Cuánto cuestan 10.000 km</h2>
+        <p class="body">Lo que baja el precio cuando el odómetro marca 10.000 km más, según el precio típico del vehículo. Los segmentos van del 25&nbsp;% más barato (Q1) al 25&nbsp;% más caro (Q4).</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Tipo de vehículo" data-vehicle-tabs>
+        <button role="tab" id="km-tab-car" aria-controls="km-car" data-vehicle="car">Carros</button>
+        <button role="tab" id="km-tab-moto" aria-controls="km-moto" data-vehicle="motorcycle">Motos</button>
+      </div>
+      <div role="tabpanel" id="km-car" aria-labelledby="km-tab-car"><div id="chart-km-car"></div></div>
+      <div role="tabpanel" id="km-moto" aria-labelledby="km-tab-moto" hidden><div id="chart-km-moto"></div></div>
+      <div class="insight"><span class="insight__tag">Lectura</span><p>El kilometraje se cobra según lo que vale el vehículo. En el carro mediano, 10.000 km valen unos $216 mil; en los más caros, unos $323 mil. En las motos más baratas el efecto no se distingue de cero, así que ahí el kilometraje alto sirve poco para negociar.</p></div>
+    </div>
+  </section>
+
+  <!-- Regional -->
+  <section class="section" id="regiones" aria-labelledby="reg-title">
+    <div class="wrap wrap--wide">
+      <div class="section__head">
+        <h2 id="reg-title">Dónde se pide más por el mismo vehículo</h2>
+        <p class="body">Diferencia frente a Bogotá D.C. para un vehículo comparable: mismo modelo, edad, kilometraje y cilindrada.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Tipo de vehículo" data-vehicle-tabs>
+        <button role="tab" id="reg-tab-car" aria-controls="reg-car" data-vehicle="car">Carros</button>
+        <button role="tab" id="reg-tab-moto" aria-controls="reg-moto" data-vehicle="motorcycle">Motos</button>
+      </div>
+      <div role="tabpanel" id="reg-car" aria-labelledby="reg-tab-car">
+        <div id="chart-reg-car"></div>
+        <div class="insight"><span class="insight__tag">Lectura</span><p>En carros el país funciona casi como un solo mercado. Entre Santander y Bogotá hay 8,6 puntos: en un carro de $90 millones son unos $7,7 millones, suficiente para mirar anuncios de otros departamentos.</p></div>
+      </div>
+      <div role="tabpanel" id="reg-moto" aria-labelledby="reg-tab-moto" hidden>
+        <div id="chart-reg-moto"></div>
+        <div class="insight"><span class="insight__tag">Lectura</span><p>En motos las diferencias son grandes. La misma moto se pide 29,5&nbsp;% más cara en Antioquia y 26,1&nbsp;% más barata en Quindío que en Bogotá. El departamento indica dónde se publicó el anuncio, que puede no coincidir con dónde está la moto.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Identity vs condition -->
+  <section class="section" id="identidad" aria-labelledby="id-title">
+    <div class="wrap wrap--wide">
+      <div class="section__head">
+        <h2 id="id-title">Por qué las motos son el caso difícil</h2>
+        <p class="body">Qué parte del precio explica la identidad del vehículo (marca, modelo, cilindrada) y qué parte su estado (edad, kilometraje).</p>
+      </div>
+      <div class="share">
+        <div class="share__row">
+          <span>Carros</span>
+          <div class="share__bar" role="img" aria-label="Carros: identidad 57 %, estado 40 %, otros 3 %">
+            <span class="share__id" style="width:57.4%">Identidad 57&nbsp;%</span>
+            <span class="share__cond" style="width:39.8%">Estado 40&nbsp;%</span>
+            <span class="share__other" style="width:2.8%"></span>
+          </div>
+          <span class="share__ratio">1,4×<span>identidad / estado</span></span>
+        </div>
+        <div class="share__row">
+          <span>Motos</span>
+          <div class="share__bar" role="img" aria-label="Motos: identidad 77 %, estado 16 %, otros 7 %">
+            <span class="share__id" style="width:77.2%">Identidad 77&nbsp;%</span>
+            <span class="share__cond" style="width:16%">16&nbsp;%</span>
+            <span class="share__other" style="width:6.8%"></span>
+          </div>
+          <span class="share__ratio">4,8×<span>identidad / estado</span></span>
+        </div>
+      </div>
+      <div class="legend"><span><i style="background:var(--fg)"></i>Identidad</span><span><i style="background:var(--bar)"></i>Estado</span><span><i style="background:var(--bar-muted)"></i>Otros</span></div>
+      <div class="insight"><span class="insight__tag">Lectura</span><p>El modelo de motos funciona como un catálogo: mira sobre todo qué moto es y poco su edad. La regresión hedónica llega a lo mismo por otra vía. Por eso en motos mostramos precio y rango, pero todavía no la etiqueta de ganga o caro.</p></div>
+    </div>
+  </section>
+
+  <section class="section" aria-label="Nota metodológica">
+    <div class="wrap wrap--wide">
+      <hr class="rule">
+      <div class="split" style="padding-top:40px">
+        <p class="small">Estas cifras salen de una <button class="term" type="button">regresión hedónica<span class="term__tip" role="tooltip">Un modelo que separa el precio en el aporte de cada característica: edad, kilometraje, marca, departamento.</span></button> con errores robustos (HC3), distinta del modelo que estima precios en Valorar. Ese modelo predice bien, pero no permite leer cuánto vale un año de edad.</p>
+        <p><a class="more" href="metodologia.html">Cómo se calculan estas cifras ›</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap wrap--wide">
+    <div class="footer__grid">
+      <div>
+        <a class="logo" href="valorar.html">AutoValor <span class="plate">CO</span></a>
+        <p class="small" style="margin-top:14px;max-width:46ch">Las estimaciones son informativas y no reemplazan un avalúo comercial. Se calculan con precios publicados en anuncios.</p>
+      </div>
+      <div>
+        <h4>Producto</h4>
+        <ul>
+          <li><a href="valorar.html">Valorar</a></li>
+          <li><a href="mercado.html">Mercado</a></li>
+          <li><a href="metodologia.html">Metodología</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Proyecto</h4>
+        <ul>
+          <li><a href="https://github.com/JoseRomo16/AutoValorCo">Código en GitHub</a></li>
+          <li><a href="https://autovalor-api.onrender.com/docs">Documentación de la API</a></li>
+          <li><a href="https://www.linkedin.com/in/jose-luis-romo-dev-data">Jose Luis Romo en LinkedIn</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__legal">
+      <span>Desarrollado por Jose Luis Romo · Pasto, Colombia</span>
+      <span>Datos del 7 oct 2026 · Modelo del 7 oct 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script src="design.js"></script>
+<script>
+/* Data copied from docs/results/*.json (7 oct 2026) for the mockup only.
+   The real page reads these files at build time. */
+(function () {
+  var pct = AV.pct, pesos = AV.pesos;
+  var NS = "No se distingue de cero";
+
+  var DEP = {
+    car: [["Volkswagen",4.82,1.29,8.22,1],["Kia",5.17,4.56,5.78,1],["Chevrolet",5.18,3.68,6.66,1],["Mazda",5.30,4.75,5.86,1],["Suzuki",5.81,4.86,6.74,1],["Toyota",5.89,5.25,6.53,1],["Renault",6.15,5.16,7.12,1],["Nissan",7.21,6.56,7.84,1],["Audi",8.90,7.88,9.91,1],["BMW",9.21,8.01,10.39,1],["Mercedes-Benz",9.24,8.00,10.45,1],["Ford",9.60,8.09,11.09,1]],
+    motorcycle: [["Yamaha",0.94,-0.55,2.40,0],["Honda",1.75,0.78,2.72,1],["Suzuki",2.62,0.86,4.35,1],["BMW",3.57,0.05,6.97,1],["KTM",3.66,2.29,5.01,1],["Bajaj",6.47,5.09,7.82,1]]
+  };
+  ["car","motorcycle"].forEach(function (v) {
+    renderBars(document.getElementById(v === "car" ? "chart-dep-car" : "chart-dep-moto"), DEP[v].map(function (r) {
+      return { label: r[0], value: r[1], low: r[2], high: r[3], muted: !r[4],
+               valueText: pct(r[1]), note: r[4] ? pct(r[2]) + " a " + pct(r[3]) : NS };
+    }));
+  });
+
+  renderLines(document.getElementById("chart-ret-car"), [
+    { label: "Volkswagen", tone: "high", points: [[0,100],[1,95.2],[3,86.2],[5,78.1],[10,61.0]] },
+    { label: "Toyota", tone: "ref", points: [[0,100],[1,94.1],[3,83.3],[5,73.8],[10,54.5]] },
+    { label: "Ford", tone: "low", points: [[0,100],[1,90.4],[3,73.9],[5,60.4],[10,36.4]] }
+  ], { xLabel: "Edad en años", label: "Valor conservado por edad, carros" });
+  renderLines(document.getElementById("chart-ret-moto"), [
+    { label: "Yamaha", tone: "high", points: [[0,100],[1,99.1],[3,97.2],[5,95.4],[10,91.0]] },
+    { label: "KTM", tone: "ref", points: [[0,100],[1,96.3],[3,89.4],[5,83.0],[10,68.9]] },
+    { label: "Bajaj", tone: "low", points: [[0,100],[1,93.5],[3,81.8],[5,71.6],[10,51.2]] }
+  ], { xLabel: "Edad en años", label: "Valor conservado por edad, motos" });
+
+  var KM = {
+    car: [["Todos los carros","mediana $89 millones",-215937,-269835,-162008,1],["Q1","mediana $51,9 millones",-119386,-192859,-45809,1],["Q2","mediana $75,9 millones",1156,-55622,57977,0],["Q3","mediana $110 millones",-125972,-243265,-8554,1],["Q4","mediana $198,9 millones",-322890,-573647,-71816,1]],
+    motorcycle: [["Todas las motos","mediana $14,9 millones",-104320,-164378,-44017,1],["Q1","mediana $6,7 millones",23158,-12482,58987,0],["Q2","mediana $11,2 millones",-50759,-144279,43551,0],["Q3","mediana $19 millones",-380276,-532443,-226856,1],["Q4","mediana $59 millones",-524073,-902349,-143333,1]]
+  };
+  ["car","motorcycle"].forEach(function (v) {
+    renderBars(document.getElementById(v === "car" ? "chart-km-car" : "chart-km-moto"), KM[v].map(function (r) {
+      return { label: r[0], sub: r[1], value: r[2] / 1000, low: r[3] / 1000, high: r[4] / 1000, muted: !r[5],
+               valueText: pesos(r[2]), note: r[5] ? pesos(r[3]) + " a " + pesos(r[4]) : NS };
+    }));
+  });
+
+  var REG = {
+    car: [["Santander",8.60,5.57,11.73,1],["Antioquia",7.11,4.26,10.03,1],["Norte de Santander",4.74,1.88,7.67,1],["Valle del Cauca",1.88,-0.31,4.11,0],["Cundinamarca",0.79,-1.46,3.10,0],["Atlántico",0.13,-2.16,2.46,0],["Bogotá D.C.",0,0,0,"ref"]],
+    motorcycle: [["Antioquia",29.51,22.57,36.84,1],["Bogotá D.C.",0,0,0,"ref"],["Valle del Cauca",-4.56,-11.80,3.28,0],["Norte de Santander",-4.58,-25.38,22.03,0],["Santander",-10.77,-20.16,-0.28,1],["Cundinamarca",-15.30,-21.67,-8.40,1],["Atlántico",-23.04,-36.65,-6.50,1],["Quindío",-26.08,-39.77,-9.28,1]]
+  };
+  ["car","motorcycle"].forEach(function (v) {
+    renderBars(document.getElementById(v === "car" ? "chart-reg-car" : "chart-reg-moto"), REG[v].map(function (r) {
+      var ref = r[4] === "ref";
+      return { label: r[0], value: r[1], low: ref ? undefined : r[2], high: ref ? undefined : r[3], ref: ref, muted: !ref && !r[4],
+               valueText: ref ? "Referencia" : pct(r[1], 1, true), note: ref ? "" : r[4] ? pct(r[2], 1, true) + " a " + pct(r[3], 1, true) : NS };
+    }));
+  });
+})();
+</script>
+</body>
+</html>

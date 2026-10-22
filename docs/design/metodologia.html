@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Metodología · AutoValor CO</title>
+<meta name="description" content="De dónde salen los datos de AutoValor CO, cómo se entrena el modelo y cuánto se equivoca con anuncios que no vio.">
+<script>try{var t=localStorage.getItem("autovalor.theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="design.css">
+<style>
+  .doc { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 56px; align-items: start; }
+  .doc > * { min-width: 0; }
+  .toc { position: sticky; top: 92px; padding-top: 72px; }
+  .toc h2 { font: 400 var(--t-xs)/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--faint); margin-bottom: 14px; }
+  .toc ol { display: grid; gap: 2px; border-left: 1px solid var(--border); }
+  .toc a { display: block; padding: 6px 0 6px 14px; margin-left: -1px; border-left: 2px solid transparent; font-size: var(--t-sm); color: var(--muted); text-decoration: none; transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+  .toc a:hover { color: var(--fg); }
+  .toc a[aria-current="true"] { color: var(--fg); border-left-color: var(--accent); font-weight: 500; }
+  .toc-mobile { display: none; }
+  @media (max-width: 960px) {
+    .doc { grid-template-columns: 1fr; gap: 0; }
+    .toc { display: none; }
+    .toc-mobile { display: block; margin-top: 32px; border: 1px solid var(--border); border-radius: var(--radius); }
+    .toc-mobile summary { cursor: pointer; padding: 14px 16px; min-height: 44px; font: 400 var(--t-sm)/1.2 var(--font-mono); color: var(--muted); }
+    .toc-mobile ol { padding: 0 16px 12px; display: grid; }
+    .toc-mobile a { display: block; padding: 10px 0; text-decoration: none; border-top: 1px solid var(--border); }
+  }
+
+  .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius); margin-top: 32px; }
+  .facts > div { padding: 18px 20px; border-bottom: 1px solid var(--border); min-width: 0; }
+  .facts > div:nth-child(odd) { border-right: 1px solid var(--border); }
+  .facts > div:nth-last-child(-n+2) { border-bottom: 0; }
+  .facts dt { font: 400 var(--t-xs)/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 8px; }
+  .facts dd { font-size: var(--t-md); }
+  @media (max-width: 560px) { .facts { grid-template-columns: 1fr; } .facts > div { border-right: 0 !important; border-bottom: 1px solid var(--border) !important; } .facts > div:last-child { border-bottom: 0 !important; } }
+
+  .charts-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
+  @media (max-width: 760px) { .charts-2 { grid-template-columns: 1fr; } }
+  .panel { padding: 22px; }
+  .panel h3 { font-size: var(--t-md); }
+  .panel .small { margin-top: 4px; margin-bottom: 18px; }
+
+  .cmp { display: grid; gap: 16px; }
+  .cmp__group b { display: block; font-size: var(--t-sm); font-weight: 600; margin-bottom: 8px; }
+  .cmp__row { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) 4.5rem; gap: 10px; align-items: center; margin-top: 6px; }
+  .cmp__row span:first-child { font-size: var(--t-xs); color: var(--muted); }
+  .cmp__track { position: relative; height: 14px; background: var(--grid); border-radius: 2px; }
+  .cmp__track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--bar-muted); }
+  .cmp__track i.on { background: var(--fg); }
+  .cmp__target { position: absolute; top: -5px; bottom: -5px; width: 0; border-left: 1.5px dashed var(--accent-text); }
+  .cmp__val { text-align: right; font: 500 var(--t-sm)/1 var(--font-mono); }
+  .cmp__key { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; font: 400 var(--t-xs)/1 var(--font-mono); color: var(--muted); }
+  .cmp__key i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+  .gate { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 28px; }
+  @media (max-width: 640px) { .gate { grid-template-columns: 1fr; } }
+  .gate__card { padding: 22px; }
+  .gate__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .gate__head h3 { font-family: var(--font-display); font-stretch: 112%; font-weight: 800; font-size: var(--t-xl); }
+  .crit { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--border); }
+  .crit__mark { font: 500 var(--t-sm)/1 var(--font-mono); }
+  .crit__mark.ok { color: var(--good); }
+  .crit__mark.fail { color: var(--bad); }
+  .crit p { font-size: var(--t-sm); }
+  .crit p span { display: block; color: var(--muted); font-size: var(--t-xs); margin-top: 2px; }
+  .crit__val { font: 500 var(--t-sm)/1 var(--font-mono); }
+
+  .scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 760px) { .scope { grid-template-columns: 1fr; } }
+  .scope__card { padding: 22px; display: grid; gap: 12px; align-content: start; }
+  .scope__card h3 { font-size: var(--t-md); }
+  .scope__card dl { display: grid; gap: 10px; }
+  .scope__card dt { font: 400 var(--t-xs)/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+  .scope__card dd { font-size: var(--t-sm); color: var(--muted); margin-top: 4px; }
+  .scope__card dd.plan { color: var(--fg); }
+
+  .closing { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Saltar al contenido</a>
+
+<header class="nav">
+  <div class="wrap nav__in">
+    <a class="logo" href="valorar.html" aria-label="AutoValor CO, inicio">AutoValor <span class="plate">CO</span></a>
+    <nav class="nav__links" aria-label="Principal">
+      <a href="valorar.html">Valorar</a>
+      <a href="mercado.html">Mercado</a>
+      <a href="metodologia.html" aria-current="page">Metodología</a>
+    </nav>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="tools">Ajustes</button>
+    <div class="nav__tools" id="tools">
+      <div class="seg" role="group" aria-label="Idioma">
+        <button type="button" data-lang-choice="es" aria-pressed="true">ES</button>
+        <button type="button" data-lang-choice="en" aria-pressed="false">EN</button>
+      </div>
+      <div class="seg" role="group" aria-label="Tema">
+        <button type="button" data-theme-choice="light" aria-pressed="false">Claro</button>
+        <button type="button" data-theme-choice="auto" aria-pressed="true">Auto</button>
+        <button type="button" data-theme-choice="dark" aria-pressed="false">Oscuro</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="content">
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Metodología</p>
+      <h1>Cómo calculamos el precio de un usado.</h1>
+      <p class="lede">De dónde salen los datos, cómo se entrena el modelo y cuánto se equivoca cuando lo probamos con anuncios que nunca vio.</p>
+      <div class="chips">
+        <span class="chip chip--key">Modelo del 7 oct 2026</span>
+        <span class="chip">11.691 anuncios de TuCarro</span>
+        <span class="chip">5,5 días de capturas</span>
+        <span class="chip">Se actualiza con cada publicación del sitio</span>
+      </div>
+      <details class="toc-mobile">
+        <summary>En esta página</summary>
+        <ol>
+          <li><a href="#datos">Datos y privacidad</a></li>
+          <li><a href="#modelo">Cómo funciona el modelo</a></li>
+          <li><a href="#resultados">Resultados fuera de muestra</a></li>
+          <li><a href="#etiqueta">La regla de la etiqueta</a></li>
+          <li><a href="#alcance">Alcance y supuestos</a></li>
+        </ol>
+      </details>
+    </div>
+  </section>
+
+  <section class="band" aria-label="Cifras clave">
+    <div class="wrap">
+      <div class="figures">
+        <div class="figure">
+          <div class="figure__num">11,3<small>%</small></div>
+          <div class="figure__label">Error medio en carros</div>
+          <p>En promedio, el estimado se aleja 11&nbsp;% del precio publicado.</p>
+        </div>
+        <div class="figure">
+          <div class="figure__num">22,4<small>%</small></div>
+          <div class="figure__label">Error medio en motos</div>
+          <p>El doble que en carros: muchos anuncios no dicen qué moto es.</p>
+        </div>
+        <div class="figure">
+          <div class="figure__num figure__num--pair">81,0<span class="sep">/</span>81,6<small>%</small></div>
+          <div class="figure__label">Cobertura del rango</div>
+          <p>Carros / motos. El objetivo es 80&nbsp;%: ocho de cada diez precios dentro del rango.</p>
+        </div>
+        <div class="figure">
+          <div class="figure__num">2.338</div>
+          <div class="figure__label">Anuncios para evaluar</div>
+          <p>1.528 carros y 810 motos que el modelo no vio al entrenarse.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap doc">
+    <aside class="toc" aria-label="En esta página">
+      <h2>En esta página</h2>
+      <ol>
+        <li><a href="#datos">Datos y privacidad</a></li>
+        <li><a href="#modelo">Cómo funciona el modelo</a></li>
+        <li><a href="#resultados">Resultados fuera de muestra</a></li>
+        <li><a href="#etiqueta">La regla de la etiqueta</a></li>
+        <li><a href="#alcance">Alcance y supuestos</a></li>
+        <li><a href="#codigo">Código y decisiones</a></li>
+      </ol>
+    </aside>
+
+    <div>
+      <!-- Data -->
+      <section class="section" id="datos" aria-labelledby="datos-t">
+        <div class="section__head">
+          <h2 id="datos-t">Datos y privacidad</h2>
+          <p class="body">Usamos anuncios públicos de TuCarro. El programa que los recoge respeta robots.txt, hace pausas entre consultas y se identifica. No guardamos datos personales de los vendedores, como pide la Ley 1581 de 2012.</p>
+        </div>
+        <div class="note">
+          <b>Son precios publicados, no precios de cierre.</b>
+          <p class="small">En un mercado donde se negocia, el precio final suele quedar por debajo del publicado. Esa diferencia no la medimos.</p>
+        </div>
+        <dl class="facts">
+          <div><dt>Fuente</dt><dd>TuCarro, una sola plataforma</dd></div>
+          <div><dt>Captura</dt><dd>Semanal y automática</dd></div>
+          <div><dt>Anuncios</dt><dd class="mono">7.639 carros · 4.052 motos</dd></div>
+          <div><dt>Reproducible</dt><dd>Cada captura se publica en la <a class="more" href="https://github.com/JoseRomo16/AutoValorCo/tree/data">rama <code>data</code></a></dd></div>
+        </dl>
+      </section>
+
+      <!-- Model -->
+      <section class="section" id="modelo" aria-labelledby="modelo-t">
+        <div class="split">
+          <div class="section__head" style="margin-bottom:0">
+            <h2 id="modelo-t">Cómo funciona el modelo</h2>
+            <p class="body">Carros y motos se valoran con modelos separados porque sus precios se comportan distinto. Como referencia usamos una regresión hedónica (OLS). El modelo en producción, LightGBM, reduce el
+              <button class="term" type="button">error porcentual medio<span class="term__tip" role="tooltip">MAPE: en promedio, qué tan lejos queda el estimado del precio real, en porcentaje.</span></button>
+              en 3,8 puntos en carros y 21 puntos en motos.</p>
+            <p class="body">Además del estimado calculamos un
+              <button class="term" type="button">rango P10–P90<span class="term__tip" role="tooltip">El precio que solo 1 de cada 10 anuncios comparables pide por debajo (P10) y el que solo 1 de cada 10 supera (P90).</span></button>.
+              Una
+              <button class="term" type="button">calibración conformal<span class="term__tip" role="tooltip">Un ajuste que ensancha el rango lo justo para que, en anuncios nuevos, contenga el precio real 8 de cada 10 veces.</span></button>
+              lo lleva de cubrir 63–67&nbsp;% a 81&nbsp;%.</p>
+          </div>
+          <ol class="steps" aria-label="Etapas del proceso">
+            <li><span class="n">1</span><div><b>Captura semanal</b><span>Anuncios públicos de TuCarro</span></div></li>
+            <li><span class="n">2</span><div><b>Capa cruda inmutable</b><span>Cada captura se guarda tal cual, con su fecha</span></div></li>
+            <li><span class="n">3</span><div><b>Limpieza y variables</b><span>Edad, kilometraje, marca, modelo, ciudad</span></div></li>
+            <li><span class="n">4</span><div><b>LightGBM y 3 modelos cuantílicos</b><span>Estimado y rango P10–P90; OLS como referencia</span></div></li>
+            <li><span class="n">5</span><div><b>Calibración conformal</b><span>El rango cubre lo que promete</span></div></li>
+            <li><span class="n">6</span><div><b>API y sitio web</b><span>El modelo viaja dentro de la imagen de la API</span></div></li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Results -->
+      <section class="section" id="resultados" aria-labelledby="res-t">
+        <div class="section__head">
+          <h2 id="res-t">Resultados fuera de muestra</h2>
+          <p class="body">Medimos el modelo con el 20&nbsp;% de los anuncios, que apartamos antes de entrenar. Un mismo vehículo a veces se vuelve a publicar con otro número de anuncio; esas copias van juntas al mismo lado para no medir con anuncios que el modelo ya vio.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <caption>Medido sobre los anuncios apartados. Modelo del 7 oct 2026.</caption>
+            <thead>
+              <tr>
+                <th>Vehículo</th>
+                <th class="r">Error medio</th>
+                <th class="r">Error mediano</th>
+                <th class="r"><button class="term" type="button">Cobertura<span class="term__tip" role="tooltip">Qué parte de los precios reales cae dentro del rango P10–P90. El objetivo es 80&nbsp;%.</span></button></th>
+                <th class="r"><button class="term" type="button">Ancho del rango<span class="term__tip" role="tooltip">Qué tan ancho es el rango en promedio, como porcentaje del estimado. Más angosto es más preciso.</span></button></th>
+                <th class="r">Para evaluar</th>
+                <th>Etiqueta ganga / caro</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Carros</td><td class="r">11,3&nbsp;%</td><td class="r">7,4&nbsp;%</td><td class="r">81,0&nbsp;%</td><td class="r">41&nbsp;%</td><td class="r">1.528</td><td><span class="badge badge--good">Publicada</span></td></tr>
+              <tr><td>Motos</td><td class="r">22,4&nbsp;%</td><td class="r">11,4&nbsp;%</td><td class="r">81,6&nbsp;%</td><td class="r">81&nbsp;%</td><td class="r">810</td><td><span class="badge badge--neutral">Retenida</span><span class="why">El rango mide 81&nbsp;% del estimado; el máximo es 60&nbsp;%.</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="charts-2">
+          <figure class="card panel">
+            <h3>La calibración en cifras</h3>
+            <p class="small">Cobertura del rango antes y después de calibrar.</p>
+            <div class="cmp">
+              <div class="cmp__group"><b>Carros</b>
+                <div class="cmp__row"><span>Sin calibrar</span><span class="cmp__track"><i style="width:67%"></i><span class="cmp__target" style="left:80%"></span></span><span class="cmp__val">67&nbsp;%</span></div>
+                <div class="cmp__row"><span>Calibrado</span><span class="cmp__track"><i class="on" style="width:81%"></i><span class="cmp__target" style="left:80%"></span></span><span class="cmp__val">81,0&nbsp;%</span></div>
+              </div>
+              <div class="cmp__group"><b>Motos</b>
+                <div class="cmp__row"><span>Sin calibrar</span><span class="cmp__track"><i style="width:63%"></i><span class="cmp__target" style="left:80%"></span></span><span class="cmp__val">63&nbsp;%</span></div>
+                <div class="cmp__row"><span>Calibrado</span><span class="cmp__track"><i class="on" style="width:81.6%"></i><span class="cmp__target" style="left:80%"></span></span><span class="cmp__val">81,6&nbsp;%</span></div>
+              </div>
+            </div>
+            <div class="cmp__key"><span><i style="border-left:1.5px dashed var(--accent-text);width:1px;height:10px"></i>Objetivo 80&nbsp;%</span></div>
+          </figure>
+
+          <figure class="card panel">
+            <h3>Contra la referencia</h3>
+            <p class="small">Error medio de la regresión hedónica (OLS) y de LightGBM.</p>
+            <div class="cmp">
+              <div class="cmp__group"><b>Carros</b>
+                <div class="cmp__row"><span>OLS</span><span class="cmp__track"><i style="width:30.2%"></i></span><span class="cmp__val">15,1&nbsp;%</span></div>
+                <div class="cmp__row"><span>LightGBM</span><span class="cmp__track"><i class="on" style="width:22.6%"></i></span><span class="cmp__val">11,3&nbsp;%</span></div>
+              </div>
+              <div class="cmp__group"><b>Motos</b>
+                <div class="cmp__row"><span>OLS</span><span class="cmp__track"><i style="width:86.8%"></i></span><span class="cmp__val">43,4&nbsp;%</span></div>
+                <div class="cmp__row"><span>LightGBM</span><span class="cmp__track"><i class="on" style="width:44.8%"></i></span><span class="cmp__val">22,4&nbsp;%</span></div>
+              </div>
+            </div>
+            <div class="cmp__key"><span>Escala de 0 a 50&nbsp;%</span></div>
+          </figure>
+        </div>
+
+        <figure class="card panel" style="margin-top:24px">
+          <h3>Error medio por marca, carros</h3>
+          <p class="small">Mercedes-Benz es el segmento más difícil: el título del anuncio no trae la versión, que es lo que más separa dos carros del mismo modelo.</p>
+          <div id="chart-seg"></div>
+        </figure>
+      </section>
+
+      <!-- Label rule -->
+      <section class="section" id="etiqueta" aria-labelledby="et-t">
+        <div class="section__head">
+          <h2 id="et-t">La regla de la etiqueta</h2>
+          <p class="body">Solo decimos si un anuncio es una ganga, justo o caro cuando el rango es confiable. Para eso, medido en los anuncios apartados, tiene que cumplir dos condiciones.</p>
+          <p class="body">La cobertura tiene un mínimo y un máximo. Si cubre poco, marcaría como ganga anuncios normales. Si cubre demasiado, metería en «justo» anuncios mal preciados. La decisión se toma al exportar el modelo y viaja con él, así que la API no la recalcula.</p>
+        </div>
+        <div class="gate">
+          <div class="card gate__card">
+            <div class="gate__head"><h3>Carros</h3><span class="badge badge--good">Publicada</span></div>
+            <div class="crit"><span class="crit__mark ok" aria-label="Cumple">✓</span><p>Cobertura entre 78 y 82&nbsp;%<span>Medida en 1.528 anuncios</span></p><span class="crit__val">81,0&nbsp;%</span></div>
+            <div class="crit"><span class="crit__mark ok" aria-label="Cumple">✓</span><p>Ancho del rango de 60&nbsp;% o menos<span>Relativo al estimado</span></p><span class="crit__val">41&nbsp;%</span></div>
+          </div>
+          <div class="card gate__card">
+            <div class="gate__head"><h3>Motos</h3><span class="badge badge--neutral">Retenida</span></div>
+            <div class="crit"><span class="crit__mark ok" aria-label="Cumple">✓</span><p>Cobertura entre 78 y 82&nbsp;%<span>Medida en 810 anuncios</span></p><span class="crit__val">81,6&nbsp;%</span></div>
+            <div class="crit"><span class="crit__mark fail" aria-label="No cumple">✗</span><p>Ancho del rango de 60&nbsp;% o menos<span>Cuando baje de 60&nbsp;%, la etiqueta se publica</span></p><span class="crit__val">81&nbsp;%</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scope -->
+      <section class="section" id="alcance" aria-labelledby="al-t">
+        <div class="section__head">
+          <h2 id="al-t">Alcance y supuestos</h2>
+          <p class="body">Lo que el modelo no puede saber hoy, cómo afecta a cada estimado y qué está previsto.</p>
+        </div>
+        <!-- "Qué está previsto" items are placeholders: confirm each one against docs/STATUS.md before shipping. -->
+        <div class="scope">
+          <article class="card scope__card">
+            <h3>Una sola fuente</h3>
+            <dl>
+              <div><dt>Qué pasa</dt><dd>Todos los anuncios vienen de TuCarro.</dd></div>
+              <div><dt>Cómo afecta</dt><dd>Describe ese mercado, que puede diferir del resto del país.</dd></div>
+              <div><dt>Qué está previsto</dt><dd class="plan">Sumar otra fuente pública cuando haya una que se pueda capturar gratis.</dd></div>
+            </dl>
+          </article>
+          <article class="card scope__card">
+            <h3>Precio publicado</h3>
+            <dl>
+              <div><dt>Qué pasa</dt><dd>Trabajamos con el precio que pide el vendedor en el anuncio.</dd></div>
+              <div><dt>Cómo afecta</dt><dd>El estimado responde a cuánto se publica un vehículo; el de cierre suele ser menor.</dd></div>
+              <div><dt>Qué está previsto</dt><dd class="plan">Sin plan por ahora: no hay datos públicos de ventas.</dd></div>
+            </dl>
+          </article>
+          <article class="card scope__card">
+            <h3>Departamento del anuncio</h3>
+            <dl>
+              <div><dt>Qué pasa</dt><dd>Algunos anuncios patrocinados aparecen en varias regiones.</dd></div>
+              <div><dt>Cómo afecta</dt><dd>El departamento indica dónde se publicó, que puede no ser dónde está el vehículo.</dd></div>
+              <div><dt>Qué está previsto</dt><dd class="plan">Leer la ubicación de la página de detalle del anuncio.</dd></div>
+            </dl>
+          </article>
+          <article class="card scope__card">
+            <h3>Falta la versión</h3>
+            <dl>
+              <div><dt>Qué pasa</dt><dd>El título no dice la versión del vehículo.</dd></div>
+              <div><dt>Cómo afecta</dt><dd>Dos carros del mismo modelo pueden valer muy distinto. Mercedes-Benz tiene el mayor error.</dd></div>
+              <div><dt>Qué está previsto</dt><dd class="plan">Extraer la versión de la página de detalle.</dd></div>
+            </dl>
+          </article>
+          <article class="card scope__card">
+            <h3>Motos sin modelo en el título</h3>
+            <dl>
+              <div><dt>Qué pasa</dt><dd>El 12&nbsp;% de los títulos de motos no dice qué moto es.</dd></div>
+              <div><dt>Cómo afecta</dt><dd>Esos anuncios concentran el mayor error.</dd></div>
+              <div><dt>Qué está previsto</dt><dd class="plan">Completar marca y modelo con la página de detalle.</dd></div>
+            </dl>
+          </article>
+          <article class="card scope__card">
+            <h3>Sin comparación con Fasecolda</h3>
+            <dl>
+              <div><dt>Qué pasa</dt><dd>La guía de Fasecolda no está disponible de forma pública y gratuita.</dd></div>
+              <div><dt>Cómo afecta</dt><dd>No hay una referencia externa para contrastar los estimados.</dd></div>
+              <div><dt>Qué está previsto</dt><dd class="plan">Fuera de alcance mientras el proyecto funcione sin costo.</dd></div>
+            </dl>
+          </article>
+          <article class="card scope__card">
+            <h3>Índice mensual de precios</h3>
+            <dl>
+              <div><dt>Qué pasa</dt><dd>Está listo y probado, pero necesita 180 días de historia.</dd></div>
+              <div><dt>Cómo afecta</dt><dd>Todavía no podemos mostrar cómo cambian los precios mes a mes.</dd></div>
+              <div><dt>Qué está previsto</dt><dd class="plan">Publicarlo a finales de marzo de 2027.</dd></div>
+            </dl>
+          </article>
+          <article class="card scope__card">
+            <h3>Cifras con fecha</h3>
+            <dl>
+              <div><dt>Qué pasa</dt><dd>Cada captura semanal mueve las cifras.</dd></div>
+              <div><dt>Cómo afecta</dt><dd>Un número de hoy puede cambiar en la próxima actualización.</dd></div>
+              <div><dt>Qué está previsto</dt><dd class="plan">Cada cifra se muestra con la fecha y el número de anuncios de su medición.</dd></div>
+            </dl>
+          </article>
+        </div>
+      </section>
+
+      <!-- Closing -->
+      <section class="section" id="codigo" aria-labelledby="cod-t">
+        <hr class="rule" style="margin-bottom:40px">
+        <h2 id="cod-t" style="margin-bottom:20px">Código y decisiones</h2>
+        <div class="closing">
+          <a class="more" href="https://github.com/JoseRomo16/AutoValorCo">Ver el código en GitHub ›</a>
+          <a class="more" href="https://github.com/JoseRomo16/AutoValorCo/tree/main/docs/adr">Decisiones técnicas ›</a>
+          <a class="more" href="https://autovalor-api.onrender.com/docs">Documentación de la API ›</a>
+          <a class="more" href="https://autovalor-api.onrender.com/model-info">Métricas del modelo en vivo ›</a>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div>
+        <a class="logo" href="valorar.html">AutoValor <span class="plate">CO</span></a>
+        <p class="small" style="margin-top:14px;max-width:46ch">Las estimaciones son informativas y no reemplazan un avalúo comercial. Se calculan con precios publicados en anuncios.</p>
+      </div>
+      <div>
+        <h4>Producto</h4>
+        <ul>
+          <li><a href="valorar.html">Valorar</a></li>
+          <li><a href="mercado.html">Mercado</a></li>
+          <li><a href="metodologia.html">Metodología</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Proyecto</h4>
+        <ul>
+          <li><a href="https://github.com/JoseRomo16/AutoValorCo">Código en GitHub</a></li>
+          <li><a href="https://autovalor-api.onrender.com/docs">Documentación de la API</a></li>
+          <li><a href="https://www.linkedin.com/in/jose-luis-romo-dev-data">Jose Luis Romo en LinkedIn</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__legal">
+      <span>Desarrollado por Jose Luis Romo · Pasto, Colombia</span>
+      <span>Datos del 7 oct 2026 · Modelo del 7 oct 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script src="design.js"></script>
+<script>
+(function () {
+  /* MAPE by make, cars: docs/results/segment_error.json (mockup copy) */
+  var SEG = [["Mercedes-Benz",107,19.92],["BMW",79,12.49],["Kia",79,12.28],["Hyundai",40,10.94],["Ford",114,10.26],["Chevrolet",146,10.11],["Toyota",240,9.78],["Nissan",84,9.54],["Volkswagen",84,9.17],["Renault",116,7.50],["Suzuki",46,7.35],["Mazda",134,6.81]];
+  renderBars(document.getElementById("chart-seg"), SEG.map(function (r) {
+    return { label: r[0], sub: r[1] + " anuncios", value: r[2], valueText: AV.pct(r[2]) };
+  }));
+
+  /* Table of contents: mark the section in view */
+  var links = document.querySelectorAll(".toc a");
+  var map = {};
+  links.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      links.forEach(function (a) { a.removeAttribute("aria-current"); });
+      if (map[e.target.id]) map[e.target.id].setAttribute("aria-current", "true");
+    });
+  }, { rootMargin: "-30% 0px -60% 0px" });
+  Object.keys(map).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
+})();
+</script>
+</body>
+</html>

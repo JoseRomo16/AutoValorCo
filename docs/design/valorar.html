@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Valorar · AutoValor CO</title>
+<meta name="description" content="Estima el precio de un carro o una moto usada en Colombia, con su rango y los factores que lo mueven.">
+<script>try{var t=localStorage.getItem("autovalor.theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="design.css">
+<style>
+  /* Page-specific: the valuation flow */
+  .hero--value { padding-block: 64px 40px; }
+  .hero--value h1 { max-width: 20ch; }
+
+  .value-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 32px; align-items: start; padding-bottom: 88px; }
+  @media (max-width: 960px) { .value-grid { grid-template-columns: 1fr; } }
+
+  .form { padding: 28px; }
+  .vehicle-switch { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border); border-radius: 8px; padding: 3px; margin-bottom: 28px; }
+  .vehicle-switch button {
+    min-height: 52px; border: 0; border-radius: 6px; background: transparent; cursor: pointer;
+    font-family: var(--font-display); font-stretch: 112%; font-weight: 700; font-size: var(--t-lg); color: var(--muted);
+    transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .vehicle-switch button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+
+  fieldset { border: 0; padding: 0; margin: 0 0 28px; min-width: 0; }
+  legend {
+    padding: 0; margin-bottom: 14px; font: 400 var(--t-xs)/1 var(--font-mono);
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-text);
+  }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .fields .full { grid-column: 1 / -1; }
+  @media (max-width: 560px) { .fields { grid-template-columns: 1fr; } }
+
+  .field label { display: block; font-size: var(--t-sm); font-weight: 500; margin-bottom: 6px; }
+  .field label .opt { color: var(--faint); font-weight: 400; }
+  .control {
+    width: 100%; min-height: 46px; padding: 0 14px; border-radius: 6px;
+    border: 1px solid var(--border-strong); background: var(--bg); color: var(--fg);
+    font-size: var(--t-md); transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .control.mono { font-family: var(--font-mono); }
+  .control[aria-invalid="true"] { border-color: var(--bad); }
+  .hint { font-size: var(--t-xs); color: var(--muted); margin-top: 6px; }
+  .hint--error { color: var(--bad); }
+  .affix { position: relative; }
+  .affix .control { padding-right: 52px; }
+  .affix span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font: 400 var(--t-sm)/1 var(--font-mono); color: var(--faint); pointer-events: none; }
+  .affix--pre .control { padding-left: 30px; padding-right: 14px; }
+  .affix--pre span { left: 14px; right: auto; }
+
+  /* Combobox (WAI-ARIA 1.2 pattern) */
+  .combo { position: relative; }
+  .combo__list {
+    position: absolute; z-index: 15; left: 0; right: 0; top: calc(100% + 4px); max-height: 264px; overflow-y: auto;
+    background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 6px; padding: 4px;
+  }
+  .combo__group { font: 400 var(--t-xs)/1 var(--font-mono); color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 10px 6px; }
+  .combo__opt { display: flex; justify-content: space-between; gap: 12px; padding: 10px; border-radius: 4px; cursor: pointer; min-height: 40px; align-items: center; }
+  .combo__opt span { font: 400 var(--t-xs)/1 var(--font-mono); color: var(--faint); }
+  .combo__opt[aria-selected="true"], .combo__opt:hover { background: var(--surface); }
+  .combo__opt[aria-selected="true"] { box-shadow: inset 2px 0 0 var(--accent); }
+  .combo__empty { padding: 12px 10px; color: var(--muted); font-size: var(--t-sm); }
+
+  .submit-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding-top: 8px; border-top: 1px solid var(--border); padding-top: 24px; }
+  .status { display: inline-flex; align-items: center; gap: 8px; font: 400 var(--t-xs)/1 var(--font-mono); color: var(--muted); }
+  .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+  .status[data-state="connecting"] i { background: var(--faint); }
+
+  /* Result */
+  .result { padding: 28px; position: sticky; top: 84px; }
+  .result__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .result__title { font: 400 var(--t-xs)/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .result__what { font-size: var(--t-sm); color: var(--muted); margin-bottom: 20px; }
+  .price-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); border-radius: 8px; }
+  .price-pair > div { padding: 18px; min-width: 0; }
+  .price-pair > div + div { border-left: 1px solid var(--border); }
+  .price-pair dt { font-size: var(--t-xs); color: var(--muted); margin-bottom: 8px; }
+  .price-pair dd { font: 500 clamp(1.25rem, 0.9rem + 1.2vw, 1.75rem)/1.1 var(--font-mono); letter-spacing: -0.03em; white-space: nowrap; }
+  .price-pair dd small { display: block; white-space: normal; font-size: var(--t-xs); color: var(--muted); letter-spacing: 0; margin-top: 6px; font-weight: 400; }
+
+  .range { margin-top: 22px; }
+  .range__track { position: relative; height: 34px; border-radius: 4px; background: var(--grid); }
+  .range__band { position: absolute; top: 9px; bottom: 9px; left: 0; right: 0; background: var(--bar-muted); border-radius: 2px; }
+  .range__mark { position: absolute; top: 3px; bottom: 3px; width: 2px; background: var(--fg); }
+  .range__ask { position: absolute; top: -4px; bottom: -4px; width: 4px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
+  .range__ticks { display: flex; justify-content: space-between; margin-top: 8px; font: 400 var(--t-xs)/1.3 var(--font-mono); color: var(--muted); }
+  .range__ticks b { color: var(--fg); font-weight: 500; display: block; }
+  .range__help { font-size: var(--t-xs); color: var(--muted); margin-top: 10px; }
+
+  .verdict { margin-top: 22px; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: baseline; padding: 16px 0; border-block: 1px solid var(--border); }
+  .verdict p { font-size: var(--t-sm); color: var(--muted); }
+  .verdict .ask { grid-column: 2; font-size: var(--t-sm); color: var(--fg); }
+
+  .factors { margin-top: 22px; }
+  .factors h3 { font-size: var(--t-md); margin-bottom: 4px; }
+  .factor { display: grid; grid-template-columns: minmax(0, 1fr) 90px 64px; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .factor:last-child { border-bottom: 0; }
+  .factor b { font-weight: 500; font-size: var(--t-sm); display: block; }
+  .factor small { font-size: var(--t-xs); color: var(--faint); font-family: var(--font-mono); }
+  .factor__bar { position: relative; height: 14px; }
+  .factor__bar::before { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border-strong); }
+  .factor__bar i { position: absolute; top: 3px; bottom: 3px; background: var(--bar); border-radius: 2px; }
+  .factor__val { text-align: right; font: 500 var(--t-sm)/1 var(--font-mono); }
+  .result__foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 22px; font-size: var(--t-sm); }
+  .result__foot .mono { font: 400 var(--t-xs)/1.6 var(--font-mono); color: var(--faint); }
+  .result__actions { display: flex; gap: 10px; margin-top: 18px; }
+  .result__actions .btn { min-height: 42px; font-size: var(--t-sm); padding: 0 16px; }
+
+  .states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 900px) { .states { grid-template-columns: 1fr; } }
+  .state { border: 1px solid var(--border); border-radius: 8px; padding: 18px; background: var(--surface); }
+  .state h4 { margin: 0 0 6px; font-size: var(--t-md); font-weight: 600; }
+  .state p { font-size: var(--t-sm); color: var(--muted); }
+  .state .btn { min-height: 40px; font-size: var(--t-sm); margin-top: 14px; padding: 0 14px; }
+  .skeleton { height: 12px; border-radius: 3px; background: linear-gradient(90deg, var(--grid), var(--surface-2), var(--grid)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Saltar al contenido</a>
+
+<header class="nav">
+  <div class="wrap nav__in">
+    <a class="logo" href="valorar.html" aria-label="AutoValor CO, inicio">AutoValor <span class="plate">CO</span></a>
+    <nav class="nav__links" aria-label="Principal">
+      <a href="valorar.html" aria-current="page">Valorar</a>
+      <a href="mercado.html">Mercado</a>
+      <a href="metodologia.html">Metodología</a>
+    </nav>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="tools">Ajustes</button>
+    <div class="nav__tools" id="tools">
+      <div class="seg" role="group" aria-label="Idioma">
+        <button type="button" data-lang-choice="es" aria-pressed="true">ES</button>
+        <button type="button" data-lang-choice="en" aria-pressed="false">EN</button>
+      </div>
+      <div class="seg" role="group" aria-label="Tema">
+        <button type="button" data-theme-choice="light" aria-pressed="false">Claro</button>
+        <button type="button" data-theme-choice="auto" aria-pressed="true">Auto</button>
+        <button type="button" data-theme-choice="dark" aria-pressed="false">Oscuro</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="content">
+  <section class="hero hero--value">
+    <div class="wrap">
+      <p class="eyebrow">Valorar</p>
+      <h1>¿Cuánto vale tu carro o tu moto usada?</h1>
+      <p class="lede">Escribe los datos del vehículo y te mostramos el precio estimado, el rango en el que se publican vehículos parecidos y qué lo sube o lo baja.</p>
+      <div class="chips" aria-label="Datos del modelo">
+        <span class="chip chip--key">Modelo del 7 oct 2026</span>
+        <span class="chip">11.691 anuncios analizados</span>
+        <span class="chip">Error medio 11,3&nbsp;% en carros</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap value-grid">
+    <!-- ===== Form ===== -->
+    <form class="card form" id="form" novalidate>
+      <div class="vehicle-switch" role="group" aria-label="Tipo de vehículo">
+        <button type="button" aria-pressed="true" data-type="car">Carro</button>
+        <button type="button" aria-pressed="false" data-type="motorcycle">Moto</button>
+      </div>
+
+      <fieldset>
+        <legend>Vehículo</legend>
+        <div class="fields">
+          <div class="field combo">
+            <label for="brand">Marca</label>
+            <input class="control" id="brand" type="text" role="combobox" aria-autocomplete="list"
+                   aria-expanded="false" aria-controls="brand-list" autocomplete="off" value="Mazda" spellcheck="false">
+            <div class="combo__list" id="brand-list" role="listbox" aria-label="Marcas" hidden></div>
+          </div>
+          <div class="field">
+            <label for="model">Modelo</label>
+            <select class="control" id="model">
+              <option>CX-30 · 125 anuncios</option>
+              <option>CX-5 · 118 anuncios</option>
+              <option>Mazda 3 · 113 anuncios</option>
+              <option>Mazda 2 · 106 anuncios</option>
+              <option>CX-50 · 33 anuncios</option>
+              <option>No lo sé o no aparece</option>
+            </select>
+            <p class="hint">En la versión real también es un buscador, como Marca.</p>
+          </div>
+          <div class="field">
+            <label for="year">Año del modelo</label>
+            <input class="control mono" id="year" inputmode="numeric" value="2021" maxlength="4">
+          </div>
+          <div class="field">
+            <label for="cc">Cilindrada <span class="opt">(opcional)</span></label>
+            <div class="affix">
+              <input class="control mono" id="cc" inputmode="numeric" placeholder="800 a 6.400" data-thousands>
+              <span>cc</span>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Anuncio</legend>
+        <div class="fields">
+          <div class="field">
+            <label for="km">Kilometraje</label>
+            <div class="affix">
+              <input class="control mono" id="km" inputmode="numeric" value="62.000" data-thousands aria-describedby="km-hint">
+              <span>km</span>
+            </div>
+            <p class="hint" id="km-hint">Lo que marca el odómetro.</p>
+          </div>
+          <div class="field">
+            <label for="dep">Departamento</label>
+            <select class="control" id="dep">
+              <optgroup label="Con más datos">
+                <option selected>Antioquia</option>
+                <option>Atlántico</option>
+                <option>Bogotá D.C.</option>
+                <option>Cundinamarca</option>
+                <option>Norte de Santander</option>
+                <option>Santander</option>
+                <option>Valle del Cauca</option>
+              </optgroup>
+              <optgroup label="Otros departamentos, menos datos">
+                <option>Cauca</option>
+                <option>Meta</option>
+                <option>Quindío</option>
+              </optgroup>
+            </select>
+            <p class="hint">Donde se publica el anuncio.</p>
+          </div>
+          <div class="field full">
+            <label for="ask">Precio pedido <span class="opt">(opcional)</span></label>
+            <div class="affix affix--pre">
+              <input class="control mono" id="ask" inputmode="numeric" value="95.000.000" data-thousands aria-describedby="ask-hint">
+              <span>$</span>
+            </div>
+            <p class="hint" id="ask-hint">Si lo escribes, te decimos si está por encima o por debajo del rango.</p>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="submit-row">
+        <button class="btn" type="submit" id="go">Calcular el precio</button>
+        <span class="status" id="status" data-state="ready" role="status"><i aria-hidden="true"></i><span>Modelo listo</span></span>
+      </div>
+    </form>
+
+    <!-- ===== Result (example state before the first valuation) ===== -->
+    <section class="card result" aria-labelledby="result-title" aria-live="polite" id="result">
+      <div class="result__head">
+        <h2 class="result__title" id="result-title" tabindex="-1">Precio estimado</h2>
+        <span class="badge badge--example">Ejemplo</span>
+      </div>
+      <p class="result__what">Mazda CX-30 · 2021 · 62.000&nbsp;km · Antioquia</p>
+
+      <dl class="price-pair">
+        <div>
+          <dt>Precio estimado</dt>
+          <dd>$92,4&nbsp;M<small>$92.400.000</small></dd>
+        </div>
+        <div>
+          <dt>Rango probable</dt>
+          <dd>$76–113&nbsp;M<small>8 de cada 10 se publican aquí</small></dd>
+        </div>
+      </dl>
+
+      <div class="range" aria-hidden="true">
+        <div class="range__track">
+          <span class="range__band"></span>
+          <span class="range__mark" style="left:44.4%"></span>
+          <span class="range__ask" style="left:51.5%"></span>
+        </div>
+        <div class="range__ticks">
+          <span><b>$76,1&nbsp;M</b>P10</span>
+          <span style="text-align:right"><b>$112,8&nbsp;M</b>P90</span>
+        </div>
+      </div>
+      <p class="range__help">El rango va del precio que solo 1 de cada 10 anuncios comparables pide por debajo (P10) al que solo 1 de cada 10 supera (P90).</p>
+
+      <div class="verdict">
+        <span class="badge badge--neutral">Justo</span>
+        <p>El precio pedido cae dentro del rango de vehículos comparables.</p>
+        <p class="ask">Pides $95.000.000, 2,8&nbsp;% más que el estimado.</p>
+      </div>
+
+      <div class="factors">
+        <h3>Qué mueve este precio</h3>
+        <p class="small">Cada factor sube o baja el precio base del modelo.</p>
+        <div style="margin-top:10px">
+          <div class="factor"><div><b>Año del modelo</b><small>2021</small></div><div class="factor__bar"><i style="left:50%;width:46%"></i></div><span class="factor__val">+18&nbsp;%</span></div>
+          <div class="factor"><div><b>Modelo</b><small>CX-30</small></div><div class="factor__bar"><i style="left:50%;width:31%"></i></div><span class="factor__val">+12&nbsp;%</span></div>
+          <div class="factor"><div><b>Kilometraje</b><small>62.000 km</small></div><div class="factor__bar"><i style="right:50%;width:16%"></i></div><span class="factor__val">−6&nbsp;%</span></div>
+          <div class="factor"><div><b>Departamento</b><small>Antioquia</small></div><div class="factor__bar"><i style="left:50%;width:13%"></i></div><span class="factor__val">+5&nbsp;%</span></div>
+          <div class="factor"><div><b>Ciudad</b><small>Medellín</small></div><div class="factor__bar"><i style="right:50%;width:6%"></i></div><span class="factor__val">−2&nbsp;%</span></div>
+        </div>
+      </div>
+
+      <div class="result__foot">
+        <span class="mono">Modelo del 7 oct 2026</span>
+        <a class="more" href="metodologia.html">Cómo se calcula ›</a>
+      </div>
+      <div class="result__actions">
+        <button class="btn btn--ghost" type="button">Copiar enlace</button>
+        <button class="btn btn--ghost" type="button">Valorar otro</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== Reference only: states the real page must design ===== -->
+  <section class="band" aria-labelledby="states-title">
+    <div class="wrap">
+      <div class="ref">
+        <span class="ref__tag">Referencia de diseño · no va en la página real</span>
+        <h2 class="h2" id="states-title" style="font-size:1.5rem;margin-bottom:20px">Estados del formulario y del resultado</h2>
+        <div class="states">
+          <div class="state">
+            <span class="status" data-state="connecting"><i></i><span>Conectando con el modelo…</span></span>
+            <h4 style="margin-top:14px">Servidor despertando</h4>
+            <p>Si la espera pasa de 5 segundos: «El servicio está arrancando. Suele tardar menos de un minuto; puedes seguir llenando el formulario».</p>
+          </div>
+          <div class="state">
+            <h4>Calculando</h4>
+            <p style="margin-bottom:14px">El botón muestra «Calculando…» y el resultado ocupa su lugar con un esqueleto, sin saltos.</p>
+            <div class="skeleton" style="width:40%"></div>
+            <div class="skeleton" style="width:85%;height:28px;margin-top:10px"></div>
+            <div class="skeleton" style="width:65%;margin-top:10px"></div>
+          </div>
+          <div class="state">
+            <h4>Sin conexión</h4>
+            <p>«No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo».</p>
+            <button class="btn btn--ghost" type="button">Reintentar</button>
+          </div>
+          <div class="state">
+            <span class="badge badge--neutral">Sin etiqueta para motos</span>
+            <h4 style="margin-top:14px">Etiqueta retenida</h4>
+            <p>«En motos mostramos el precio y el rango, pero no si es ganga o caro: el rango todavía es muy ancho (81&nbsp;% del estimado, el máximo es 60&nbsp;%)». La barra del rango va en gris.</p>
+          </div>
+          <div class="state">
+            <span class="badge badge--good">Ganga</span>
+            <span class="badge badge--neutral" style="margin-left:6px">Justo</span>
+            <span class="badge badge--bad" style="margin-left:6px">Caro</span>
+            <h4 style="margin-top:14px">Etiquetas</h4>
+            <p>Verde apagado, neutro con borde y terracota apagado. Nunca ámbar ni amarillo para «caro».</p>
+          </div>
+          <div class="state">
+            <label for="year-err" style="font-size:var(--t-sm);font-weight:500;display:block;margin-bottom:6px">Año del modelo</label>
+            <input class="control mono" id="year-err" value="2031" aria-invalid="true" aria-describedby="year-err-hint">
+            <p class="hint hint--error" id="year-err-hint">Escribe un año entre 1955 y 2027.</p>
+            <h4 style="margin-top:14px">Validación en línea</h4>
+            <p>Junto al campo, al salir de él. Nunca solo al enviar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div>
+        <a class="logo" href="valorar.html">AutoValor <span class="plate">CO</span></a>
+        <p class="small" style="margin-top:14px;max-width:46ch">Las estimaciones son informativas y no reemplazan un avalúo comercial. Se calculan con precios publicados en anuncios.</p>
+      </div>
+      <div>
+        <h4>Producto</h4>
+        <ul>
+          <li><a href="valorar.html">Valorar</a></li>
+          <li><a href="mercado.html">Mercado</a></li>
+          <li><a href="metodologia.html">Metodología</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Proyecto</h4>
+        <ul>
+          <li><a href="https://github.com/JoseRomo16/AutoValorCo">Código en GitHub</a></li>
+          <li><a href="https://autovalor-api.onrender.com/docs">Documentación de la API</a></li>
+          <li><a href="https://www.linkedin.com/in/jose-luis-romo-dev-data">Jose Luis Romo en LinkedIn</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__legal">
+      <span>Desarrollado por Jose Luis Romo · Pasto, Colombia</span>
+      <span>Datos del 7 oct 2026 · Modelo del 7 oct 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script src="design.js"></script>
+<script>
+(function () {
+  /* Vehicle switch */
+  var switches = document.querySelectorAll(".vehicle-switch button");
+  switches.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      switches.forEach(function (b) { b.setAttribute("aria-pressed", String(b === btn)); });
+    });
+  });
+
+  /* Thousands separator while typing, keeping the caret in place */
+  document.querySelectorAll("[data-thousands]").forEach(function (input) {
+    input.addEventListener("input", function () {
+      var caretFromEnd = input.value.length - input.selectionEnd;
+      var digits = input.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+      input.value = digits ? Number(digits).toLocaleString("es-CO") : "";
+      var pos = Math.max(input.value.length - caretFromEnd, 0);
+      input.setSelectionRange(pos, pos);
+    });
+  });
+
+  /* Brand combobox: filters as you type, ignores accents and case, most common first */
+  var BRANDS = [
+    ["Toyota", 1003], ["Chevrolet", 606], ["Mazda", 560], ["Renault", 470], ["Ford", 462],
+    ["Mercedes-Benz", 373], ["Nissan", 338], ["Volkswagen", 331], ["Kia", 317], ["BMW", 259],
+    ["Audi", 164], ["Suzuki", 155], ["Hyundai", 128], ["Honda", 112], ["Jeep", 88], ["Volvo", 81]
+  ];
+  var input = document.getElementById("brand");
+  var list = document.getElementById("brand-list");
+  var active = -1;
+  function norm(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+  function render() {
+    var q = norm(input.value.trim());
+    var hits = BRANDS.filter(function (b) { return norm(b[0]).indexOf(q) !== -1; });
+    active = Math.min(active, hits.length - 1);
+    list.innerHTML = hits.length
+      ? '<div class="combo__group">Más anuncios primero</div>' + hits.map(function (b, i) {
+          return '<div class="combo__opt" role="option" id="brand-opt-' + i + '" aria-selected="' + (i === active) + '" data-value="' + b[0] + '">' +
+                 b[0] + "<span>" + b[1].toLocaleString("es-CO") + "</span></div>";
+        }).join("")
+      : '<div class="combo__empty">No tenemos anuncios de esa marca.</div>';
+    input.setAttribute("aria-activedescendant", active >= 0 ? "brand-opt-" + active : "");
+  }
+  function open() { list.hidden = false; input.setAttribute("aria-expanded", "true"); render(); }
+  function close() { list.hidden = true; input.setAttribute("aria-expanded", "false"); active = -1; }
+  function choose(value) { input.value = value; close(); }
+  input.addEventListener("focus", function () { input.select(); open(); });
+  input.addEventListener("input", function () { active = 0; open(); });
+  input.addEventListener("keydown", function (e) {
+    var opts = list.querySelectorAll(".combo__opt");
+    if (e.key === "ArrowDown") { e.preventDefault(); if (list.hidden) open(); active = Math.min(active + 1, opts.length - 1); render(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); active = Math.max(active - 1, 0); render(); }
+    else if (e.key === "Enter" && !list.hidden && opts[active]) { e.preventDefault(); choose(opts[active].dataset.value); }
+    else if (e.key === "Escape") { close(); }
+  });
+  list.addEventListener("mousedown", function (e) {
+    var opt = e.target.closest(".combo__opt");
+    if (opt) { e.preventDefault(); choose(opt.dataset.value); }
+  });
+  input.addEventListener("blur", close);
+
+  /* Submit: skeleton in place, then the result; focus moves to its title */
+  var form = document.getElementById("form");
+  var go = document.getElementById("go");
+  var result = document.getElementById("result");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    go.disabled = true; go.textContent = "Calculando…";
+    result.style.opacity = "0.45";
+    setTimeout(function () {
+      go.disabled = false; go.textContent = "Calcular el precio";
+      result.style.opacity = "";
+      if (window.matchMedia("(max-width: 960px)").matches) result.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("result-title").focus({ preventScroll: true });
+    }, 700);
+  });
+})();
+</script>
+</body>
+</html>
