@@ -60,6 +60,7 @@ from autovalor.api.schemas import (
 )
 from autovalor.config import Settings, get_settings
 from autovalor.models.bundle import ARTIFACTS_DIR, ServedModel, load_served_models
+from autovalor.models.catalog import NamedCount
 from autovalor.models.dataset import VehicleType
 from autovalor.models.explain import shap_contributions
 
@@ -118,6 +119,18 @@ def _require(models: dict[VehicleType, ServedModel], vehicle_type: VehicleType) 
     if model is None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=NOT_READY)
     return model
+
+
+def _known_departments(model: ServedModel) -> tuple[str, ...]:
+    """Department levels the served model was fitted on, for spelling-tolerant matching."""
+    if model.catalog is None:
+        return ()
+    return tuple(entry.name for entry in model.catalog.departments)
+
+
+def _catalog_entry(level: NamedCount) -> CatalogEntry:
+    """Return one catalogue level as the API publishes it."""
+    return CatalogEntry(name=level.name, listings=level.listings, display_name=level.display_name)
 
 
 @app.get("/health", summary="Liveness and readiness")
@@ -196,17 +209,12 @@ def catalog(models: ModelsDep, vehicle_type: VehicleType | None = None) -> Catal
                     CatalogBrand(
                         name=brand.name,
                         listings=brand.listings,
-                        models=[
-                            CatalogEntry(name=entry.name, listings=entry.listings)
-                            for entry in brand.models
-                        ],
+                        display_name=brand.display_name,
+                        models=[_catalog_entry(entry) for entry in brand.models],
                     )
                     for brand in model.catalog.brands
                 ],
-                departments=[
-                    CatalogEntry(name=entry.name, listings=entry.listings)
-                    for entry in model.catalog.departments
-                ],
+                departments=[_catalog_entry(entry) for entry in model.catalog.departments],
                 model_year=CatalogRange(
                     min=model.catalog.model_year.min, max=model.catalog.model_year.max
                 ),
@@ -239,7 +247,7 @@ def predict(request: PredictRequest, models: ModelsDep) -> PredictResponse:
     passed the quality gate *and* an asking price was supplied to compare against.
     """
     model = _require(models, request.vehicle_type)
-    frame = to_frame(request)
+    frame = to_frame(request, departments=_known_departments(model))
     # The published band: calibrated P10 and P90 around the *point* model's estimate, which
     # is the number /explain attributes and the one whose MAPE is published. See
     # ServedModel.predict_published_band.
@@ -276,7 +284,7 @@ def predict(request: PredictRequest, models: ModelsDep) -> PredictResponse:
 def explain(request: PredictRequest, models: ModelsDep) -> ExplainResponse:
     """Attribute one estimate to its features, as exact multiplicative factors."""
     model = _require(models, request.vehicle_type)
-    frame = to_frame(request)
+    frame = to_frame(request, departments=_known_departments(model))
     phi, base = shap_contributions(model.point, frame)
 
     row = phi.iloc[0]

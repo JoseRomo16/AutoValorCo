@@ -25,7 +25,27 @@ def rows() -> list[dict[str, str]]:
 
 def test_the_seed_has_the_columns_the_model_reads(rows: list[dict[str, str]]) -> None:
     assert rows
-    assert set(rows[0]) == {"alias", "brand", "applies_to", "alias_kind"}
+    assert set(rows[0]) == {"alias", "brand", "applies_to", "alias_kind", "brand_rank"}
+
+
+def test_brand_rank_is_zero_or_one(rows: list[dict[str, str]]) -> None:
+    assert {row["brand_rank"] for row in rows} <= {"0", "1"}
+
+
+def test_every_make_has_one_rank(rows: list[dict[str, str]]) -> None:
+    # The rank decides which make wins when a title names two, so a make whose aliases
+    # disagree about it would resolve differently depending on how the seller spelled it.
+    ranks: dict[str, set[str]] = {}
+    for row in rows:
+        if row["alias_kind"] == "brand":
+            ranks.setdefault(row["brand"], set()).add(row["brand_rank"])
+    assert {make for make, seen in ranks.items() if len(seen) > 1} == set()
+
+
+def test_a_model_alias_is_never_ranked(rows: list[dict[str, str]]) -> None:
+    # Model aliases sort below every brand alias regardless, so a rank on one would be a
+    # number that reads as if it did something.
+    assert {row["brand_rank"] for row in rows if row["alias_kind"] == "model"} == {"0"}
 
 
 def test_every_alias_is_lowercase_and_trimmed(rows: list[dict[str, str]]) -> None:

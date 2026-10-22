@@ -35,6 +35,23 @@ seeds:
         brand: varchar
         applies_to: varchar
         alias_kind: varchar
+        brand_rank: bigint
+    model_tokens:
+      +column_types:
+        token: varchar
+        applies_to: varchar
+        rule: varchar
+        reason: varchar
+    model_aliases:
+      +column_types:
+        alias: varchar
+        model: varchar
+        brand: varchar
+        applies_to: varchar
+    colombian_departments:
+      +column_types:
+        slug: varchar
+        department: varchar
 
 models:
   autovalor:

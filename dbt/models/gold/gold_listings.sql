@@ -26,6 +26,7 @@ select
     -- title, so a listing with no detail row keeps exactly the value it had before.
     coalesce(details.detail_engine_cc, title_features.engine_cc) as engine_cc,
     coalesce(title_features.is_quad, false) as is_quad,
+    coalesce(title_features.is_cargo, false) as is_cargo,
 
     -- Detail-page features. Null for every listing that has not been enriched, which
     -- both tree libraries route down their own branch, so "not enriched" stays a state

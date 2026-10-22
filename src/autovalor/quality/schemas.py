@@ -179,6 +179,7 @@ GOLD_LISTINGS: Final = pa.DataFrameSchema(
             checks=[pa.Check.ge(MIN_ENGINE_CC), pa.Check.le(MAX_CAR_CC)],
         ),
         "is_quad": pa.Column(bool, nullable=False),
+        "is_cargo": pa.Column(bool, nullable=False),
         # Detail-page features. Null for every listing that has not been enriched, which
         # is most of them: the pass is incremental and costs one request each.
         "body_type": pa.Column(str, nullable=True),

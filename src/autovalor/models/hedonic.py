@@ -62,9 +62,9 @@ def feature_spec(feature_set: FeatureSet, vehicle_type: VehicleType) -> FeatureS
 
     Args:
         feature_set: ``basic`` or ``full``.
-        vehicle_type: Vertical being modeled; motorcycles carry the ``is_quad`` flag
-            because quads, buggies and side-by-sides share the vertical but not its
-            price curve.
+        vehicle_type: Vertical being modeled; motorcycles carry the ``is_quad`` and
+            ``is_cargo`` flags because quads and cargo three-wheelers share the vertical
+            but not its price curve.
 
     Returns:
         The specification, before derived columns are added by :func:`add_derived`.
@@ -86,7 +86,9 @@ def feature_spec(feature_set: FeatureSet, vehicle_type: VehicleType) -> FeatureS
         )
 
     boolean = (
-        ("is_official_store", "is_quad") if vehicle_type == "motorcycle" else ("is_official_store",)
+        ("is_official_store", "is_quad", "is_cargo")
+        if vehicle_type == "motorcycle"
+        else ("is_official_store",)
     )
     return FeatureSpec(
         numeric=("vehicle_age_years", AGE_SQUARED, LOG_MILEAGE, "engine_cc"),

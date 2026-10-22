@@ -1,0 +1,97 @@
+alias,model,brand,applies_to
+bt50,bt-50,Mazda,car
+cx3,cx-3,Mazda,car
+cx30,cx-30,Mazda,car
+cx5,cx-5,Mazda,car
+cx50,cx-50,Mazda,car
+cx60,cx-60,Mazda,car
+cx9,cx-9,Mazda,car
+cx90,cx-90,Mazda,car
+mazda2,2,Mazda,car
+mazda3,3,Mazda,car
+mazda6,6,Mazda,car
+crv,cr-v,Honda,car
+hrv,hr-v,Honda,car
+wrv,wr-v,Honda,car
+zrv,zr-v,Honda,car
+xtrail,x-trail,Nissan,car
+qashgai,qashqai,Nissan,car
+np,np300,Nissan,car
+f150,f-150,Ford,car
+f100,f-100,Ford,car
+cybester,cyberster,MG,car
+all-outlander,outlander,Mitsubishi,car
+fj-40,fj,Toyota,car
+scross,s-cross,Suzuki,car
+tonic,stonic,Kia,car
+bz4,bz4x,Toyota,car
+c-200,c200,Mercedes-Benz,car
+e-350,e350,Mercedes-Benz,car
+areox,aerox,Yamaha,motorcycle
+aeroz,aerox,Yamaha,motorcycle
+bwis,bws,Yamaha,motorcycle
+bws-x,bws,Yamaha,motorcycle
+bwsx,bws,Yamaha,motorcycle
+cripton,crypton,Yamaha,motorcycle
+crytpon,crypton,Yamaha,motorcycle
+fazzer,fazer,Yamaha,motorcycle
+fzn,fz,Yamaha,motorcycle
+mt03,mt-03,Yamaha,motorcycle
+mt07,mt-07,Yamaha,motorcycle
+mt09,mt-09,Yamaha,motorcycle
+mt15,mt-15,Yamaha,motorcycle
+n-max,nmax,Yamaha,motorcycle
+nemax,nmax,Yamaha,motorcycle
+nmax155,nmax,Yamaha,motorcycle
+nmaxv3,nmax,Yamaha,motorcycle
+nmx,nmax,Yamaha,motorcycle
+x-max,xmax,Yamaha,motorcycle
+x-max300,xmax,Yamaha,motorcycle
+yzfr3,yzf-r3,Yamaha,motorcycle
+africa,africa twin,Honda,motorcycle
+áfrica,africa twin,Honda,motorcycle
+adv75r,x-adv,Honda,motorcycle
+dió,dio,Honda,motorcycle
+hornet1000,hornet,Honda,motorcycle
+xadv,x-adv,Honda,motorcycle
+xadv-750,x-adv,Honda,motorcycle
+xadv750,x-adv,Honda,motorcycle
+zx10-r,zx10r,Kawasaki,motorcycle
+desert,desert x,Ducati,motorcycle
+desertx,desert x,Ducati,motorcycle
+díavel,diavel,Ducati,motorcycle
+huperstrada,multistrada,Ducati,motorcycle
+multiestrada,multistrada,Ducati,motorcycle
+multristrada,multistrada,Ducati,motorcycle
+himalaya,himalayan,Royal Enfield,motorcycle
+himlayan,himalayan,Royal Enfield,motorcycle
+aguility,agility,Kymco,motorcycle
+agilityrs,agility,Kymco,motorcycle
+dowton,downtown,Kymco,motorcycle
+v-store,v-strom,Suzuki,motorcycle
+v-stron,v-strom,Suzuki,motorcycle
+vstrom,v-strom,Suzuki,motorcycle
+vstrom250sx,v-strom,Suzuki,motorcycle
+vstron,v-strom,Suzuki,motorcycle
+gsxs,gsx-s,Suzuki,motorcycle
+gsxs750,gsx-s750,Suzuki,motorcycle
+dinamic,dynamic,AKT,motorcycle
+dinamik,dynamic,AKT,motorcycle
+dinamyc,dynamic,AKT,motorcycle
+dyn,dynamic,AKT,motorcycle
+dynamique,dynamic,AKT,motorcycle
+karguero,carguero,AKT,motorcycle
+lencino,leoncino,Benelli,motorcycle
+pulsarn250,pulsar,Bajaj,motorcycle
+rayder,raider,TVS,motorcycle
+x-pulse,xpulse,Hero,motorcycle
+310gs,g310gs,BMW,motorcycle
+gs-310,g310gs,BMW,motorcycle
+gs310,g310gs,BMW,motorcycle
+r12ninet,rninet,BMW,motorcycle
+ninet,rninet,BMW,motorcycle
+buggie,buggy,,motorcycle
+súper duke,super duke,KTM,motorcycle
+súper meteor,super meteor,Royal Enfield,motorcycle
+súper tenere,super tenere,Yamaha,motorcycle
+supertenere,super tenere,Yamaha,motorcycle

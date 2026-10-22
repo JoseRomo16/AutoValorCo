@@ -50,8 +50,15 @@ def test_a_model_token_is_capitalised_but_a_make_is_left_alone() -> None:
     # Model tokens are mined from titles in lower case; makes carry their own
     # capitalisation and "BMW" must not become "Bmw".
     assert format_value("model", "corolla").es == "Corolla"
-    assert format_value("model", "cx-30").es == "Cx-30"
     assert format_value("brand", "Mercedes-Benz").es == "Mercedes-Benz"
+
+
+def test_a_model_token_is_spelled_the_way_the_catalogue_spells_it() -> None:
+    # The explanation card and the form read the same rule, so a vehicle cannot be a
+    # "CX-30" in one place and a "Cx-30" in the other. `str.title` gave the second.
+    assert format_value("model", "cx-30").es == "CX-30"
+    assert format_value("model", "mt-09").es == "MT-09"
+    assert format_value("model", "clase gle").es == "Clase GLE"
 
 
 def test_the_unknown_bucket_is_translated() -> None:

@@ -25,7 +25,10 @@ models:
         data_tests:
           - not_null
       - name: model
-        description: First token after the make; NULL when the title carries only a make.
+        description: >
+          Canonical model token, mined from the title by scanning it against the
+          model_tokens and model_aliases seeds. NULL when every token in the title was
+          an ad word, a colour or the make itself.
       - name: engine_cc
         description: >
           Displacement in cc, mined from the title. Cars advertise litres ("1.6"),
@@ -36,6 +39,13 @@ models:
           Quad, buggy or side-by-side listed inside the motorcycle vertical. A
           different market, kept so F2 can segment it out rather than silently
           dropping the rows.
+        data_tests:
+          - not_null
+      - name: is_cargo
+        description: >
+          Cargo three-wheeler (motocarro, carguero, tricargo) listed inside the
+          motorcycle vertical. Same reason as is_quad: a population the model can split
+          on instead of rows that quietly widen the band.
         data_tests:
           - not_null
       - name: price_cop

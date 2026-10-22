@@ -50,3 +50,114 @@ seeds:
           - accepted_values:
               arguments:
                 values: ["brand", "model"]
+      - name: brand_rank
+        description: >
+          0 for a manufacturer, 1 for a distributor that also sells other makes' vehicles
+          under its own listings (AKT, Victory, Auteco in Colombia). A manufacturer
+          outranks a distributor, which is what turns "Akt Voge Ds300" into a Voge and
+          "Auteco Kymco Twist" into a Kymco. A distributor still wins every title that
+          names no other make, so it keeps its own catalogue.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+
+  - name: model_tokens
+    description: >
+      Tokens that are never a model on their own, with what to do when the scan in
+      `stg_title_features` meets one.
+
+      `drop` skips the token and moves to the next: the seller's verb ("vendo"), the
+      condition ("excelente"), the paperwork ("soat"), the colour, a body type
+      ("scooter"), the dealership's address ("avenida", "potenza"). Without this the model
+      token of a title that named its make outright was whatever word came first, which on
+      "Vendo Suzuki Agility 125" was "vendo".
+
+      `join` keeps the token and appends the next surviving one, because the word alone
+      names a family rather than a model: "Clase" covers every Mercedes-Benz from an
+      A 200 to a GLE 450 and 405 of 480 listings came out carrying it, so the level has to
+      be "clase gle". Same for "Serie 2", "Land Cruiser", "Range Rover", "Model 3".
+
+      Scoped by vertical where the same string means different things: a bare decimal is a
+      displacement on a car and nothing on a motorcycle, and "enduro" is a motorcycle body
+      type but a plausible car trim.
+    columns:
+      - name: token
+        description: Lower-case token, matched exactly after punctuation is stripped.
+        data_tests:
+          - not_null
+      - name: applies_to
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["car", "motorcycle", "both"]
+      - name: rule
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["drop", "join"]
+      - name: reason
+        description: >
+          Why the token is listed. Reporting only -- the scan does not read it -- but it
+          is what makes the list reviewable instead of a pile of words.
+        data_tests:
+          - not_null
+    data_tests:
+      - unique:
+          column_name: "token || '|' || applies_to"
+
+  - name: model_aliases
+    description: >
+      One spelling per model. The lake holds the same vehicle under several tokens
+      ("mt03" and "mt-03", "himalaya" / "himalayan" / "himlayan", "v-strom" through five
+      spellings), and a tree that splits on the raw token treats each as a different
+      vehicle.
+
+      `brand` scopes an alias to one make, which is required wherever the token is only
+      unambiguous under that make: "dynamic" is an AKT model and also a BMW trim, so the
+      spelling fixes apply under AKT and leave BMW alone. An empty `brand` applies the
+      alias to every make.
+    columns:
+      - name: alias
+        description: The token as mined, lower-case.
+        data_tests:
+          - not_null
+      - name: model
+        description: Canonical token the alias maps to; may carry a space ("desert x").
+        data_tests:
+          - not_null
+      - name: brand
+        description: Make the alias is scoped to, or empty for any make.
+      - name: applies_to
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["car", "motorcycle"]
+    data_tests:
+      - unique:
+          column_name: "alias || '|' || applies_to || '|' || coalesce(brand, '')"
+
+  - name: colombian_departments
+    description: >
+      Canonical department names, keyed on an accent-free, lower-case,
+      alphanumeric-only slug of whatever the site published. Keying on the slug rather
+      than the raw string is what lets a spelling nobody has captured yet still resolve:
+      "Valle Del Cauca", "valle del cauca" and "VALLE DEL CAUCA" all slug to
+      `valledelcauca`.
+
+      All 32 departments plus Bogotá are listed, not only the ones captured so far, so a
+      capture that reaches a new region does not silently create a level of its own.
+    columns:
+      - name: slug
+        description: Lower-case, accent-free, alphanumeric-only key.
+        data_tests:
+          - not_null
+          - unique
+      - name: department
+        description: Name as it is published and as the API accepts it.
+        data_tests:
+          - not_null

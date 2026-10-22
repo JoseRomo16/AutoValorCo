@@ -18,6 +18,8 @@ from typing import Any
 
 import numpy as np
 
+from autovalor.features.naming import display_model
+
 SPANISH = "es"
 ENGLISH = "en"
 
@@ -49,6 +51,7 @@ FEATURE_LABELS: dict[str, Localized] = {
     "km_per_year": Localized(es="Kilómetros por año", en="Kilometres per year"),
     "is_official_store": Localized(es="Tienda oficial", en="Official store"),
     "is_quad": Localized(es="Cuatrimoto", en="Quad bike"),
+    "is_cargo": Localized(es="Motocarro", en="Cargo three-wheeler"),
 }
 """Every feature the served specification carries. Pinned by a test against the bundle's
 own spec, so adding a feature to the model without naming it here fails the suite instead
@@ -129,5 +132,7 @@ def format_value(feature: str, value: Any) -> Localized:
     text = str(value)
     # Model tokens are mined from titles in lower case ("corolla"); makes and departments
     # already carry their own capitalisation and must not be touched — "BMW" is not "Bmw".
-    shown = text.title() if feature == "model" and text.islower() else text
+    # The same spelling rule the catalogue uses, so the explanation card and the dropdown
+    # never disagree about a model's name. `str.title` gave "Cx-30" and "Mt-09".
+    shown = display_model(text) if feature == "model" else text
     return _localized_level(shown)

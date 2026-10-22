@@ -53,6 +53,14 @@ flagged as (
             when model_year > year(last_seen_at) + 1 then 'model_year_in_future'
             when mileage_km is null then 'mileage_missing'
             when mileage_km > {{ var('max_mileage_km') }} then 'mileage_too_high'
+            -- Bicycles, e-bikes and stand-up scooters get posted inside the motorcycle
+            -- vertical. They are not motor vehicles and they price nothing like one, so
+            -- they are flagged out here rather than left to widen the band. Pedal-assist
+            -- brands are named because they do not say "bicicleta" in the title.
+            when vehicle_type = 'motorcycle' and regexp_matches(
+                lower(coalesce(title, '')),
+                'bicicletas?|bicimoto|patineta|monopat|ciclomotor|evobike|e-bike'
+            ) then 'not_a_motor_vehicle'
         end as invalid_reason
     from deduplicated
 

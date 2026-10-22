@@ -80,6 +80,7 @@ def gold_frame(**overrides: object) -> pd.DataFrame:
         "model": "hb20",
         "engine_cc": 1600,
         "is_quad": False,
+        "is_cargo": False,
         # Detail-page features: null for a listing that has not been enriched, which is
         # the common case.
         "body_type": None,
