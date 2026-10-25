@@ -36,6 +36,17 @@ def _read(name: str) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def _scalar(con: duckdb.DuckDBPyConnection, sql: str) -> float:
+    """The one number an aggregate query returns.
+
+    ``fetchone`` is typed as optional because a plain select can come back empty; an
+    aggregate without a group by never does.
+    """
+    row = con.execute(sql).fetchone()
+    assert row is not None, sql
+    return row[0]  # type: ignore[no-any-return]
+
+
 @pytest.fixture(scope="module")
 def con() -> Iterator[duckdb.DuckDBPyConnection]:
     connection = duckdb.connect(str(LAKE), read_only=True)
@@ -197,16 +208,16 @@ def test_a_manufacturer_beats_a_distributor(con: duckdb.DuckDBPyConnection) -> N
 def test_the_distributor_keeps_its_own_listings(con: duckdb.DuckDBPyConnection) -> None:
     # The other half of the rule: ranking a distributor below manufacturers must not cost
     # it the listings that name no other make.
-    kept = con.execute(
-        f"select count(*) from {GOLD} where vehicle_type = 'motorcycle' and brand = 'AKT'"
-    ).fetchone()[0]
+    kept = _scalar(
+        con, f"select count(*) from {GOLD} where vehicle_type = 'motorcycle' and brand = 'AKT'"
+    )
     assert kept > 100
 
 
 def test_auteco_is_not_a_make(con: duckdb.DuckDBPyConnection) -> None:
     # It is Colombia's largest distributor, not a manufacturer, and it used to publish a
     # nine-model catalogue made of other makes' bikes.
-    assert con.execute(f"select count(*) from {GOLD} where brand = 'Auteco'").fetchone()[0] == 0
+    assert _scalar(con, f"select count(*) from {GOLD} where brand = 'Auteco'") == 0
 
 
 def test_no_bicycle_reaches_gold(con: duckdb.DuckDBPyConnection) -> None:
@@ -233,12 +244,13 @@ def test_the_unknown_bucket_shrank_to_where_the_title_says_nothing(
     # Cars resolve from the make alone; the floor is listings whose title names a make
     # nobody sells here. This pins the gain rather than the mechanism: if a seed edit
     # takes the car bucket back above 1 %, something was removed rather than added.
-    unresolved = con.execute(
+    unresolved = _scalar(
+        con,
         f"""
         select round(100.0 * sum(case when brand = 'Desconocida' then 1 else 0 end) / count(*), 2)
         from {GOLD} where vehicle_type = 'car'
-        """
-    ).fetchone()[0]
+        """,
+    )
     assert unresolved < 1.0
 
 
