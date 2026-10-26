@@ -225,12 +225,36 @@ class VerticalInfo(BaseModel):
     trained_on_rows: int
 
 
+class LabelGate(BaseModel):
+    """The rule a vertical's band has to pass before its label may be published.
+
+    The same three thresholds for every vertical, which is why they sit beside the list
+    rather than inside each entry. Published because ``label_withheld_codes`` carries a
+    limit only for the rule that failed: a vertical that passes carries none, and the
+    coverage window never appears in full because a failure is one-sided by construction.
+    A client that explains the rule needs all three, in its own language.
+    """
+
+    min_coverage: float = Field(description="Lowest held-out coverage that earns a label.")
+    max_coverage: float = Field(
+        description="Highest. Over-covering stops the label discriminating."
+    )
+    max_relative_width: float = Field(description="Widest mean band, as a share of the estimate.")
+
+
 class ModelInfoResponse(BaseModel):
     """Description of the models currently served."""
 
     version: str = Field(description="Bundle version, shared by every vertical.")
     target: str = Field(description="Modeled target variable.")
     verticals: list[VerticalInfo]
+    label_gate: LabelGate | None = Field(
+        default=None,
+        description=(
+            "The thresholds every vertical above was judged against. Null on a bundle "
+            "exported before the gate was published."
+        ),
+    )
 
 
 class HealthResponse(BaseModel):

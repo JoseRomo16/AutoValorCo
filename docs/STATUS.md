@@ -667,11 +667,15 @@ etiqueta ganga/justo/caro solo si la banda medida en el holdout cumple las dos c
   verdad están mal preciados, y la etiqueta deja de discriminar.
 - **ancho medio ≤ 60 % del estimado.**
 
-Carros pasan las dos. **Motos fallan las dos** —83,6 % de cobertura y 84 % de ancho—, así
-que esa vertical se publica con **precio estimado, rango y un aviso de precisión**, sin
-etiqueta. (Con el lago del 2026-10-25 motos ya cumple la cobertura y falla solo el ancho;
-la decisión no cambia.) La vertical no se retira: un estimado con rango sigue siendo útil; lo que no se
-puede sostener es la etiqueta.
+Carros pasan las dos. Motos no, así que esa vertical se publica con **precio estimado,
+rango y un aviso de precisión**, sin etiqueta. La vertical no se retira: un estimado con
+rango sigue siendo útil; lo que no se puede sostener es la etiqueta.
+
+> **Qué falla hoy, que no es lo que decía esta medición.** Con el lago de este corte motos
+> fallaba **las dos** condiciones (83,6 % de cobertura y 84 % de ancho). Tras el
+> reentrenamiento del 2026-10-25 la cobertura entra en la ventana y **falla solo el ancho**.
+> La decisión no cambia, pero la razón sí, y es la que el sitio tiene que contar. Las cifras
+> vigentes están en el bloque generado del README (`make readme`).
 
 **El déficit de cobertura no era lo que parecía.** Estaba documentado como deuda conocida
 —76,5 % y 76,8 % contra un nominal de 80 %— con la hipótesis de que la conformalización
@@ -1389,12 +1393,30 @@ El trabajo en curso es el **rediseño del sitio**, que tiene su propio documento
 seguimiento: [`redesign.md`](redesign.md) dice en qué estado está cada paso, guarda el
 diagnóstico de las tres páginas y lista las decisiones abiertas. **Empezar por ahí.**
 
-De los siete pasos, **cinco están cerrados** —limpieza del catálogo, reentrenamiento, los
-cuatro datos del lago que faltaban exportar, el diagnóstico y el copy— y faltan los tres de
-maquetación: pendientes de API y documentación, fundaciones visuales y las páginas.
+De los siete pasos, **seis están cerrados** —limpieza del catálogo, reentrenamiento, los
+cuatro datos del lago que faltaban exportar, el diagnóstico, el copy y los pendientes de API
+y documentación— y faltan los tres de maquetación: fundaciones visuales, las páginas y la
+verificación.
 
 El bundle publicado es **2026-10-25.12948**, con las capturas del 12 y el 19 de octubre
 dentro, y **no está desplegado todavía**.
+
+### Las cifras ya no se teclean en ningún documento
+
+Antes de este corte, README, `CLAUDE.md` y este archivo repetían a mano las mismas cifras, y
+el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el 2026-10-26:
+
+- **El README las genera.** `make readme` (`src/autovalor/readme.py`) renderiza un bloque por
+  idioma entre marcadores `<!-- results:start:es -->` desde `artifacts/models/*/model.json` y
+  `docs/results/`. `tests/test_readme.py` falla si el bloque quedó viejo, así que un
+  reentrenamiento sin `make readme` no pasa CI. El test **no** busca cifras en la prosa: eso
+  volvería la prosa una segunda fuente de verdad, que es justo lo que el bloque elimina.
+- **Los umbrales del gate también salen de un archivo.** `LABEL_GATE` en `models/quantiles.py`
+  es la fuente; `save_bundle` lo escribe en `model.json` bajo `label.gate` y `/model-info` lo
+  devuelve en `label_gate`. Eran los últimos tres números escritos a mano en `i18n.ts`.
+- **Las secciones históricas de este archivo se marcan como tales** en vez de corregirse: son
+  el registro de cómo se llegó aquí. Cuando una de ellas afirma algo que ya no se cumple —como
+  "motos fallan las dos condiciones"— lleva una nota que dice qué cambió.
 
 **Lo que sigue:**
 
@@ -1404,8 +1426,15 @@ dentro, y **no está desplegado todavía**.
    publica las cifras nuevas. En ese orden no hay ventana en la que la página cite una
    cifra que el servicio no está sirviendo. Pasos en [`deploy-render.md`](deploy-render.md);
    el despliegue no se automatiza desde aquí.
-2. **Los pasos 3 a 6 del rediseño**, en [`redesign.md`](redesign.md).
-3. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
+2. **Los pasos 4 a 6 del rediseño**, en [`redesign.md`](redesign.md).
+3. **La captura semanal está caída y no es culpa del código.** Desde el run del 2026-10-26
+   TuCarro responde a las IP de GitHub Actions con un `302` a la verificación de cuenta de
+   MercadoLibre, así que el scraper parsea esa página y captura 0 anuncios en las seis
+   ubicaciones. Desde una IP residencial las mismas URL devuelven `200` (o un `301` a la
+   forma nueva, `/carros-camionetas/bogota-dc` → `/bogota-dc`, que el cliente ya sigue) y
+   parsean 48 tarjetas por página. Es un bloqueo por tipo de IP, no una plantilla de URL
+   vieja. Sin solución de costo cero: un proxy residencial se paga. **Pendiente de decisión.**
+4. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
    motos bajen de 22,0 %, que sigue siendo señal de estado y no más identidad.
 
 Lo que **no** está hecho y no es un olvido: el índice mensual de precios (espera a

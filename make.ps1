@@ -10,7 +10,7 @@
 param(
     [Parameter(Position = 0)]
     [ValidateSet('help', 'setup', 'scrape', 'enrich', 'pull-history', 'push-history',
-        'transform', 'train', 'export-model', 'results', 'serve', 'web', 'web-build', 'web-lint',
+        'transform', 'train', 'export-model', 'results', 'readme', 'serve', 'web', 'web-build', 'web-lint',
         'test', 'lint', 'format', 'docker-build',
         'docker-up', 'clean')]
     [string]$Target = 'help',
@@ -71,6 +71,7 @@ switch ($Target) {
         Write-Host '  train          Train the models and log them to MLflow (-Trials N)'
         Write-Host '  export-model   Train the served model into artifacts/models/'
         Write-Host '  results        Estimate the economic results and export them to docs/'
+        Write-Host '  readme         Regenerate the figures the README publishes'
         Write-Host '  serve          Run the API locally with autoreload'
         Write-Host '  web            Run the front end in development'
         Write-Host '  web-build      Build the static export into frontend/out'
@@ -122,6 +123,9 @@ switch ($Target) {
         $resultsCommand = @('uv', 'run', 'python', '-m', 'autovalor.analysis.cli')
         if ($Trials -ge 0) { $resultsCommand += @('--trials', "$Trials") }
         Invoke-Step $resultsCommand
+    }
+    'readme' {
+        Invoke-Step 'uv', 'run', 'python', '-m', 'autovalor.readme'
     }
     'serve' {
         Invoke-Step 'uv', 'run', 'uvicorn', 'autovalor.api.main:app', '--reload',

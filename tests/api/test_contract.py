@@ -25,6 +25,7 @@ from autovalor.config import get_settings
 from autovalor.models.bundle import load_served_models, save_bundle
 from autovalor.models.catalog import build_catalog
 from autovalor.models.dataset import split_listings
+from autovalor.models.quantiles import LABEL_GATE
 from autovalor.models.train import train_model
 
 from ..models.conftest import make_gold_frame
@@ -88,6 +89,28 @@ def empty_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Te
     monkeypatch.setattr(api_main, "ARTIFACTS_DIR", tmp_path / "nothing")
     with TestClient(api_main.app) as test_client:
         yield test_client
+
+
+def test_the_root_sends_a_visitor_to_the_documentation(client: TestClient) -> None:
+    # The deployed URL is what gets pasted into a README and a CV, and a bare FastAPI root
+    # answers "Not Found" there.
+    response = client.get("/", follow_redirects=False)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == "/docs"
+
+
+def test_the_root_redirect_does_not_need_a_model(empty_client: TestClient) -> None:
+    # It is a courtesy route, so a checkout without artifacts must still answer it rather
+    # than 503 like the prediction routes do.
+    response = empty_client.get("/", follow_redirects=False)
+
+    assert response.status_code == 307
+
+
+def test_the_documentation_the_root_points_at_is_served(client: TestClient) -> None:
+    # A redirect to a 404 is worse than no redirect, so the destination is asserted too.
+    assert client.get("/docs").status_code == 200
 
 
 def test_health_reports_what_is_loaded(client: TestClient) -> None:
@@ -407,6 +430,32 @@ def test_a_withheld_label_comes_with_codes_as_well_as_text(client: TestClient) -
                 "width_above_max",
             }
             assert code["limit"] > 0
+
+
+def test_model_info_publishes_the_whole_rule_not_only_the_limit_that_failed(
+    client: TestClient,
+) -> None:
+    # A failure is one-sided, so `limit` never shows the coverage window and a vertical
+    # that passes carries no limit at all. The page states all three, so all three ship.
+    gate = client.get("/model-info").json()["label_gate"]
+
+    assert gate == {
+        "min_coverage": LABEL_GATE.min_coverage,
+        "max_coverage": LABEL_GATE.max_coverage,
+        "max_relative_width": LABEL_GATE.max_relative_width,
+    }
+
+
+def test_the_published_gate_is_the_one_the_verticals_were_judged_against(
+    client: TestClient,
+) -> None:
+    body = client.get("/model-info").json()
+    gate = body["label_gate"]
+
+    for vertical in body["verticals"]:
+        within = gate["min_coverage"] <= vertical["interval_coverage"] <= gate["max_coverage"]
+        narrow = vertical["interval_mean_relative_width"] <= gate["max_relative_width"]
+        assert vertical["publishes_label"] == (within and narrow)
 
 
 def test_predict_carries_the_precision_codes_next_to_the_notice(client: TestClient) -> None:

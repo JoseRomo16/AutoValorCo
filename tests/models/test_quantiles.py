@@ -8,6 +8,7 @@ from autovalor.models.quantiles import (
     BARGAIN,
     EXPENSIVE,
     FAIR,
+    LABEL_GATE,
     MAX_LABEL_COVERAGE,
     MAX_LABEL_RELATIVE_WIDTH,
     MIN_LABEL_COVERAGE,
@@ -251,3 +252,25 @@ def test_a_withheld_policy_returns_no_labels_and_a_notice() -> None:
     assert "Estimate and range only" in notice
     # The user-facing caveat has to carry the reason, not just the refusal.
     assert "94%" in notice
+
+
+def test_the_published_gate_is_the_rule_the_policy_applies() -> None:
+    # The whole reason the gate is exported: the methodology page states these three
+    # numbers, and a page stating a rule the code does not apply is worse than no page.
+    assert LABEL_GATE.min_coverage == MIN_LABEL_COVERAGE
+    assert LABEL_GATE.max_coverage == MAX_LABEL_COVERAGE
+    assert LABEL_GATE.max_relative_width == MAX_LABEL_RELATIVE_WIDTH
+
+
+def test_the_gate_publishes_the_coverage_window_a_failure_cannot_show() -> None:
+    # A failure is one-sided by construction, so `limit` alone never describes the window.
+    policy = label_policy(make_band_report(0.70, 0.40), vehicle_type="car")
+    (failure,) = policy.failure_codes
+    assert failure.limit == MIN_LABEL_COVERAGE
+
+    gate = LABEL_GATE.to_json()
+    assert gate == {
+        "min_coverage": MIN_LABEL_COVERAGE,
+        "max_coverage": MAX_LABEL_COVERAGE,
+        "max_relative_width": MAX_LABEL_RELATIVE_WIDTH,
+    }
