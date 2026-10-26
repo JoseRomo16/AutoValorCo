@@ -297,15 +297,18 @@ mercado.
 que el log imprime (`temporal split of car at 2026-09-30…`) es el mínimo de `last_seen_at`
 de las **filas** de test, no el del grupo: un vehículo reposteado arrastra sus filas viejas
 al lado de test, así que el valor impreso no es el corte real. La segunda es que
-`last_seen_at` solo toma **cinco valores**, uno por captura:
+`last_seen_at` solo toma **cuatro valores**, uno por captura:
 
-| Última vez visto | Carros | Motos |
+| Última vez visto (UTC) | Carros | Motos |
 | --- | --- | --- |
-| 2026-09-29 | 20 | 65 |
-| 2026-09-30 | 4.634 | 1.674 |
+| 2026-09-30 | 4.654 | 1.739 |
 | 2026-10-05 | 744 | 477 |
 | 2026-10-12 | 2.470 | 1.864 |
 | 2026-10-19 | 575 | 425 |
+
+Las fechas van en UTC, que es como bronze particiona (`capture_date=2026-09-30`). En hora
+local la primera sesión arrancó 21:48 del 29 y terminó 01:01 del 30, así que contarla en
+hora de Bogotá la parte en dos capturas que no existen.
 
 Un holdout del 20 % no cae en una frontera de fecha: en carros son 1.690 filas, así que
 toma las 575 vistas por última vez el 19 y **1.115 de las 2.470 del 12**, dejando las otras
@@ -334,6 +337,28 @@ formato 1, así que el servicio desplegado sirve su bundle sin cambios):
   español. `label.failures` conserva su texto exacto por compatibilidad.
 
 Versión del bundle: **2026-10-25.12948**.
+
+#### Lo que `manifest.json` publica ahora
+
+Cuatro cifras que las tres páginas necesitan y que ningún archivo tenía, así que estaban
+tecleadas en el copy. Van en el manifiesto de `make results` y no en el bundle, porque
+`model.json` solo se reescribe con un reentrenamiento y la misma cifra en dos archivos es
+justo lo que hay que evitar.
+
+- **`capture_dates`**: las fechas en que se leyó el sitio. El último elemento es la fecha de
+  los datos y la longitud es el número de capturas, así que no hay dos cifras que puedan
+  contradecirse. Hoy **4 capturas, del 2026-09-30 al 2026-10-19**, en UTC.
+- **`unresolved_make`**: la proporción de títulos sin marca resuelta, **0,01 % en carros y
+  8,63 % en motos**. El copy decía "12 %", que era de antes de la limpieza.
+- **`skipped_codes`**: el motivo de cada análisis que no se produjo, como dato. Hoy
+  `{code: "span_below_minimum", span_days: 19.489, required_days: 180, ready_on:
+  "2027-03-29"}` para el índice de las dos verticales. `skipped` conserva su frase exacta.
+- La fecha del índice sale de ahí, así que la página puede escribir "finales de marzo de
+  2027" en vez de repetir un `~2027-03-29` teclado a mano.
+
+`IndexNotPossibleError` tiene dos sitios de `raise` —span corto y menos de dos periodos— y
+solo el primero tiene que ver con fechas, así que el error carga un `details` con su `code`
+en vez de tres atributos que el segundo caso dejaría vacíos.
 
 ### F2 — Modelación (cerrada)
 

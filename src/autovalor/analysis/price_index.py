@@ -30,7 +30,7 @@ informative rather than a bare exception. As of the lake this module was written
 """
 
 import logging
-from datetime import timedelta
+from datetime import date, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -76,7 +76,27 @@ CPI_FILE = Path("data/reference/ipc_dane.csv")
 
 
 class IndexNotPossibleError(RuntimeError):
-    """Raised when the lake cannot support an honest index yet."""
+    """Raised when the lake cannot support an honest index yet.
+
+    The message names the numbers it refused on, and a page that has to explain the
+    refusal in Spanish cannot derive them from an English sentence. They travel alongside
+    it as data, so the wording stays free to change without anything parsing it.
+
+    Attributes:
+        details: A ``code`` naming which of the two refusals this is, plus the figures that
+            triggered it. Goes into the manifest as-is.
+    """
+
+    def __init__(self, message: str, *, details: dict[str, object] | None = None) -> None:
+        """Store the refusal's figures beside its message.
+
+        Args:
+            message: What to print, unchanged from before this argument existed.
+            details: The refusal as data. Optional so a raise site that has nothing to add
+                stays a one-liner.
+        """
+        super().__init__(message)
+        self.details: dict[str, object] = details if details is not None else {}
 
 
 def assign_periods(frame: pd.DataFrame, *, freq: str = PERIOD_FREQ) -> pd.Series:
@@ -104,6 +124,27 @@ def capture_span_days(frame: pd.DataFrame) -> float:
     seen = pd.to_datetime(frame["last_seen_at"], utc=True)
     span: pd.Timedelta = seen.max() - seen.min()
     return float(span / pd.Timedelta(days=1))
+
+
+def capture_dates(frame: pd.DataFrame) -> list[date]:
+    """Return the dates the lake was captured on, earliest first.
+
+    Read off both timestamps rather than counted from a capture log, because gold has no
+    capture grain: it is one row per listing. A listing's ``first_seen_at`` is the capture
+    that found it and its ``last_seen_at`` the capture that still had it, so every capture
+    that saw anything appear or disappear is in the union. A capture where nothing did
+    either would be invisible here, which a weekly scrape of a live marketplace does not
+    produce.
+
+    Args:
+        frame: Gold rows.
+
+    Returns:
+        Distinct capture dates, ascending.
+    """
+    first = pd.to_datetime(frame["first_seen_at"], utc=True).dt.date
+    last = pd.to_datetime(frame["last_seen_at"], utc=True).dt.date
+    return sorted({*first, *last})
 
 
 def publishable_from(frame: pd.DataFrame) -> pd.Timestamp:
@@ -137,7 +178,15 @@ def check_publishable(frame: pd.DataFrame) -> None:
             f"the lake spans {span:.1f} days, under the {MIN_INDEX_SPAN_DAYS} an index "
             f"needs; the weekly captures reach it on {reached}"
         )
-        raise IndexNotPossibleError(msg)
+        raise IndexNotPossibleError(
+            msg,
+            details={
+                "code": "span_below_minimum",
+                "span_days": round(span, 3),
+                "required_days": MIN_INDEX_SPAN_DAYS,
+                "ready_on": reached.isoformat(),
+            },
+        )
 
 
 def hedonic_index(
@@ -178,7 +227,15 @@ def hedonic_index(
             f"{vehicle_type} has {len(periods)} period(s) with at least "
             f"{MIN_LISTINGS_PER_PERIOD} listings; an index needs at least two"
         )
-        raise IndexNotPossibleError(msg)
+        raise IndexNotPossibleError(
+            msg,
+            details={
+                "code": "too_few_periods",
+                "periods": len(periods),
+                "required_periods": 2,
+                "min_listings_per_period": MIN_LISTINGS_PER_PERIOD,
+            },
+        )
 
     # Thin periods are dropped rather than pooled: pooling two months into one dummy would
     # produce an index point that belongs to no month.

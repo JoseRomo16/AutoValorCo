@@ -51,12 +51,20 @@ class Manifest:
         gold_rows: Rows per vertical in the gold table the run read.
         capture_span_days: Spread of ``last_seen_at`` across the lake, which is what
             decides whether a temporal split or a price index is possible yet.
+        capture_dates: The dates the lake was captured on, earliest first. The last one
+            is how old the published figures are, and the count is how many weeks of
+            history they rest on; a span in days answers neither.
         detail_coverage: Share of each vertical carrying listing-page attributes.
+        unresolved_make: Share of each vertical whose title named no make the seeds know.
+            The figure a limitation has to quote, and it was being typed by hand.
         thresholds: The filters and cut-offs in force, so a reader does not have to go
             find them in the source.
         files: Relative paths written, filled in by :func:`write_table`.
         skipped: Analyses the run could not produce, keyed by name, with the reason. An
             absent result is otherwise indistinguishable from one nobody asked for.
+        skipped_codes: The same refusals as data, keyed the same way. A reader that has to
+            say "late March 2027" in another language cannot get there from an English
+            sentence. ``skipped`` keeps its exact wording.
     """
 
     generated_at: str
@@ -64,8 +72,11 @@ class Manifest:
     capture_span_days: float
     detail_coverage: dict[str, float]
     thresholds: dict[str, float]
+    capture_dates: list[str] = field(default_factory=list)
+    unresolved_make: dict[str, float] = field(default_factory=dict)
     files: list[str] = field(default_factory=list)
     skipped: dict[str, str] = field(default_factory=dict)
+    skipped_codes: dict[str, dict[str, object]] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, object]:
         """Return the manifest as a JSON-ready mapping."""
@@ -73,12 +84,17 @@ class Manifest:
             "generated_at": self.generated_at,
             "gold_rows": self.gold_rows,
             "capture_span_days": round(self.capture_span_days, 3),
+            "capture_dates": self.capture_dates,
             "detail_coverage": {
                 key: round(value, 4) for key, value in self.detail_coverage.items()
+            },
+            "unresolved_make": {
+                key: round(value, 4) for key, value in self.unresolved_make.items()
             },
             "thresholds": self.thresholds,
             "files": sorted(self.files),
             "skipped": self.skipped,
+            "skipped_codes": self.skipped_codes,
         }
 
 

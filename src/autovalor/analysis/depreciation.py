@@ -75,6 +75,24 @@ depreciation rate is published for "unknown".
 """
 
 
+def unresolved_make_share(frame: pd.DataFrame) -> float:
+    """Return the share of rows whose title named no make the seeds recognise.
+
+    The number the motorcycle limitation has to quote. It is published rather than
+    derived on the page because it is the one figure that says how much of a vertical the
+    estimate is guessing the identity of, and it moves with every capture.
+
+    Args:
+        frame: Gold rows.
+
+    Returns:
+        A share between 0 and 1, or 0 for an empty frame.
+    """
+    if frame.empty:
+        return 0.0
+    return float(frame["brand"].isin(UNKNOWN_BRANDS).mean())
+
+
 def eligible_brands(frame: pd.DataFrame) -> list[str]:
     """Return the brands that clear both filters, most frequent first.
 
