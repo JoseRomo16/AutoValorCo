@@ -17,11 +17,20 @@ export const API_BASE_URL = (
 
 export type VehicleType = "car" | "motorcycle";
 
-export type CatalogEntry = { name: string; listings: number };
+/**
+ * A level of a categorical feature, as the catalogue publishes it.
+ *
+ * `name` is what the model was trained on and what has to be sent back. `display_name` is
+ * the same level spelled for a person: the lake stores `cx-30` and a reader expects
+ * `CX-30`. It is optional because a deployed image older than the catalogue cleaning does
+ * not send it, and the site has to work against either.
+ */
+export type CatalogEntry = { name: string; listings: number; display_name?: string };
 
 export type CatalogBrand = {
   name: string;
   listings: number;
+  display_name?: string;
   models: CatalogEntry[];
 };
 
@@ -52,6 +61,21 @@ export type PredictRequest = {
 
 export type PriceLabel = "bargain" | "fair" | "expensive";
 
+/**
+ * Why a label was withheld, as data.
+ *
+ * `message` is the service's own English sentence and `code` is what the site renders in
+ * Spanish. Optional for the same reason as `display_name`: an older deployed image sends
+ * only `precision_notice`, and the fallback is to say the range is not precise enough
+ * without quoting figures the response did not carry.
+ */
+export type PrecisionCode = {
+  code: string;
+  value: number;
+  limit: number;
+  message: string;
+};
+
 export type PredictResponse = {
   vehicle_type: VehicleType;
   band: {
@@ -62,6 +86,7 @@ export type PredictResponse = {
   };
   label: PriceLabel | null;
   precision_notice: string | null;
+  precision_codes?: PrecisionCode[];
   model_version: string;
 };
 

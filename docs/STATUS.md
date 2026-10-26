@@ -1383,12 +1383,18 @@ inventar una.
 
 ## Cómo retomar
 
-### Dónde quedó esto el 2026-10-25
+### Dónde quedó esto el 2026-10-26
 
-La API y el sitio están desplegados en Render y verificados. El trabajo en curso es el
-**rediseño del frontend**, que arrancó con dos pasos de datos ya hechos: la limpieza del
-catálogo y el reentrenamiento de arriba. El bundle publicado es **2026-10-25.12948**, con
-las capturas del 12 y el 19 de octubre dentro.
+El trabajo en curso es el **rediseño del sitio**, que tiene su propio documento de
+seguimiento: [`redesign.md`](redesign.md) dice en qué estado está cada paso, guarda el
+diagnóstico de las tres páginas y lista las decisiones abiertas. **Empezar por ahí.**
+
+De los siete pasos, **cinco están cerrados** —limpieza del catálogo, reentrenamiento, los
+cuatro datos del lago que faltaban exportar, el diagnóstico y el copy— y faltan los tres de
+maquetación: pendientes de API y documentación, fundaciones visuales y las páginas.
+
+El bundle publicado es **2026-10-25.12948**, con las capturas del 12 y el 19 de octubre
+dentro, y **no está desplegado todavía**.
 
 **Lo que sigue:**
 
@@ -1398,7 +1404,7 @@ las capturas del 12 y el 19 de octubre dentro.
    publica las cifras nuevas. En ese orden no hay ventana en la que la página cite una
    cifra que el servicio no está sirviendo. Pasos en [`deploy-render.md`](deploy-render.md);
    el despliegue no se automatiza desde aquí.
-2. **El rediseño del sitio**, página por página, sobre las cifras ya exportadas.
+2. **Los pasos 3 a 6 del rediseño**, en [`redesign.md`](redesign.md).
 3. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
    motos bajen de 22,0 %, que sigue siendo señal de estado y no más identidad.
 
