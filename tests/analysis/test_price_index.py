@@ -11,6 +11,7 @@ from autovalor.analysis.price_index import (
     MIN_LISTINGS_PER_PERIOD,
     IndexNotPossibleError,
     assign_periods,
+    capture_dates,
     capture_span_days,
     check_publishable,
     deflate,
@@ -81,6 +82,39 @@ def test_the_refusal_says_when_it_will_be_possible(cars: pd.DataFrame) -> None:
     assert (reached - first_seen).days == MIN_INDEX_SPAN_DAYS
     with pytest.raises(IndexNotPossibleError, match=str(reached.date())):
         check_publishable(cars)
+
+
+def test_the_refusal_carries_its_numbers_as_data(cars: pd.DataFrame) -> None:
+    # The site has to say "late March 2027" in Spanish, and a Spanish sentence cannot be
+    # derived from an English one. The message keeps its wording; the figures travel beside
+    # it.
+    with pytest.raises(IndexNotPossibleError) as raised:
+        check_publishable(cars)
+
+    details = raised.value.details
+    assert details["code"] == "span_below_minimum"
+    assert details["required_days"] == MIN_INDEX_SPAN_DAYS
+    assert details["ready_on"] == publishable_from(cars).date().isoformat()
+    assert str(details["ready_on"]) in str(raised.value)
+
+
+def test_every_refusal_names_which_one_it_is() -> None:
+    # The other way an index can be refused: enough days, too few usable periods.
+    with pytest.raises(IndexNotPossibleError) as raised:
+        hedonic_index(make_dated_frame(months=7, per_month=10), vehicle_type="car")
+
+    assert raised.value.details["code"] == "too_few_periods"
+
+
+def test_the_capture_dates_are_the_days_the_lake_was_read() -> None:
+    frame = make_dated_frame(months=3, per_month=40)
+
+    dates = capture_dates(frame)
+
+    assert dates == sorted(set(dates))
+    seen = pd.to_datetime(frame["last_seen_at"], utc=True).dt.date
+    assert set(dates) >= set(seen)
+    assert dates[-1] == max(seen)
 
 
 def test_a_long_enough_lake_passes_the_check() -> None:

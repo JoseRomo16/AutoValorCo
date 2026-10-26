@@ -19,6 +19,7 @@ import argparse
 import logging
 import sys
 from collections.abc import Sequence
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -81,6 +82,8 @@ def collect(
     tables: dict[str, list[pd.DataFrame]] = {}
     gold_rows: dict[str, int] = {}
     detail_coverage: dict[str, float] = {}
+    unresolved_make: dict[str, float] = {}
+    captured_on: set[date] = set()
     spans: list[float] = []
     importances: dict[VehicleType, pd.DataFrame] = {}
     frames: dict[VehicleType, pd.DataFrame] = {}
@@ -93,6 +96,8 @@ def collect(
         frames[vehicle_type] = frame
         gold_rows[vehicle_type] = len(frame)
         detail_coverage[vehicle_type] = float(frame["has_detail"].mean())
+        unresolved_make[vehicle_type] = depreciation.unresolved_make_share(frame)
+        captured_on.update(price_index.capture_dates(frame))
         spans.append(temporal_span_days(frame))
 
         curves = depreciation.depreciation_curves(frame, vehicle_type=vehicle_type)
@@ -123,6 +128,7 @@ def collect(
         add("catalogue_contrast", catalogue.catalogue_contrast(importances, frames))
 
     skipped: dict[str, str] = {}
+    skipped_codes: dict[str, dict[str, object]] = {}
     for vehicle_type, frame in frames.items():
         try:
             add("price_index", price_index.hedonic_index(frame, vehicle_type=vehicle_type))
@@ -130,14 +136,18 @@ def collect(
             # Expected until the weekly captures accumulate six months, so it is recorded
             # rather than raised: a run that produced everything else still succeeded, and
             # the manifest is where "why is there no index" belongs.
-            skipped[f"price_index.{vehicle_type}"] = str(error)
+            key = f"price_index.{vehicle_type}"
+            skipped[key] = str(error)
+            skipped_codes[key] = error.details
             logger.info("no %s price index yet — %s", vehicle_type, error)
 
     manifest = Manifest(
         generated_at=now_utc(),
         gold_rows=gold_rows,
         capture_span_days=max(spans) if spans else 0.0,
+        capture_dates=[day.isoformat() for day in sorted(captured_on)],
         detail_coverage=detail_coverage,
+        unresolved_make=unresolved_make,
         thresholds={
             "min_brand_listings": depreciation.MIN_BRAND_LISTINGS,
             "min_brand_model_years": depreciation.MIN_BRAND_MODEL_YEARS,
@@ -148,6 +158,7 @@ def collect(
             "lightgbm_trials": -1 if n_trials is None else n_trials,
         },
         skipped=skipped,
+        skipped_codes=skipped_codes,
     )
     return {name: pd.concat(parts, ignore_index=True) for name, parts in tables.items()}, manifest
 

@@ -9,6 +9,7 @@ from autovalor.analysis.depreciation import (
     depreciation_at_ages,
     depreciation_curves,
     eligible_brands,
+    unresolved_make_share,
 )
 
 from .conftest import AGE_EFFECT
@@ -40,6 +41,23 @@ def test_the_unknown_brand_bucket_is_never_a_brand(cars: pd.DataFrame) -> None:
     unknown.loc[unknown.index[: len(unknown) // 2], "brand"] = UNKNOWN_BRANDS[0]
 
     assert UNKNOWN_BRANDS[0] not in eligible_brands(unknown)
+
+
+def test_the_unresolved_share_is_measured_rather_than_quoted(cars: pd.DataFrame) -> None:
+    # The figure the motorcycle limitation states. It was typed into the copy as "12 %" and
+    # had drifted to 8,6 % by the time anybody measured it again.
+    assert unresolved_make_share(cars) == 0.0
+
+    unknown = cars.copy()
+    quarter = len(unknown) // 4
+    unknown.loc[unknown.index[:quarter], "brand"] = UNKNOWN_BRANDS[0]
+
+    assert unresolved_make_share(unknown) == pytest.approx(quarter / len(unknown))
+
+
+def test_an_empty_vertical_has_nothing_unresolved(cars: pd.DataFrame) -> None:
+    # A share is a division, and the manifest is written even for a run that read nothing.
+    assert unresolved_make_share(cars.iloc[:0]) == 0.0
 
 
 def test_the_curves_recover_the_fixture_depreciation(cars: pd.DataFrame) -> None:

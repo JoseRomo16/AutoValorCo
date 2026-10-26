@@ -90,6 +90,27 @@ def test_the_manifest_says_what_could_not_be_produced(tmp_path: Path, manifest: 
     assert "under the 180" in written["skipped"]["price_index.car"]
 
 
+def test_the_manifest_describes_the_lake_in_terms_a_page_can_render(
+    tmp_path: Path, manifest: Manifest
+) -> None:
+    # Four figures three pages need and no artifact carried: how old the data is, how many
+    # captures it rests on, how much of a vertical has no make resolved, and when the index
+    # becomes possible. A span in days answers none of them.
+    manifest.capture_dates = ["2026-09-29", "2026-10-05", "2026-10-19"]
+    manifest.unresolved_make = {"car": 0.000118, "motorcycle": 0.086348}
+    manifest.skipped_codes["price_index.car"] = {
+        "code": "span_below_minimum",
+        "ready_on": "2027-03-29",
+    }
+
+    written = json.loads(write_manifest(manifest, output_dir=tmp_path).read_text(encoding="utf-8"))
+
+    assert written["capture_dates"][-1] == "2026-10-19"
+    assert len(written["capture_dates"]) == 3
+    assert written["unresolved_make"] == {"car": 0.0001, "motorcycle": 0.0863}
+    assert written["skipped_codes"]["price_index.car"]["ready_on"] == "2027-03-29"
+
+
 def test_every_figure_renders(tmp_path: Path, cars: pd.DataFrame) -> None:
     # A smoke test rather than a pixel comparison: what breaks a chart in practice is a
     # column that is not there or an interval that comes out backwards, and both of those
