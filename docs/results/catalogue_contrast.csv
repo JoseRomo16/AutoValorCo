@@ -1,3 +1,3 @@
 vehicle_type,condition_share_pct,identity_share_pct,other_share_pct,identity_over_condition,median_age_years,annual_depreciation_pct,annual_ci_low_pct,annual_ci_high_pct,age_slope_log,age_p_value,n
-car,39.827,57.4355,2.7376,1.4421,5.0,8.2999,7.9641,8.6344,-0.0866,0.0,7639.0
-motorcycle,15.9706,77.1638,6.8655,4.8316,3.0,3.2909,2.3771,4.1961,-0.0335,0.0,4052.0
+car,41.3295,56.2571,2.4134,1.3612,5.0,8.1741,7.8882,8.4592,-0.0853,0.0,8443.0
+motorcycle,16.0104,78.6008,5.3888,4.9094,3.0,3.3644,2.6057,4.1171,-0.0342,0.0,4505.0

@@ -3,432 +3,432 @@
     "vehicle_type": "car",
     "brand": "Volkswagen",
     "age_years": 1,
-    "retained_value_pct": 95.1843
+    "retained_value_pct": 94.9197
   },
   {
     "vehicle_type": "car",
     "brand": "Volkswagen",
     "age_years": 3,
-    "retained_value_pct": 86.2374
+    "retained_value_pct": 85.5203
   },
   {
     "vehicle_type": "car",
     "brand": "Volkswagen",
     "age_years": 5,
-    "retained_value_pct": 78.1315
+    "retained_value_pct": 77.0517
   },
   {
     "vehicle_type": "car",
     "brand": "Volkswagen",
     "age_years": 10,
-    "retained_value_pct": 61.0453
+    "retained_value_pct": 59.3697
   },
   {
     "vehicle_type": "car",
     "brand": "Kia",
     "age_years": 1,
-    "retained_value_pct": 94.829
+    "retained_value_pct": 94.8042
   },
   {
     "vehicle_type": "car",
     "brand": "Kia",
     "age_years": 3,
-    "retained_value_pct": 85.2754
+    "retained_value_pct": 85.2086
   },
   {
     "vehicle_type": "car",
     "brand": "Kia",
     "age_years": 5,
-    "retained_value_pct": 76.6842
+    "retained_value_pct": 76.5842
   },
   {
     "vehicle_type": "car",
     "brand": "Kia",
     "age_years": 10,
-    "retained_value_pct": 58.8047
+    "retained_value_pct": 58.6513
   },
   {
     "vehicle_type": "car",
     "brand": "Chevrolet",
     "age_years": 1,
-    "retained_value_pct": 94.8186
+    "retained_value_pct": 94.7564
   },
   {
     "vehicle_type": "car",
     "brand": "Chevrolet",
     "age_years": 3,
-    "retained_value_pct": 85.2474
+    "retained_value_pct": 85.0797
   },
   {
     "vehicle_type": "car",
     "brand": "Chevrolet",
     "age_years": 5,
-    "retained_value_pct": 76.6423
+    "retained_value_pct": 76.3912
   },
   {
     "vehicle_type": "car",
     "brand": "Chevrolet",
     "age_years": 10,
-    "retained_value_pct": 58.7405
+    "retained_value_pct": 58.3561
   },
   {
     "vehicle_type": "car",
     "brand": "Mazda",
     "age_years": 1,
-    "retained_value_pct": 94.6975
+    "retained_value_pct": 94.697
   },
   {
     "vehicle_type": "car",
     "brand": "Mazda",
     "age_years": 3,
-    "retained_value_pct": 84.9212
+    "retained_value_pct": 84.9197
   },
   {
     "vehicle_type": "car",
     "brand": "Mazda",
     "age_years": 5,
-    "retained_value_pct": 76.1541
+    "retained_value_pct": 76.1518
   },
   {
     "vehicle_type": "car",
     "brand": "Mazda",
     "age_years": 10,
-    "retained_value_pct": 57.9944
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "Suzuki",
-    "age_years": 1,
-    "retained_value_pct": 94.1921
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "Suzuki",
-    "age_years": 3,
-    "retained_value_pct": 83.5687
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "Suzuki",
-    "age_years": 5,
-    "retained_value_pct": 74.1434
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "Suzuki",
-    "age_years": 10,
-    "retained_value_pct": 54.9725
+    "retained_value_pct": 57.991
   },
   {
     "vehicle_type": "car",
     "brand": "Toyota",
     "age_years": 1,
-    "retained_value_pct": 94.1074
+    "retained_value_pct": 94.2091
   },
   {
     "vehicle_type": "car",
     "brand": "Toyota",
     "age_years": 3,
-    "retained_value_pct": 83.3435
+    "retained_value_pct": 83.614
   },
   {
     "vehicle_type": "car",
     "brand": "Toyota",
     "age_years": 5,
-    "retained_value_pct": 73.8108
+    "retained_value_pct": 74.2104
   },
   {
     "vehicle_type": "car",
     "brand": "Toyota",
     "age_years": 10,
-    "retained_value_pct": 54.4803
+    "retained_value_pct": 55.0718
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "Suzuki",
+    "age_years": 1,
+    "retained_value_pct": 94.1725
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "Suzuki",
+    "age_years": 3,
+    "retained_value_pct": 83.5165
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "Suzuki",
+    "age_years": 5,
+    "retained_value_pct": 74.0663
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "Suzuki",
+    "age_years": 10,
+    "retained_value_pct": 54.8582
   },
   {
     "vehicle_type": "car",
     "brand": "Renault",
     "age_years": 1,
-    "retained_value_pct": 93.8546
+    "retained_value_pct": 94.0737
   },
   {
     "vehicle_type": "car",
     "brand": "Renault",
     "age_years": 3,
-    "retained_value_pct": 82.6735
+    "retained_value_pct": 83.2538
   },
   {
     "vehicle_type": "car",
     "brand": "Renault",
     "age_years": 5,
-    "retained_value_pct": 72.8244
+    "retained_value_pct": 73.6784
   },
   {
     "vehicle_type": "car",
     "brand": "Renault",
     "age_years": 10,
-    "retained_value_pct": 53.034
+    "retained_value_pct": 54.2851
   },
   {
     "vehicle_type": "car",
     "brand": "Nissan",
     "age_years": 1,
-    "retained_value_pct": 92.7948
+    "retained_value_pct": 92.8398
   },
   {
     "vehicle_type": "car",
     "brand": "Nissan",
     "age_years": 3,
-    "retained_value_pct": 79.9044
+    "retained_value_pct": 80.0209
   },
   {
     "vehicle_type": "car",
     "brand": "Nissan",
     "age_years": 5,
-    "retained_value_pct": 68.8047
+    "retained_value_pct": 68.9719
   },
   {
     "vehicle_type": "car",
     "brand": "Nissan",
     "age_years": 10,
-    "retained_value_pct": 47.3408
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "Audi",
-    "age_years": 1,
-    "retained_value_pct": 91.098
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "Audi",
-    "age_years": 3,
-    "retained_value_pct": 75.6007
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "Audi",
-    "age_years": 5,
-    "retained_value_pct": 62.7398
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "Audi",
-    "age_years": 10,
-    "retained_value_pct": 39.3629
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "BMW",
-    "age_years": 1,
-    "retained_value_pct": 90.7892
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "BMW",
-    "age_years": 3,
-    "retained_value_pct": 74.8347
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "BMW",
-    "age_years": 5,
-    "retained_value_pct": 61.6839
-  },
-  {
-    "vehicle_type": "car",
-    "brand": "BMW",
-    "age_years": 10,
-    "retained_value_pct": 38.049
+    "retained_value_pct": 47.5712
   },
   {
     "vehicle_type": "car",
     "brand": "Mercedes-Benz",
     "age_years": 1,
-    "retained_value_pct": 90.765
+    "retained_value_pct": 91.3935
   },
   {
     "vehicle_type": "car",
     "brand": "Mercedes-Benz",
     "age_years": 3,
-    "retained_value_pct": 74.7748
+    "retained_value_pct": 76.3389
   },
   {
     "vehicle_type": "car",
     "brand": "Mercedes-Benz",
     "age_years": 5,
-    "retained_value_pct": 61.6016
+    "retained_value_pct": 63.7642
   },
   {
     "vehicle_type": "car",
     "brand": "Mercedes-Benz",
     "age_years": 10,
-    "retained_value_pct": 37.9475
+    "retained_value_pct": 40.6587
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "Audi",
+    "age_years": 1,
+    "retained_value_pct": 91.0471
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "Audi",
+    "age_years": 3,
+    "retained_value_pct": 75.4741
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "Audi",
+    "age_years": 5,
+    "retained_value_pct": 62.5648
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "Audi",
+    "age_years": 10,
+    "retained_value_pct": 39.1435
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "BMW",
+    "age_years": 1,
+    "retained_value_pct": 90.698
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "BMW",
+    "age_years": 3,
+    "retained_value_pct": 74.6094
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "BMW",
+    "age_years": 5,
+    "retained_value_pct": 61.3747
+  },
+  {
+    "vehicle_type": "car",
+    "brand": "BMW",
+    "age_years": 10,
+    "retained_value_pct": 37.6685
   },
   {
     "vehicle_type": "car",
     "brand": "Ford",
     "age_years": 1,
-    "retained_value_pct": 90.3968
+    "retained_value_pct": 90.4546
   },
   {
     "vehicle_type": "car",
     "brand": "Ford",
     "age_years": 3,
-    "retained_value_pct": 73.8685
+    "retained_value_pct": 74.0104
   },
   {
     "vehicle_type": "car",
     "brand": "Ford",
     "age_years": 5,
-    "retained_value_pct": 60.3623
+    "retained_value_pct": 60.5556
   },
   {
     "vehicle_type": "car",
     "brand": "Ford",
     "age_years": 10,
-    "retained_value_pct": 36.436
+    "retained_value_pct": 36.6698
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Yamaha",
     "age_years": 1,
-    "retained_value_pct": 99.0646
+    "retained_value_pct": 99.1414
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Yamaha",
     "age_years": 3,
-    "retained_value_pct": 97.22
+    "retained_value_pct": 97.4463
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Yamaha",
     "age_years": 5,
-    "retained_value_pct": 95.4097
+    "retained_value_pct": 95.7802
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Yamaha",
     "age_years": 10,
-    "retained_value_pct": 91.0301
+    "retained_value_pct": 91.7385
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Honda",
     "age_years": 1,
-    "retained_value_pct": 98.2479
+    "retained_value_pct": 98.815
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Honda",
     "age_years": 3,
-    "retained_value_pct": 94.8353
+    "retained_value_pct": 96.4868
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Honda",
     "age_years": 5,
-    "retained_value_pct": 91.5413
+    "retained_value_pct": 94.2135
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Honda",
     "age_years": 10,
-    "retained_value_pct": 83.7981
-  },
-  {
-    "vehicle_type": "motorcycle",
-    "brand": "Suzuki",
-    "age_years": 1,
-    "retained_value_pct": 97.3796
-  },
-  {
-    "vehicle_type": "motorcycle",
-    "brand": "Suzuki",
-    "age_years": 3,
-    "retained_value_pct": 92.3431
-  },
-  {
-    "vehicle_type": "motorcycle",
-    "brand": "Suzuki",
-    "age_years": 5,
-    "retained_value_pct": 87.5671
-  },
-  {
-    "vehicle_type": "motorcycle",
-    "brand": "Suzuki",
-    "age_years": 10,
-    "retained_value_pct": 76.68
+    "retained_value_pct": 88.7619
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "BMW",
     "age_years": 1,
-    "retained_value_pct": 96.4281
+    "retained_value_pct": 97.4671
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "BMW",
     "age_years": 3,
-    "retained_value_pct": 89.6624
+    "retained_value_pct": 92.5921
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "BMW",
     "age_years": 5,
-    "retained_value_pct": 83.3714
+    "retained_value_pct": 87.9609
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "BMW",
     "age_years": 10,
-    "retained_value_pct": 69.508
+    "retained_value_pct": 77.3712
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "brand": "Suzuki",
+    "age_years": 1,
+    "retained_value_pct": 97.2677
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "brand": "Suzuki",
+    "age_years": 3,
+    "retained_value_pct": 92.0251
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "brand": "Suzuki",
+    "age_years": 5,
+    "retained_value_pct": 87.0651
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "brand": "Suzuki",
+    "age_years": 10,
+    "retained_value_pct": 75.8033
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "KTM",
     "age_years": 1,
-    "retained_value_pct": 96.3446
+    "retained_value_pct": 96.259
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "KTM",
     "age_years": 3,
-    "retained_value_pct": 89.4298
+    "retained_value_pct": 89.1916
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "KTM",
     "age_years": 5,
-    "retained_value_pct": 83.0112
+    "retained_value_pct": 82.643
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "KTM",
     "age_years": 10,
-    "retained_value_pct": 68.9087
+    "retained_value_pct": 68.2987
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Bajaj",
     "age_years": 1,
-    "retained_value_pct": 93.5323
+    "retained_value_pct": 93.5991
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Bajaj",
     "age_years": 3,
-    "retained_value_pct": 81.8248
+    "retained_value_pct": 82.0003
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Bajaj",
     "age_years": 5,
-    "retained_value_pct": 71.5827
+    "retained_value_pct": 71.8388
   },
   {
     "vehicle_type": "motorcycle",
     "brand": "Bajaj",
     "age_years": 10,
-    "retained_value_pct": 51.2408
+    "retained_value_pct": 51.6081
   }
 ]

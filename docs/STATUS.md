@@ -1,7 +1,7 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-19** · Fase actual: **F4**, con la API desplegada en Render
-y el frontend en curso. F2 y F3 cerradas salvo el índice de precios, que espera histórico;
+Última actualización: **2026-10-25** · Fase actual: **F4**, con la API y el sitio
+desplegados en Render, y el rediseño del frontend en curso sobre el modelo reentrenado. F2 y F3 cerradas salvo el índice de precios, que espera histórico;
 la comparación con Fasecolda quedó **fuera de alcance**. (Carros cumplen la meta de
 MAPE ≤ 15 % y publican etiqueta; motos publican precio y rango sin etiqueta, por la regla
 de calidad de banda.)
@@ -14,11 +14,13 @@ qué no. Se actualiza al cerrar cada bloque de trabajo.
 ## Resumen en una línea
 
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
-validado— con 7.639 carros y 4.052 motos, y las capturas ya no se pierden: viven en la
+validado— con **8.443 carros y 4.505 motos**, y las capturas ya no se pierden: viven en la
 rama `data`. Tres modelos entrenados y medidos **fuera de muestra**: el mejor es LightGBM
-con **11,3 % MAPE en carros** y **22,4 % en motos** (con 2.300 motos enriquecidas, 56,8 %
-de la vertical, y la marca resuelta en 87,6 % de los títulos tras el arreglo de parseo:
-eran 24,1 % con 80,4 %). Carros cumple la meta de F2 (≤ 15 %); motos no. **F2 queda cerrada** con
+con **10,3 % MAPE en carros** y **22,0 % en motos** (con 2.812 motos enriquecidas, 62,4 %
+de la vertical, y la marca resuelta en 91,9 % de los títulos tras el arreglo de parseo y la
+limpieza del catálogo: eran 24,1 % con 80,4 %). Sobre una partición temporal, que se mide
+al lado y nunca reemplaza a la publicada, son 11,6 % y 23,5 %. Carros cumple la meta de
+F2 (≤ 15 %); motos no. **F2 queda cerrada** con
 una regla explícita que decide qué se publica en cada vertical: la etiqueta
 ganga/justo/caro exige una banda con cobertura entre 78 % y 82 % y ancho medio ≤ 60 % del
 estimado, y motos no la alcanza, así que sale con precio estimado, rango y aviso de
@@ -206,6 +208,132 @@ palabra, así que "BMW R 1250 GS" sale como `r` (91 anuncios), y hay `f` (53), `
 `mt` (40). Es la limitación de siempre —`split_part(..., ' ', 1)`—, no algo que la limpieza
 haya introducido, y arreglarla cambia los niveles dominantes de dos marcas grandes, así que
 es una decisión aparte y no un paso de higiene.
+
+### El reentrenamiento del 2026-10-25
+
+Entran tres cosas a la vez: las capturas del 12 y el 19 de octubre, el enriquecimiento de
+las motos que esas capturas trajeron, y la limpieza del catálogo de arriba. **Estas son las
+cifras vigentes**; las de [Re-medición sobre el lago completo](#re-medición-sobre-el-lago-completo-final)
+quedan como registro.
+
+| | Carros | Motos |
+| --- | --- | --- |
+| Anuncios en gold | 7.639 → **8.443** | 4.041 → **4.505** |
+| Con detalle | — | 2.300 → **2.812 (62,4 %)** |
+| Marca sin resolver | 1 (0,01 %) | 389 (8,63 %) |
+| Marcas / modelos | 70 / 546 | 44 / 830 |
+
+El enriquecimiento se corrió con `enrich.yml` sobre la rama del paso, con
+`first_seen_after=2026-10-12`, que es lo que evita gastar el presupuesto en las motos viejas
+cuyo enriquecimiento está detenido por decisión. Candidatos 517, en dos corridas de 500 y
+17: **las 570 motos que gold ve por primera vez el 12 o el 19 tienen fila de detalle**. Lo
+que sigue sin detalle son las viejas.
+
+#### Lo que aporta la limpieza y lo que aportan los datos
+
+Se midió aparte, entrenando primero el lago viejo con la limpieza puesta. La ventana para
+hacerlo era única: después de `pull-history` ya no se puede separar.
+
+| | Publicado | Solo limpieza | Lago completo |
+| --- | --- | --- | --- |
+| Carros, MAPE | 11,3 % | 10,8 % | **10,3 %** |
+| Carros, referencia OLS | — | 14,1 % | **12,9 %** |
+| Motos, MAPE | 22,4 % | 22,7 % | **22,0 %** |
+| Motos, referencia OLS | — | 38,4 % | **34,6 %** |
+
+**En carros el punto de mejora se reparte mitad y mitad**: medio punto la limpieza, medio
+los 804 anuncios nuevos. **En motos la limpieza sola empeora** (22,7 % contra 22,4 %) y toda
+la mejora viene de los datos; lo que la limpieza aporta en esa vertical es la marca resuelta
+—87,6 % → 91,9 %—, que es producto y no MAPE.
+
+Donde la limpieza se ve con claridad es en el peor segmento de carros: **Mercedes-Benz pasa
+de 19,9 % a 15,3 %** de MAPE, que es la hipótesis que la sección anterior dejó anotada
+—partir `clase` en `clase c`, `clase gle`, `clase glc`— confirmada contra el holdout.
+
+#### La banda y la etiqueta
+
+| | Cobertura | Ancho medio | Ensanche | Cruzados | Etiqueta |
+| --- | --- | --- | --- | --- | --- |
+| Carros, antes (7.639) | 81,0 % | 41 % | +0,045 | 5,4 % | se publica |
+| **Carros, ahora (8.443)** | **80,0 %** | **40 %** | +0,037 | 6,9 % | **se publica** |
+| Motos, antes (4.052) | 81,6 % | 81 % | +0,090 | 9,3 % | se retiene |
+| **Motos, ahora (4.505)** | **79,4 %** | **84 %** | +0,052 | 8,2 % | **se retiene** |
+
+**La cobertura de motos entra en la ventana por primera vez** (79,4 %, dentro de
+[78 %, 82 %]), así que la etiqueta pasa a fallar por **un solo** criterio, el ancho, en vez
+de los dos. Ningún umbral se tocó.
+
+**El ancho de motos empeora 2,6 puntos y eso tiene una explicación medida.** La corrida
+intermedia —lago viejo, limpieza puesta— marcó 65 % de ancho, que parecía justo la mejora
+que la etiqueta necesita, pero venía con los cuantiles **cruzados en 33,2 % de las filas de
+calibración** contra un histórico de 9,3 %: bandas crudas estrechas, un ensanche que
+sobrecorregía en calibración (+0,114) y que aun así se quedaba corto en test (cobertura
+77,6 %). Sobre el lago completo el cruce vuelve a 8,2 %, el ensanche baja a +0,052 y la
+cobertura cae dentro de la ventana. **Aquel 65 % no era una mejora, era el síntoma de un
+ajuste cuantílico inestable**, y exportarlo habría publicado un ancho que no se sostiene. El
+ancho honesto de motos está entre 81 % y 84 %, lejos del 60 % que pide la regla.
+
+#### La validación temporal, por primera vez
+
+El lago abarca **19,5 días** de `last_seen_at`, por encima de los 14 que exige
+`--split temporal`, así que `export.py` la mide al lado de la aleatoria. **No reemplaza
+nada**: el modelo servido se sigue ajustando sobre la partición aleatoria agrupada, que es
+la de todas las cifras publicadas.
+
+| | Aleatoria agrupada | Temporal | Diferencia |
+| --- | --- | --- | --- |
+| Carros, MAPE | 10,3 % | **11,6 %** | +1,3 pt |
+| Carros, APE mediano | 7,0 % | 7,6 % | +0,6 pt |
+| Motos, MAPE | 22,0 % | **23,5 %** | +1,5 pt |
+| Motos, APE mediano | 10,5 % | 13,0 % | +2,5 pt |
+
+Las dos verticales empeoran entre 1,3 y 1,5 puntos, que es la dirección esperada: la
+partición aleatoria le deja al modelo vehículos contemporáneos de los que tiene que
+predecir, y la temporal no. La brecha es la respuesta honesta a "cuánto se degrada esto en
+una semana" y es pequeña, lo que dice que el modelo no vive de memorizar el momento de
+mercado.
+
+**Dos salvedades sobre esta partición, y la segunda importa.** La primera es que el corte
+que el log imprime (`temporal split of car at 2026-09-30…`) es el mínimo de `last_seen_at`
+de las **filas** de test, no el del grupo: un vehículo reposteado arrastra sus filas viejas
+al lado de test, así que el valor impreso no es el corte real. La segunda es que
+`last_seen_at` solo toma **cinco valores**, uno por captura:
+
+| Última vez visto | Carros | Motos |
+| --- | --- | --- |
+| 2026-09-29 | 20 | 65 |
+| 2026-09-30 | 4.634 | 1.674 |
+| 2026-10-05 | 744 | 477 |
+| 2026-10-12 | 2.470 | 1.864 |
+| 2026-10-19 | 575 | 425 |
+
+Un holdout del 20 % no cae en una frontera de fecha: en carros son 1.690 filas, así que
+toma las 575 vistas por última vez el 19 y **1.115 de las 2.470 del 12**, dejando las otras
+1.355 de esa misma fecha en entrenamiento. El empate se rompe por orden de ordenamiento, que
+es determinista pero arbitrario. Así que esto mide "el quinto visto más recientemente", no
+"entrena en el pasado y prueba en el futuro". Con más capturas la frontera se vuelve
+nítida; un corte limpio hoy —test = todo lo visto por última vez el 19— dejaría holdouts de
+575 y 425 filas, y es **decisión abierta** porque cambia el tamaño del test, no algo que se
+deba cambiar de paso.
+
+#### Lo que `model.json` publica ahora
+
+Cuatro grupos de campos nuevos, todos aditivos (formato 2; `load_bundle` sigue leyendo
+formato 1, así que el servicio desplegado sirve su bundle sin cambios):
+
+- **`metrics.baseline_mape`**: la referencia OLS ajustada en la misma partición. "LightGBM
+  reduce el error N puntos" pasa a ser una resta de dos cifras publicadas: **2,6 puntos en
+  carros** (12,9 → 10,3) y **12,5 en motos** (34,6 → 22,0).
+- **`interval.uncalibrated_coverage`**: lo que cubren los tres modelos cuantílicos antes del
+  ensanche conformal, **66,3 % en carros y 66,1 % en motos** contra un nominal de 80 %. La
+  cifra que circulaba como "67 % y 63 %" en prosa ahora sale del artefacto.
+- **`metrics_temporal`**: la tabla de arriba. `null` cuando el lago es demasiado joven para
+  la partición, que no debe impedir un export.
+- **`label.failure_codes`**: los fallos de la regla como `{code, value, limit, message}` —hoy
+  `width_above_max` con 0,838 contra 0,60 en motos—, para que la página los escriba en
+  español. `label.failures` conserva su texto exacto por compatibilidad.
+
+Versión del bundle: **2026-10-25.12948**.
 
 ### F2 — Modelación (cerrada)
 
@@ -458,8 +586,12 @@ la página miente. Lo detectó el esquema Pandera de gold, no una revisión a oj
 ## Re-medición sobre el lago completo (final)
 
 El 2026-10-06 se trajo el histórico entero de la rama `data` y se reconstruyó el lago:
-gold pasó de 10.972 a **11.691** filas, y el detalle de motos de 1.500 a 2.300. Estas son
-las cifras vigentes; las de la sección anterior quedan como registro de cómo se llegó aquí.
+gold pasó de 10.972 a **11.691** filas, y el detalle de motos de 1.500 a 2.300.
+
+> **Superada por [el reentrenamiento del 2026-10-25](#el-reentrenamiento-del-2026-10-25)**,
+> que suma las capturas del 12 y el 19 de octubre y la limpieza del catálogo: carros
+> 11,3 % → 10,3 % y motos 22,4 % → 22,0 %. Esta sección queda como registro de cómo se
+> llegó aquí, y es la referencia contra la que se mide el efecto de la limpieza.
 
 | Vertical | Modelo | CV MAPE | MAPE fuera | σ (log) | R² | Antes |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -512,7 +644,8 @@ etiqueta ganga/justo/caro solo si la banda medida en el holdout cumple las dos c
 
 Carros pasan las dos. **Motos fallan las dos** —83,6 % de cobertura y 84 % de ancho—, así
 que esa vertical se publica con **precio estimado, rango y un aviso de precisión**, sin
-etiqueta. La vertical no se retira: un estimado con rango sigue siendo útil; lo que no se
+etiqueta. (Con el lago del 2026-10-25 motos ya cumple la cobertura y falla solo el ancho;
+la decisión no cambia.) La vertical no se retira: un estimado con rango sigue siendo útil; lo que no se
 puede sostener es la etiqueta.
 
 **El déficit de cobertura no era lo que parecía.** Estaba documentado como deuda conocida
@@ -1225,29 +1358,33 @@ inventar una.
 
 ## Cómo retomar
 
-### Dónde quedó esto el 2026-10-19
+### Dónde quedó esto el 2026-10-25
 
-**El remoto tiene solo `main` y `data`**: las siete ramas viejas que esta sección listaba
-como pendiente de higiene ya se borraron. La API está desplegada en Render, probada, y con
-los tres arreglos de arriba.
+La API y el sitio están desplegados en Render y verificados. El trabajo en curso es el
+**rediseño del frontend**, que arrancó con dos pasos de datos ya hechos: la limpieza del
+catálogo y el reentrenamiento de arriba. El bundle publicado es **2026-10-25.12948**, con
+las capturas del 12 y el 19 de octubre dentro.
 
-**Lo que sigue, todo dentro de F4:**
+**Lo que sigue:**
 
-1. **Desplegar, que es lo único que cierra F4 y es del lado del usuario.** En Render:
-   aplicar el blueprint otra vez para que cree `autovalor-web`, y confirmar que
-   `AUTOVALOR_CORS_ALLOW_ORIGINS` de la API tiene el origen real del sitio. Los pasos están
-   en [`deploy-render.md`](deploy-render.md); el despliegue no se automatiza desde aquí.
-2. **Volver a medir cuando se quiera incorporar las capturas nuevas** (2026-10-12 y
-   2026-10-19, ya en la rama `data`): `pull-history` → `transform` → `train` →
-   `export-model`, y con eso se actualizan las cifras, el bundle y su catálogo. Es un bloque
-   de trabajo propio porque cambia todos los números publicados, no un paso de
-   mantenimiento. Es también la primera vez que `--split temporal` sería posible.
+1. **Desplegar el modelo nuevo: la API primero, el sitio después.** El bundle vive dentro
+   de la imagen, así que la API necesita un deploy para servirlo; el sitio lee
+   `model.json` y `docs/results/` en tiempo de construcción, así que su deploy es el que
+   publica las cifras nuevas. En ese orden no hay ventana en la que la página cite una
+   cifra que el servicio no está sirviendo. Pasos en [`deploy-render.md`](deploy-render.md);
+   el despliegue no se automatiza desde aquí.
+2. **El rediseño del sitio**, página por página, sobre las cifras ya exportadas.
 3. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
-   motos bajen de 22,4 %, que sigue siendo señal de estado y no más identidad.
+   motos bajen de 22,0 %, que sigue siendo señal de estado y no más identidad.
 
 Lo que **no** está hecho y no es un olvido: el índice mensual de precios (espera a
 ~2027-03-29 por histórico), la comparación con Fasecolda (fuera de alcance por decisión) y
-que motos lleguen a 15 % (faltan 7,4 puntos y la ruta es señal de estado, no más identidad).
+que motos lleguen a 15 % (faltan 7 puntos y la ruta es señal de estado, no más identidad).
+
+**Decisión abierta que dejó el reentrenamiento**: si la partición temporal debe cortar por
+fecha en vez de tomar el quinto más reciente, lo que hoy repartiría el mismo día de captura
+entre entrenamiento y test. Ver la salvedad en
+[la validación temporal](#la-validación-temporal-por-primera-vez).
 
 ```powershell
 # El entorno local tiene tres particularidades, ver docs/ y .env.example:

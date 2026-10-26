@@ -3,12 +3,14 @@
 Examples:
     uv run python -m autovalor.ingest.detail_cli --budget 500
     uv run python -m autovalor.ingest.detail_cli --budget 20 --dry-run
+    uv run python -m autovalor.ingest.detail_cli --since 2026-10-07 --budget 500
 """
 
 import argparse
 import logging
 import sys
 from collections.abc import Sequence
+from datetime import date
 from pathlib import Path
 
 import duckdb
@@ -34,6 +36,7 @@ def load_candidates(
     *,
     duckdb_path: Path | None = None,
     data_dir: Path | None = None,
+    first_seen_after: date | None = None,
 ) -> list[tuple[str, str]]:
     """Return the listings of a vertical that have no detail row yet.
 
@@ -41,6 +44,12 @@ def load_candidates(
         vehicle_type: Vertical to enrich.
         duckdb_path: Database written by dbt; defaults to the configured path.
         data_dir: Root of the data lake; defaults to the configured one.
+        first_seen_after: Keep only listings first captured on or after this date. The
+            default is every listing without a detail row, which is what a first pass
+            over a vertical wants. Restricting it is what makes "catch up the listings
+            the last captures brought" a different job from "resume enriching the
+            vertical": the sample is random over candidates, so without this a run
+            spends most of its budget on listings that were deliberately left alone.
 
     Returns:
         ``(listing_id, source_url)`` pairs, sorted.
@@ -55,11 +64,17 @@ def load_candidates(
         msg = f"{database} does not exist; run the transform first"
         raise FileNotFoundError(msg)
 
+    where = "vehicle_type = ?"
+    params: list[object] = [vehicle_type.value]
+    if first_seen_after is not None:
+        where += " and first_seen_at >= ?"
+        params.append(first_seen_after)
+
     with duckdb.connect(str(database), read_only=True) as con:
-        # GOLD_TABLE is a module constant, not input; the vertical is a bound parameter.
+        # GOLD_TABLE is a module constant, not input; everything else is a bound parameter.
         rows = con.execute(
-            f"select listing_id, source_url from {GOLD_TABLE} where vehicle_type = ?",
-            [vehicle_type.value],
+            f"select listing_id, source_url from {GOLD_TABLE} where {where}",
+            params,
         ).fetchall()
 
     existing = read_details(data_dir, vehicle_type=vehicle_type)
@@ -68,9 +83,10 @@ def load_candidates(
         (str(listing_id), str(url)) for listing_id, url in rows if listing_id not in enriched
     ]
     logger.info(
-        "%s: %d listings in gold, %d already enriched, %d candidates",
+        "%s: %d listings in gold%s, %d already enriched, %d candidates",
         vehicle_type.value,
         len(rows),
+        "" if first_seen_after is None else f" first seen since {first_seen_after}",
         len(enriched),
         len(candidates),
     )
@@ -111,6 +127,17 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--since",
+        type=date.fromisoformat,
+        default=None,
+        help=(
+            "Only enrich listings first captured on or after this date (YYYY-MM-DD). "
+            "Omit to consider every listing without a detail row. Use it to catch up the "
+            "listings a recent capture brought without resuming a pass that was stopped "
+            "on purpose."
+        ),
+    )
+    parser.add_argument(
         "--duckdb-path",
         type=Path,
         default=None,
@@ -148,7 +175,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         candidates = load_candidates(
-            vehicle_type, duckdb_path=args.duckdb_path, data_dir=args.data_dir
+            vehicle_type,
+            duckdb_path=args.duckdb_path,
+            data_dir=args.data_dir,
+            first_seen_after=args.since,
         )
     except FileNotFoundError as error:
         logger.error("%s", error)

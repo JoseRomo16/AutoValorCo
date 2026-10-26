@@ -52,6 +52,7 @@ from autovalor.api.schemas import (
     HealthResponse,
     LocalizedText,
     ModelInfoResponse,
+    PrecisionCode,
     PredictRequest,
     PredictResponse,
     PriceBand,
@@ -121,6 +122,19 @@ def _require(models: dict[VehicleType, ServedModel], vehicle_type: VehicleType) 
     return model
 
 
+def _precision_codes(model: ServedModel) -> list[PrecisionCode]:
+    """Return the label-gate failures as codes a client can translate."""
+    return [
+        PrecisionCode(
+            code=failure.code,
+            value=failure.value,
+            limit=failure.limit,
+            message=failure.message,
+        )
+        for failure in model.label.failure_codes
+    ]
+
+
 def _known_departments(model: ServedModel) -> tuple[str, ...]:
     """Department levels the served model was fitted on, for spelling-tolerant matching."""
     if model.catalog is None:
@@ -155,6 +169,10 @@ def model_info(models: ModelsDep) -> ModelInfoResponse:
             interval_mean_relative_width=model.metrics["interval_mean_relative_width"],
             publishes_label=model.label.publishes_label,
             label_withheld_because=list(model.label.failures),
+            label_withheld_codes=_precision_codes(model),
+            baseline_mape=model.metrics.get("baseline_mape"),
+            interval_uncalibrated_coverage=model.interval_uncalibrated_coverage,
+            metrics_temporal=model.metrics_temporal,
             trained_on_rows=int(model.lake["rows"]),
         )
         for model in (models[key] for key in sorted(models))
@@ -272,6 +290,7 @@ def predict(request: PredictRequest, models: ModelsDep) -> PredictResponse:
         ),
         label=label,
         precision_notice=model.label.precision_notice,
+        precision_codes=_precision_codes(model),
         model_version=model.version,
     )
 

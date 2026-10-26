@@ -39,10 +39,12 @@ import pandas as pd
 
 from autovalor.models.catalog import VehicleCatalog, load_catalog, save_catalog
 from autovalor.models.dataset import VehicleType
+from autovalor.models.metrics import IntervalReport
 from autovalor.models.quantiles import (
     QUANTILES,
     FittedInterval,
     Label,
+    LabelFailure,
     LabelPolicy,
 )
 from autovalor.models.spec import FeatureSpec
@@ -62,8 +64,15 @@ of near-identical split records -- and compresses about six to one, which took t
 project's four boosters per vertical from 47 MB to under 8. That matters twice: the files
 live in the repository, and they are copied into an image with a 512 MB budget."""
 
-BUNDLE_FORMAT = 1
-"""Bumped when the on-disk shape changes in a way an older loader cannot read."""
+BUNDLE_FORMAT = 2
+"""What :func:`save_bundle` writes."""
+
+READABLE_BUNDLE_FORMATS = frozenset({1, 2})
+"""What :func:`load_bundle` accepts. Format 2 only added fields — the uncalibrated band,
+the baseline error, the temporal measurement, the label failure codes — so a format-1
+manifest loads with those absent, which is what it meant. The service and the bundle are
+deployed separately, so a loader that refused the previous format would turn an ordinary
+deploy order into an outage."""
 
 
 class BundleError(RuntimeError):
@@ -82,6 +91,16 @@ class ServedModel:
         label: Whether this vertical may show the bargain/fair/expensive label, carrying
             the held-out numbers the decision was made on.
         metrics: Held-out error of the point model, for ``/model-info``.
+        interval_uncalibrated_coverage: Coverage the three quantile models reach on the
+            same holdout before the conformal widening. The gap against
+            ``metrics["interval_coverage"]`` is what calibrating bought, and it is the
+            whole case for the step. ``None`` on a bundle saved before it was recorded.
+        interval_uncalibrated_mean_relative_width: The raw band's mean width, same
+            holdout, same caveat.
+        metrics_temporal: The same model family measured on a time-ordered partition,
+            when the lake spanned enough days for one. ``None`` otherwise, and on a
+            bundle exported before this was recorded. Never the published figure: the
+            served model is the grouped-random fit.
         lake: Which lake the bundle was trained on.
         catalog: The makes, models, departments and ranges the model was fitted on, for
             ``/catalog``. ``None`` for a bundle exported before catalogues existed.
@@ -95,6 +114,9 @@ class ServedModel:
     metrics: dict[str, float]
     lake: dict[str, Any]
     catalog: VehicleCatalog | None = None
+    interval_uncalibrated_coverage: float | None = None
+    interval_uncalibrated_mean_relative_width: float | None = None
+    metrics_temporal: dict[str, float] | None = None
 
     def predict_log_price(self, frame: pd.DataFrame) -> Any:
         """Predict ``log(price)`` for a gold-shaped frame."""
@@ -178,6 +200,8 @@ def save_bundle(
     metrics: dict[str, float],
     lake: dict[str, Any],
     catalog: VehicleCatalog | None = None,
+    uncalibrated: IntervalReport | None = None,
+    metrics_temporal: dict[str, float] | None = None,
 ) -> Path:
     """Write one vertical's served model to ``directory``.
 
@@ -192,6 +216,14 @@ def save_bundle(
         lake: Fingerprint of the lake it was trained on.
         catalog: The lists ``/catalog`` serves, built from the same training frame. Written
             as a separate file so an older bundle without one is still readable.
+        uncalibrated: The same band before the conformal widening, measured on the same
+            holdout. Recorded so the published coverage can be shown against the one the
+            quantile models give on their own.
+        metrics_temporal: The same model family measured on a time-ordered partition
+            instead of a grouped random one. A second measurement, not the published one:
+            the served model is the random-split fit, and this says how it would have
+            scored on a split that trains on the past and tests on the future. ``None``
+            when the lake does not span enough days for that partition to be honest.
 
     Returns:
         The path of the manifest written.
@@ -220,16 +252,27 @@ def save_bundle(
             "crossing_rate": interval.crossing_rate,
             "n_calibration": interval.n_calibration,
             "quantiles": list(QUANTILES),
+            # Null when the band was saved without the raw measurement; the calibrated
+            # coverage lives in `metrics`, as it always has.
+            "uncalibrated_coverage": None if uncalibrated is None else uncalibrated.coverage,
+            "uncalibrated_mean_relative_width": (
+                None if uncalibrated is None else uncalibrated.mean_relative_width
+            ),
         },
         "label": {
             "publishes_label": label.publishes_label,
             "coverage": label.coverage,
             "mean_relative_width": label.mean_relative_width,
             "n": label.n,
+            # Text and codes, side by side and saying the same thing. The text is what
+            # shipped and what an older reader looks for; the codes are what a reader that
+            # has to translate the sentence needs.
             "failures": list(label.failures),
+            "failure_codes": [failure.to_json() for failure in label.failure_codes],
             "precision_notice": label.precision_notice,
         },
         "metrics": metrics,
+        "metrics_temporal": metrics_temporal,
         "lake": lake,
     }
     path = directory / MANIFEST_NAME
@@ -268,10 +311,9 @@ def load_bundle(directory: Path) -> ServedModel:
         raise BundleError(msg)
 
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    if manifest.get("format") != BUNDLE_FORMAT:
-        msg = (
-            f"{path} is bundle format {manifest.get('format')!r}, this build reads {BUNDLE_FORMAT}"
-        )
+    if manifest.get("format") not in READABLE_BUNDLE_FORMATS:
+        readable = ", ".join(str(known) for known in sorted(READABLE_BUNDLE_FORMATS))
+        msg = f"{path} is bundle format {manifest.get('format')!r}, this build reads {readable}"
         raise BundleError(msg)
 
     spec = _spec_from_json(manifest["spec"])
@@ -294,6 +336,15 @@ def load_bundle(directory: Path) -> ServedModel:
         mean_relative_width=float(manifest["label"]["mean_relative_width"]),
         n=int(manifest["label"]["n"]),
         failures=tuple(manifest["label"]["failures"]),
+        failure_codes=tuple(
+            LabelFailure(
+                code=str(failure["code"]),
+                value=float(failure["value"]),
+                limit=float(failure["limit"]),
+                message=str(failure["message"]),
+            )
+            for failure in manifest["label"].get("failure_codes", ())
+        ),
     )
     return ServedModel(
         vehicle_type=manifest["vehicle_type"],
@@ -302,9 +353,21 @@ def load_bundle(directory: Path) -> ServedModel:
         interval=interval,
         label=label,
         metrics=manifest["metrics"],
+        interval_uncalibrated_coverage=_optional_float(
+            manifest["interval"].get("uncalibrated_coverage")
+        ),
+        interval_uncalibrated_mean_relative_width=_optional_float(
+            manifest["interval"].get("uncalibrated_mean_relative_width")
+        ),
+        metrics_temporal=manifest.get("metrics_temporal"),
         lake=manifest["lake"],
         catalog=load_catalog(directory),
     )
+
+
+def _optional_float(value: Any) -> float | None:
+    """Read a manifest field that may be absent or explicitly null."""
+    return None if value is None else float(value)
 
 
 def _load_tree(path: Path, spec: FeatureSpec, levels: dict[str, pd.Index]) -> FittedTree:

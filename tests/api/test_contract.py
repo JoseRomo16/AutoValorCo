@@ -65,8 +65,11 @@ def artifacts(tmp_path_factory: pytest.TempPathFactory) -> Path:
                 "n_test": float(result.test_report.n),
                 "interval_coverage": result.interval.coverage,
                 "interval_mean_relative_width": result.interval.mean_relative_width,
+                "baseline_mape": result.test_report.mape * 1.4,
             },
             lake={"rows": len(frame)},
+            uncalibrated=result.interval_uncalibrated,
+            metrics_temporal={"mape": result.test_report.mape * 1.1, "n_test": 60.0},
             catalog=build_catalog(dataset.train, vehicle_type=vehicle_type),  # type: ignore[arg-type]
         )
     return root
@@ -373,3 +376,86 @@ def test_the_served_bundle_is_the_one_on_disk(artifacts: Path) -> None:
 
     assert set(models) == {"car", "motorcycle"}
     assert all(model.version == "test.1" for model in models.values())
+
+
+def test_model_info_carries_the_reference_the_served_model_beats(client: TestClient) -> None:
+    # The site says "LightGBM reduces the error by N points". That subtraction has to be
+    # done on two numbers the service publishes, not on one number and a memory.
+    body = client.get("/model-info").json()
+
+    for vertical in body["verticals"]:
+        assert vertical["baseline_mape"] > vertical["mape"]
+        assert vertical["interval_uncalibrated_coverage"] is not None
+        assert vertical["metrics_temporal"]["mape"] > 0
+
+
+def test_a_withheld_label_comes_with_codes_as_well_as_text(client: TestClient) -> None:
+    # The notice has to be renderable in Spanish, and a Spanish sentence cannot be derived
+    # from the English one. Both travel, saying the same thing.
+    body = client.get("/model-info").json()
+
+    for vertical in body["verticals"]:
+        text = vertical["label_withheld_because"]
+        codes = vertical["label_withheld_codes"]
+        assert len(text) == len(codes)
+        assert (len(codes) == 0) == vertical["publishes_label"]
+        for message, code in zip(text, codes, strict=True):
+            assert code["message"] == message
+            assert code["code"] in {
+                "coverage_below_min",
+                "coverage_above_max",
+                "width_above_max",
+            }
+            assert code["limit"] > 0
+
+
+def test_predict_carries_the_precision_codes_next_to_the_notice(client: TestClient) -> None:
+    # Built from the catalogue rather than hard-coded, so both verticals are exercised
+    # whatever the synthetic lake happened to generate.
+    for vertical in client.get("/catalog").json()["verticals"]:
+        brand = vertical["brands"][0]
+        request = {
+            "vehicle_type": vertical["vehicle_type"],
+            "brand": brand["name"],
+            "model": brand["models"][0]["name"],
+            "model_year": int(vertical["model_year"]["max"]),
+            "mileage_km": 20_000,
+            "department": vertical["departments"][0]["name"],
+        }
+        body = client.post("/predict", json=request).json()
+
+        has_notice = body["precision_notice"] is not None
+        assert bool(body["precision_codes"]) == has_notice
+        for code in body["precision_codes"]:
+            assert code["message"] in body["precision_notice"]
+
+
+def test_a_department_resolves_however_it_is_spelled(client: TestClient) -> None:
+    # The lake used to store whatever the site published, so an older client still sends
+    # "Valle Del Cauca" where the level is now "Valle del Cauca". Missing every category
+    # would send the request down the trees' missing branch -- a wrong answer that looks
+    # exactly like a right one -- so the spellings have to meet.
+    catalog = client.get("/catalog", params={"vehicle_type": "car"}).json()
+    level = catalog["verticals"][0]["departments"][0]["name"]
+
+    canonical = client.post("/predict", json={**CAR, "department": level}).json()
+    shouted = client.post("/predict", json={**CAR, "department": level.upper()}).json()
+    unaccented = client.post("/predict", json={**CAR, "department": _strip_accents(level)}).json()
+
+    assert shouted["band"] == canonical["band"]
+    assert unaccented["band"] == canonical["band"]
+
+
+def test_an_unknown_department_is_answered_rather_than_rejected(client: TestClient) -> None:
+    # "No data for that region" is a real answer; turning it into a 422 would make the
+    # form unusable for a department the lake has not reached yet.
+    body = client.post("/predict", json={**CAR, "department": "Vaupés"})
+
+    assert body.status_code == 200
+    assert body.json()["band"]["estimate_cop"] > 0
+
+
+def _strip_accents(text: str) -> str:
+    import unicodedata
+
+    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")

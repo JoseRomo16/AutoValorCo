@@ -1,16 +1,16 @@
 department,pct_change,pct_ci_low,pct_ci_high,log_estimate,std_err,p_value,significant,n,vehicle_type,listings,is_reference
-Bogotá D.C.,0.0,0.0,0.0,0.0,0.0,,False,7639,car,1322,True
-Atlántico,0.1252,-2.1579,2.4616,0.0013,0.0118,0.9153,False,7639,car,1243,False
-Cundinamarca,0.7941,-1.459,3.0988,0.0079,0.0115,0.4929,False,7639,car,1231,False
-Valle Del Cauca,1.8786,-0.3088,4.114,0.0186,0.0111,0.0928,False,7639,car,1279,False
-Norte De Santander,4.7372,1.8803,7.6741,0.0463,0.0141,0.001,True,7639,car,425,False
-Antioquia,7.1082,4.2603,10.0339,0.0687,0.0137,0.0,True,7639,car,1243,False
-Santander,8.602,5.5659,11.7254,0.0825,0.0145,0.0,True,7639,car,843,False
-Quindio,-26.0808,-39.7716,-9.2778,-0.3022,0.1045,0.0038,True,4052,motorcycle,48,False
-Atlántico,-23.0352,-36.645,-6.5019,-0.2618,0.0993,0.0084,True,4052,motorcycle,83,False
-Cundinamarca,-15.2956,-21.6693,-8.4034,-0.166,0.0399,0.0,True,4052,motorcycle,492,False
-Santander,-10.7715,-20.1628,-0.2754,-0.114,0.0567,0.0446,True,4052,motorcycle,230,False
-Norte De Santander,-4.5756,-25.3811,22.0309,-0.0468,0.1255,0.709,False,4052,motorcycle,35,False
-Valle Del Cauca,-4.5588,-11.8025,3.2798,-0.0467,0.0403,0.2466,False,4052,motorcycle,529,False
-Bogotá D.C.,0.0,0.0,0.0,0.0,0.0,,False,4052,motorcycle,1403,True
-Antioquia,29.5088,22.5733,36.8367,0.2586,0.0281,0.0,True,4052,motorcycle,1227,False
+Atlántico,-0.7237,-2.792,1.3886,-0.0073,0.0107,0.4989,False,8443,car,1328,False
+Bogotá D.C.,0.0,0.0,0.0,0.0,0.0,,False,8443,car,1590,True
+Cundinamarca,0.255,-1.8122,2.3658,0.0025,0.0106,0.8106,False,8443,car,1320,False
+Valle del Cauca,0.8551,-1.1177,2.8673,0.0085,0.0101,0.3982,False,8443,car,1404,False
+Norte de Santander,3.1791,0.6001,5.8242,0.0313,0.0129,0.0154,True,8443,car,461,False
+Antioquia,6.1047,3.5152,8.7589,0.0593,0.0126,0.0,True,8443,car,1361,False
+Santander,7.5806,4.7565,10.4809,0.0731,0.0136,0.0,True,8443,car,924,False
+Quindío,-24.6465,-39.1062,-6.7532,-0.283,0.1087,0.0092,True,4505,motorcycle,48,False
+Atlántico,-16.6501,-28.495,-2.843,-0.1821,0.0782,0.0199,True,4505,motorcycle,122,False
+Norte de Santander,-16.311,-33.2286,4.893,-0.1781,0.1152,0.1223,False,4505,motorcycle,43,False
+Cundinamarca,-13.7468,-19.7641,-7.2783,-0.1479,0.0369,0.0001,True,4505,motorcycle,573,False
+Santander,-13.2424,-21.5001,-4.1162,-0.1421,0.051,0.0054,True,4505,motorcycle,276,False
+Valle del Cauca,-0.127,-6.8409,7.0708,-0.0013,0.0355,0.9715,False,4505,motorcycle,624,False
+Bogotá D.C.,0.0,0.0,0.0,0.0,0.0,,False,4505,motorcycle,1498,True
+Antioquia,27.0391,20.6917,33.7204,0.2393,0.0262,0.0,True,4505,motorcycle,1316,False

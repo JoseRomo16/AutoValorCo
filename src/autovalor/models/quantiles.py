@@ -126,6 +126,25 @@ class FittedInterval:
         # keeps the three values ordered whatever the correction did.
         return np.sort(calibrated, axis=1)
 
+    def predict_raw_log_bounds(self, frame: pd.DataFrame) -> npt.NDArray[np.float64]:
+        """Predict the band the three quantile models give before the conformal step.
+
+        Sorted but not widened, which is what makes the calibration measurable: the gap
+        between this band's held-out coverage and the calibrated one's is the whole
+        argument for conformalising. Published as ``interval.uncalibrated_coverage`` so
+        the methodology page can show the two side by side instead of quoting a number
+        measured once and typed into a document.
+
+        Args:
+            frame: Rows to score, straight from gold.
+
+        Returns:
+            An ``(n, 3)`` array of ``log(price)`` at the lower bound, the median and the
+            upper bound.
+        """
+        raw: npt.NDArray[np.float64] = np.sort(_raw_bounds(self.models, frame), axis=1)
+        return raw
+
     def predict_log_price(self, frame: pd.DataFrame) -> npt.NDArray[np.float64]:
         """Predict the median ``log(price)``, satisfying the point-model interface.
 
@@ -301,6 +320,49 @@ def classify(
     return labels
 
 
+COVERAGE_BELOW_MIN = "coverage_below_min"
+COVERAGE_ABOVE_MAX = "coverage_above_max"
+WIDTH_ABOVE_MAX = "width_above_max"
+"""The three ways the gate can fail, as codes a client can switch on.
+
+Separate codes for the two sides of the coverage window because they mean opposite things
+to a reader: covering too little calls ordinary listings bargains, covering too much stops
+the label discriminating at all. The single message below keeps saying "outside 78-82 %"
+for compatibility, but a translated sentence cannot be derived from it."""
+
+
+@dataclass(frozen=True)
+class LabelFailure:
+    """One failed rule, as a code plus the numbers it failed on.
+
+    The product has to explain a withheld label in the reader's language, and the only
+    thing that can be translated is a code. The English ``message`` travels alongside and
+    is unchanged: ``/model-info`` and the manifest published it before this existed, and
+    a deploy puts a new service next to an old site or the reverse.
+
+    Attributes:
+        code: One of :data:`COVERAGE_BELOW_MIN`, :data:`COVERAGE_ABOVE_MAX`,
+            :data:`WIDTH_ABOVE_MAX`.
+        value: What was measured on the holdout, as a fraction.
+        limit: The threshold it failed against, as a fraction.
+        message: The English sentence, kept verbatim for compatibility.
+    """
+
+    code: str
+    value: float
+    limit: float
+    message: str
+
+    def to_json(self) -> dict[str, Any]:
+        """Return the JSON form written into the manifest."""
+        return {
+            "code": self.code,
+            "value": self.value,
+            "limit": self.limit,
+            "message": self.message,
+        }
+
+
 @dataclass(frozen=True)
 class LabelPolicy:
     """Whether a vertical has earned the right to show the bargain/fair/expensive label.
@@ -326,7 +388,11 @@ class LabelPolicy:
         coverage: Held-out share of asking prices that fell inside the band.
         mean_relative_width: Held-out mean of ``(upper - lower) / estimate``, in pesos.
         n: Rows both figures were measured on.
-        failures: One message per rule that failed, empty when the label is published.
+        failures: One English message per rule that failed, empty when the label is
+            published. The published wording, unchanged.
+        failure_codes: The same failures as codes with their values, for a client that has
+            to say this in another language. Empty on a bundle exported before they
+            existed, which is why :attr:`failures` remains the field everything reads.
     """
 
     vehicle_type: VehicleType
@@ -334,6 +400,7 @@ class LabelPolicy:
     mean_relative_width: float
     n: int
     failures: tuple[str, ...]
+    failure_codes: tuple[LabelFailure, ...] = ()
 
     @property
     def publishes_label(self) -> bool:
@@ -389,16 +456,32 @@ def label_policy(report: IntervalReport, *, vehicle_type: VehicleType) -> LabelP
     Returns:
         The decision, carrying the numbers it was taken on so a report can quote them.
     """
-    failures: list[str] = []
+    failures: list[LabelFailure] = []
     if not MIN_LABEL_COVERAGE <= report.coverage <= MAX_LABEL_COVERAGE:
+        below = report.coverage < MIN_LABEL_COVERAGE
         failures.append(
-            f"coverage {report.coverage:.1%} outside "
-            f"{MIN_LABEL_COVERAGE:.0%}-{MAX_LABEL_COVERAGE:.0%}"
+            LabelFailure(
+                code=COVERAGE_BELOW_MIN if below else COVERAGE_ABOVE_MAX,
+                value=report.coverage,
+                limit=MIN_LABEL_COVERAGE if below else MAX_LABEL_COVERAGE,
+                # One message for both sides, because this is the sentence that shipped.
+                message=(
+                    f"coverage {report.coverage:.1%} outside "
+                    f"{MIN_LABEL_COVERAGE:.0%}-{MAX_LABEL_COVERAGE:.0%}"
+                ),
+            )
         )
     if report.mean_relative_width > MAX_LABEL_RELATIVE_WIDTH:
         failures.append(
-            f"mean width {report.mean_relative_width:.0%} of the estimate, "
-            f"above {MAX_LABEL_RELATIVE_WIDTH:.0%}"
+            LabelFailure(
+                code=WIDTH_ABOVE_MAX,
+                value=report.mean_relative_width,
+                limit=MAX_LABEL_RELATIVE_WIDTH,
+                message=(
+                    f"mean width {report.mean_relative_width:.0%} of the estimate, "
+                    f"above {MAX_LABEL_RELATIVE_WIDTH:.0%}"
+                ),
+            )
         )
 
     policy = LabelPolicy(
@@ -406,12 +489,13 @@ def label_policy(report: IntervalReport, *, vehicle_type: VehicleType) -> LabelP
         coverage=report.coverage,
         mean_relative_width=report.mean_relative_width,
         n=report.n,
-        failures=tuple(failures),
+        failures=tuple(failure.message for failure in failures),
+        failure_codes=tuple(failures),
     )
     logger.info(
         "%s label — %s (coverage %.1f%%, mean width %.0f%% on %d held-out rows)",
         vehicle_type,
-        "published" if policy.publishes_label else "withheld: " + "; ".join(failures),
+        "published" if policy.publishes_label else "withheld: " + "; ".join(policy.failures),
         report.coverage * 100,
         report.mean_relative_width * 100,
         report.n,
