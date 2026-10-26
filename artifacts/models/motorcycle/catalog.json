@@ -1,3623 +1,4373 @@
 {
-  "format": 1,
+  "format": 2,
   "vehicle_type": "motorcycle",
-  "n_rows": 3242,
+  "n_rows": 3604,
   "brands": [
     {
       "name": "AKT",
-      "listings": 138,
+      "listings": 154,
+      "display_name": "AKT",
       "models": [
         {
+          "name": "110",
+          "listings": 1,
+          "display_name": "110"
+        },
+        {
           "name": "125",
-          "listings": 1
+          "listings": 4,
+          "display_name": "125"
         },
         {
           "name": "200",
-          "listings": 1
+          "listings": 1,
+          "display_name": "200"
         },
         {
           "name": "250",
-          "listings": 1
+          "listings": 1,
+          "display_name": "250"
         },
         {
           "name": "250r",
-          "listings": 1
+          "listings": 1,
+          "display_name": "250r"
         },
         {
           "name": "25rl",
-          "listings": 1
+          "listings": 1,
+          "display_name": "25RL"
         },
         {
           "name": "adventour",
-          "listings": 1
-        },
-        {
-          "name": "adventure",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Adventour"
         },
         {
           "name": "ak",
-          "listings": 5
-        },
-        {
-          "name": "ak125",
-          "listings": 1
+          "listings": 7,
+          "display_name": "AK"
         },
         {
           "name": "ak125rl",
-          "listings": 1
+          "listings": 1,
+          "display_name": "AK125RL"
         },
         {
-          "name": "ak125sc-r",
-          "listings": 1
+          "name": "ak125ttr",
+          "listings": 1,
+          "display_name": "AK125TTR"
         },
         {
           "name": "ak200",
-          "listings": 1
+          "listings": 1,
+          "display_name": "AK200"
         },
         {
           "name": "aventura",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Aventura"
         },
         {
           "name": "carguero",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Carguero"
         },
         {
-          "name": "cr3",
-          "listings": 1
+          "name": "chr",
+          "listings": 1,
+          "display_name": "CHR"
         },
         {
           "name": "cr4",
-          "listings": 18
+          "listings": 24,
+          "display_name": "CR4"
         },
         {
           "name": "cr5",
-          "listings": 6
+          "listings": 6,
+          "display_name": "CR5"
         },
         {
-          "name": "dinamic",
-          "listings": 2
-        },
-        {
-          "name": "dinamik",
-          "listings": 1
-        },
-        {
-          "name": "dinamyc",
-          "listings": 1
+          "name": "ds",
+          "listings": 1,
+          "display_name": "DS"
         },
         {
           "name": "dynamic",
-          "listings": 12
+          "listings": 20,
+          "display_name": "Dynamic"
         },
         {
-          "name": "dynamique",
-          "listings": 1
-        },
-        {
-          "name": "especial",
-          "listings": 1
+          "name": "dynanic",
+          "listings": 1,
+          "display_name": "Dynanic"
         },
         {
           "name": "evo",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Evo"
         },
         {
           "name": "flex",
-          "listings": 4
+          "listings": 5,
+          "display_name": "Flex"
         },
         {
-          "name": "ganga!!",
-          "listings": 1
+          "name": "flex125",
+          "listings": 1,
+          "display_name": "FLEX125"
         },
         {
-          "name": "karguero",
-          "listings": 1
+          "name": "jet",
+          "listings": 1,
+          "display_name": "Jet"
         },
         {
           "name": "motocarro",
-          "listings": 2
+          "listings": 1,
+          "display_name": "Motocarro"
         },
         {
           "name": "nkd",
-          "listings": 29
+          "listings": 31,
+          "display_name": "NKD"
         },
         {
           "name": "nkd125",
-          "listings": 1
+          "listings": 1,
+          "display_name": "NKD125"
         },
         {
           "name": "rtx",
-          "listings": 4
+          "listings": 5,
+          "display_name": "RTX"
         },
         {
           "name": "rx150",
-          "listings": 1
-        },
-        {
-          "name": "scooters",
-          "listings": 1
-        },
-        {
-          "name": "se",
-          "listings": 1
+          "listings": 1,
+          "display_name": "RX150"
         },
         {
           "name": "special",
-          "listings": 1
-        },
-        {
-          "name": "sym",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Special"
         },
         {
           "name": "tt",
-          "listings": 6
+          "listings": 8,
+          "display_name": "TT"
         },
         {
           "name": "tt200",
-          "listings": 1
+          "listings": 1,
+          "display_name": "TT200"
         },
         {
           "name": "ttds",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Ttds"
         },
         {
           "name": "ttr",
-          "listings": 15
-        },
-        {
-          "name": "ttr200",
-          "listings": 1
+          "listings": 19,
+          "display_name": "TTR"
         },
         {
           "name": "ttx",
-          "listings": 3
-        },
-        {
-          "name": "voge",
-          "listings": 2
+          "listings": 2,
+          "display_name": "TTX"
         }
       ]
     },
     {
       "name": "Aprilia",
       "listings": 5,
+      "display_name": "Aprilia",
       "models": [
         {
-          "name": "rs",
-          "listings": 1
+          "name": "etx",
+          "listings": 1,
+          "display_name": "ETX"
         },
         {
           "name": "sr",
-          "listings": 3
+          "listings": 3,
+          "display_name": "SR"
         },
         {
           "name": "tuono",
-          "listings": 1
-        }
-      ]
-    },
-    {
-      "name": "Auteco",
-      "listings": 8,
-      "models": [
-        {
-          "name": "advance",
-          "listings": 1
-        },
-        {
-          "name": "bravo",
-          "listings": 1
-        },
-        {
-          "name": "ceronte",
-          "listings": 1
-        },
-        {
-          "name": "kymco",
-          "listings": 2
-        },
-        {
-          "name": "ns",
-          "listings": 1
-        },
-        {
-          "name": "one",
-          "listings": 1
-        },
-        {
-          "name": "victory",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Tuono"
         }
       ]
     },
     {
       "name": "Ayco",
       "listings": 1,
+      "display_name": "Ayco",
       "models": [
         {
           "name": "300",
-          "listings": 1
+          "listings": 1,
+          "display_name": "300"
         }
       ]
     },
     {
       "name": "BMW",
-      "listings": 357,
+      "listings": 393,
+      "display_name": "BMW",
       "models": [
         {
-          "name": "/",
-          "listings": 1
-        },
-        {
           "name": "1200",
-          "listings": 1
+          "listings": 1,
+          "display_name": "1200"
         },
         {
           "name": "1200gs",
-          "listings": 1
+          "listings": 1,
+          "display_name": "1200GS"
         },
         {
           "name": "1250",
-          "listings": 5
-        },
-        {
-          "name": "310",
-          "listings": 1
-        },
-        {
-          "name": "310gs",
-          "listings": 1
+          "listings": 5,
+          "display_name": "1250"
         },
         {
           "name": "310r",
-          "listings": 1
+          "listings": 1,
+          "display_name": "310r"
         },
         {
           "name": "650",
-          "listings": 1
+          "listings": 1,
+          "display_name": "650"
+        },
+        {
+          "name": "750",
+          "listings": 1,
+          "display_name": "750"
         },
         {
           "name": "850",
-          "listings": 2
-        },
-        {
-          "name": "blanca",
-          "listings": 1
+          "listings": 1,
+          "display_name": "850"
         },
         {
           "name": "c",
-          "listings": 3
+          "listings": 5,
+          "display_name": "C"
         },
         {
           "name": "c400",
-          "listings": 2
+          "listings": 2,
+          "display_name": "C400"
+        },
+        {
+          "name": "c400gt",
+          "listings": 1,
+          "display_name": "C400GT"
         },
         {
           "name": "ce",
-          "listings": 9
-        },
-        {
-          "name": "deportiva",
-          "listings": 1
+          "listings": 12,
+          "display_name": "CE"
         },
         {
           "name": "edicion",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Edicion"
         },
         {
           "name": "f",
-          "listings": 39
+          "listings": 50,
+          "display_name": "F"
         },
         {
           "name": "f-850",
-          "listings": 1
+          "listings": 2,
+          "display_name": "F-850"
         },
         {
           "name": "f650",
-          "listings": 2
+          "listings": 2,
+          "display_name": "F650"
         },
         {
           "name": "f700",
-          "listings": 10
+          "listings": 5,
+          "display_name": "F700"
         },
         {
           "name": "f700gs",
-          "listings": 3
+          "listings": 3,
+          "display_name": "F700GS"
         },
         {
           "name": "f750",
-          "listings": 8
+          "listings": 10,
+          "display_name": "F750"
         },
         {
           "name": "f750gs",
-          "listings": 4
+          "listings": 7,
+          "display_name": "F750GS"
         },
         {
           "name": "f800",
-          "listings": 2
+          "listings": 3,
+          "display_name": "F800"
         },
         {
           "name": "f800gs",
-          "listings": 3
+          "listings": 4,
+          "display_name": "F800GS"
         },
         {
-          "name": "f800gs,",
-          "listings": 1
+          "name": "f800r",
+          "listings": 1,
+          "display_name": "F800R"
         },
         {
           "name": "f850",
-          "listings": 9
+          "listings": 11,
+          "display_name": "F850"
         },
         {
           "name": "f850gs",
-          "listings": 10
+          "listings": 12,
+          "display_name": "F850GS"
         },
         {
           "name": "f900",
-          "listings": 5
+          "listings": 8,
+          "display_name": "F900"
         },
         {
           "name": "f900gs",
-          "listings": 2
+          "listings": 1,
+          "display_name": "F900GS"
         },
         {
           "name": "f900r",
-          "listings": 5
+          "listings": 5,
+          "display_name": "F900R"
         },
         {
           "name": "f900xr",
-          "listings": 2
+          "listings": 2,
+          "display_name": "F900XR"
         },
         {
           "name": "g",
-          "listings": 29
+          "listings": 36,
+          "display_name": "G"
         },
         {
           "name": "g310",
-          "listings": 6
+          "listings": 6,
+          "display_name": "G310"
         },
         {
           "name": "g310gs",
-          "listings": 4
-        },
-        {
-          "name": "g310gs,",
-          "listings": 1
+          "listings": 14,
+          "display_name": "G310GS"
         },
         {
           "name": "g310r",
-          "listings": 3
+          "listings": 6,
+          "display_name": "G310R"
         },
         {
           "name": "g650",
-          "listings": 1
+          "listings": 1,
+          "display_name": "G650"
         },
         {
           "name": "g650gs",
-          "listings": 1
+          "listings": 2,
+          "display_name": "G650GS"
         },
         {
           "name": "gs",
-          "listings": 14
-        },
-        {
-          "name": "gs-310",
-          "listings": 1
+          "listings": 13,
+          "display_name": "GS"
         },
         {
           "name": "gs1250",
-          "listings": 1
-        },
-        {
-          "name": "gs310",
-          "listings": 1
-        },
-        {
-          "name": "k50",
-          "listings": 1
+          "listings": 1,
+          "display_name": "GS1250"
         },
         {
           "name": "m",
-          "listings": 1
-        },
-        {
-          "name": "m1000rr",
-          "listings": 1
-        },
-        {
-          "name": "motorrad",
-          "listings": 25
-        },
-        {
-          "name": "ninet",
-          "listings": 1
+          "listings": 1,
+          "display_name": "M"
         },
         {
           "name": "r",
-          "listings": 65
+          "listings": 82,
+          "display_name": "R"
         },
         {
           "name": "r12",
-          "listings": 1
+          "listings": 2,
+          "display_name": "R12"
         },
         {
           "name": "r1200",
-          "listings": 4
+          "listings": 7,
+          "display_name": "R1200"
         },
         {
           "name": "r1200gs",
-          "listings": 7
+          "listings": 7,
+          "display_name": "R1200GS"
         },
         {
           "name": "r1250",
-          "listings": 11
+          "listings": 11,
+          "display_name": "R1250"
         },
         {
           "name": "r1250gs",
-          "listings": 9
-        },
-        {
-          "name": "r12ninet",
-          "listings": 1
+          "listings": 9,
+          "display_name": "R1250GS"
         },
         {
           "name": "r1300",
-          "listings": 4
+          "listings": 4,
+          "display_name": "R1300"
         },
         {
           "name": "r1300gs",
-          "listings": 8
+          "listings": 10,
+          "display_name": "R1300GS"
         },
         {
           "name": "r18",
-          "listings": 1
+          "listings": 1,
+          "display_name": "R18"
         },
         {
           "name": "r26",
-          "listings": 1
+          "listings": 2,
+          "display_name": "R26"
         },
         {
           "name": "rninet",
-          "listings": 2
+          "listings": 4,
+          "display_name": "R nineT"
         },
         {
           "name": "s",
-          "listings": 2
+          "listings": 2,
+          "display_name": "S"
         },
         {
           "name": "s1000",
-          "listings": 2
+          "listings": 3,
+          "display_name": "S1000"
         },
         {
           "name": "s1000r",
-          "listings": 4
+          "listings": 4,
+          "display_name": "S1000R"
         },
         {
           "name": "s1000rr",
-          "listings": 1
+          "listings": 3,
+          "display_name": "S1000RR"
         },
         {
           "name": "s1000xr",
-          "listings": 4
-        },
-        {
-          "name": "se",
-          "listings": 1
-        },
-        {
-          "name": "vendo",
-          "listings": 1
+          "listings": 4,
+          "display_name": "S1000XR"
         }
       ]
     },
     {
       "name": "Bajaj",
-      "listings": 202,
+      "listings": 229,
+      "display_name": "Bajaj",
       "models": [
         {
+          "name": "avenger",
+          "listings": 2,
+          "display_name": "Avenger"
+        },
+        {
           "name": "boxer",
-          "listings": 19
+          "listings": 22,
+          "display_name": "Boxer"
+        },
+        {
+          "name": "bravo",
+          "listings": 1,
+          "display_name": "Bravo"
         },
         {
           "name": "ct100",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CT100"
         },
         {
           "name": "ct125",
-          "listings": 1
-        },
-        {
-          "name": "descripción",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CT125"
         },
         {
           "name": "discover",
-          "listings": 5
+          "listings": 5,
+          "display_name": "Discover"
         },
         {
           "name": "dominar",
-          "listings": 43
+          "listings": 53,
+          "display_name": "Dominar"
         },
         {
-          "name": "hermosa",
-          "listings": 1
-        },
-        {
-          "name": "marca:",
-          "listings": 1
+          "name": "n160",
+          "listings": 1,
+          "display_name": "N160"
         },
         {
           "name": "ns",
-          "listings": 7
+          "listings": 12,
+          "display_name": "NS"
+        },
+        {
+          "name": "platino",
+          "listings": 1,
+          "display_name": "Platino"
         },
         {
           "name": "pulsar",
-          "listings": 123
+          "listings": 129,
+          "display_name": "Pulsar"
         }
       ]
     },
     {
       "name": "Benelli",
-      "listings": 62,
+      "listings": 64,
+      "display_name": "Benelli",
       "models": [
         {
+          "name": "150",
+          "listings": 1,
+          "display_name": "150"
+        },
+        {
           "name": "180",
-          "listings": 4
+          "listings": 3,
+          "display_name": "180"
         },
         {
           "name": "180s",
-          "listings": 1
-        },
-        {
-          "name": "180s,",
-          "listings": 1
+          "listings": 2,
+          "display_name": "180s"
         },
         {
           "name": "251",
-          "listings": 1
+          "listings": 1,
+          "display_name": "251"
         },
         {
           "name": "302s",
-          "listings": 2
+          "listings": 2,
+          "display_name": "302s"
+        },
+        {
+          "name": "752",
+          "listings": 1,
+          "display_name": "752"
         },
         {
           "name": "leoncino",
-          "listings": 8
+          "listings": 9,
+          "display_name": "Leoncino"
         },
         {
           "name": "tnt",
-          "listings": 19
+          "listings": 21,
+          "display_name": "TNT"
         },
         {
           "name": "trk",
-          "listings": 25
+          "listings": 24,
+          "display_name": "TRK"
+        }
+      ]
+    },
+    {
+      "name": "Bera",
+      "listings": 1,
+      "display_name": "Bera",
+      "models": [
+        {
+          "name": "rr",
+          "listings": 1,
+          "display_name": "RR"
+        }
+      ]
+    },
+    {
+      "name": "Boss",
+      "listings": 5,
+      "display_name": "Boss",
+      "models": [
+        {
+          "name": "125cc",
+          "listings": 1,
+          "display_name": "125CC"
         },
         {
-          "name": "venpermuto",
-          "listings": 1
+          "name": "200",
+          "listings": 4,
+          "display_name": "200"
         }
       ]
     },
     {
       "name": "CFMoto",
-      "listings": 37,
+      "listings": 49,
+      "display_name": "CFMoto",
       "models": [
         {
           "name": "125",
-          "listings": 1
+          "listings": 1,
+          "display_name": "125"
         },
         {
           "name": "250",
-          "listings": 1
+          "listings": 3,
+          "display_name": "250"
+        },
+        {
+          "name": "250sr",
+          "listings": 2,
+          "display_name": "250SR"
+        },
+        {
+          "name": "250sr-6f",
+          "listings": 1,
+          "display_name": "250SR-6f"
         },
         {
           "name": "400",
-          "listings": 2
+          "listings": 2,
+          "display_name": "400"
         },
         {
           "name": "450",
-          "listings": 1
+          "listings": 9,
+          "display_name": "450"
         },
         {
           "name": "450mt",
-          "listings": 1
+          "listings": 1,
+          "display_name": "450MT"
+        },
+        {
+          "name": "450nk",
+          "listings": 1,
+          "display_name": "450NK"
         },
         {
           "name": "450sr",
-          "listings": 1
+          "listings": 1,
+          "display_name": "450SR"
         },
         {
           "name": "450srs",
-          "listings": 1
+          "listings": 1,
+          "display_name": "450SRS"
+        },
+        {
+          "name": "50",
+          "listings": 4,
+          "display_name": "50"
+        },
+        {
+          "name": "50-7f",
+          "listings": 1,
+          "display_name": "50-7f"
+        },
+        {
+          "name": "50lite",
+          "listings": 1,
+          "display_name": "50LITE"
         },
         {
           "name": "650nk",
-          "listings": 1
+          "listings": 2,
+          "display_name": "650NK"
         },
         {
-          "name": "675nk",
-          "listings": 1
+          "name": "675",
+          "listings": 1,
+          "display_name": "675"
         },
         {
-          "name": "675sr-r",
-          "listings": 1
+          "name": "700",
+          "listings": 1,
+          "display_name": "700"
         },
         {
           "name": "800",
-          "listings": 1
+          "listings": 4,
+          "display_name": "800"
+        },
+        {
+          "name": "800mt",
+          "listings": 1,
+          "display_name": "800MT"
         },
         {
           "name": "800nk",
-          "listings": 1
+          "listings": 1,
+          "display_name": "800NK"
         },
         {
-          "name": "cf",
-          "listings": 18
+          "name": "cfmotos",
+          "listings": 1,
+          "display_name": "Cfmotos"
         },
         {
-          "name": "cf250",
-          "listings": 1
+          "name": "cforce",
+          "listings": 2,
+          "display_name": "Cforce"
         },
         {
-          "name": "cf650",
-          "listings": 1
+          "name": "clc",
+          "listings": 1,
+          "display_name": "CLC"
         },
         {
-          "name": "cf700",
-          "listings": 1
+          "name": "clx",
+          "listings": 1,
+          "display_name": "CLX"
         },
         {
-          "name": "se",
-          "listings": 2
+          "name": "nk",
+          "listings": 4,
+          "display_name": "NK"
         },
         {
-          "name": "vendo",
-          "listings": 1
+          "name": "nk800",
+          "listings": 1,
+          "display_name": "NK800"
+        },
+        {
+          "name": "z",
+          "listings": 1,
+          "display_name": "Z"
         }
       ]
     },
     {
       "name": "Can-Am",
-      "listings": 30,
+      "listings": 39,
+      "display_name": "Can-Am",
       "models": [
         {
-          "name": "can",
-          "listings": 16
+          "name": "bombardier",
+          "listings": 1,
+          "display_name": "Bombardier"
         },
         {
           "name": "defender",
-          "listings": 4
+          "listings": 4,
+          "display_name": "Defender"
         },
         {
           "name": "maverick",
-          "listings": 7
+          "listings": 23,
+          "display_name": "Maverick"
+        },
+        {
+          "name": "oulander",
+          "listings": 1,
+          "display_name": "Oulander"
         },
         {
           "name": "outlander",
-          "listings": 1
+          "listings": 4,
+          "display_name": "Outlander"
         },
         {
           "name": "renegade",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Renegade"
+        },
+        {
+          "name": "ryker",
+          "listings": 2,
+          "display_name": "Ryker"
+        },
+        {
+          "name": "x3",
+          "listings": 1,
+          "display_name": "X3"
+        },
+        {
+          "name": "xrs",
+          "listings": 1,
+          "display_name": "XRS"
+        }
+      ]
+    },
+    {
+      "name": "Ceronte",
+      "listings": 2,
+      "display_name": "Ceronte",
+      "models": [
+        {
+          "name": "motocarga",
+          "listings": 1,
+          "display_name": "Motocarga"
+        },
+        {
+          "name": "tricargo",
+          "listings": 1,
+          "display_name": "Tricargo"
         }
       ]
     },
     {
       "name": "Desconocida",
-      "listings": 395,
+      "listings": 309,
+      "display_name": "Desconocida",
       "models": [
         {
-          "name": "**características:**",
-          "listings": 1
+          "name": "0",
+          "listings": 1,
+          "display_name": "0"
         },
         {
-          "name": ",",
-          "listings": 2
+          "name": "08",
+          "listings": 1,
+          "display_name": "08"
         },
         {
-          "name": "-",
-          "listings": 2
+          "name": "10",
+          "listings": 2,
+          "display_name": "10"
         },
         {
-          "name": "125",
-          "listings": 2
+          "name": "110cc",
+          "listings": 1,
+          "display_name": "110CC"
+        },
+        {
+          "name": "124",
+          "listings": 1,
+          "display_name": "124"
         },
         {
           "name": "1390",
-          "listings": 1
+          "listings": 1,
+          "display_name": "1390"
+        },
+        {
+          "name": "147",
+          "listings": 1,
+          "display_name": "147"
+        },
+        {
+          "name": "150cc",
+          "listings": 1,
+          "display_name": "150CC"
         },
         {
           "name": "155",
-          "listings": 1
+          "listings": 4,
+          "display_name": "155"
+        },
+        {
+          "name": "160cc",
+          "listings": 1,
+          "display_name": "160CC"
+        },
+        {
+          "name": "2",
+          "listings": 1,
+          "display_name": "2"
         },
         {
           "name": "200",
-          "listings": 3
+          "listings": 1,
+          "display_name": "200"
         },
         {
           "name": "200cc",
-          "listings": 2
+          "listings": 2,
+          "display_name": "200CC"
+        },
+        {
+          "name": "2027-09",
+          "listings": 1,
+          "display_name": "2027-09"
         },
         {
           "name": "250",
-          "listings": 1
+          "listings": 1,
+          "display_name": "250"
         },
         {
           "name": "250cc",
-          "listings": 1
+          "listings": 1,
+          "display_name": "250CC"
+        },
+        {
+          "name": "28",
+          "listings": 1,
+          "display_name": "28"
+        },
+        {
+          "name": "3",
+          "listings": 2,
+          "display_name": "3"
+        },
+        {
+          "name": "300",
+          "listings": 1,
+          "display_name": "300"
+        },
+        {
+          "name": "31",
+          "listings": 1,
+          "display_name": "31"
         },
         {
           "name": "350cc",
-          "listings": 1
+          "listings": 3,
+          "display_name": "350CC"
+        },
+        {
+          "name": "350w",
+          "listings": 1,
+          "display_name": "350w"
+        },
+        {
+          "name": "373",
+          "listings": 1,
+          "display_name": "373"
+        },
+        {
+          "name": "4",
+          "listings": 1,
+          "display_name": "4"
+        },
+        {
+          "name": "400x",
+          "listings": 1,
+          "display_name": "400x"
+        },
+        {
+          "name": "44000",
+          "listings": 1,
+          "display_name": "44000"
         },
         {
           "name": "50",
-          "listings": 1
+          "listings": 1,
+          "display_name": "50"
+        },
+        {
+          "name": "50cc",
+          "listings": 1,
+          "display_name": "50CC"
+        },
+        {
+          "name": "6",
+          "listings": 3,
+          "display_name": "6"
         },
         {
           "name": "690",
-          "listings": 1
+          "listings": 1,
+          "display_name": "690"
         },
         {
-          "name": "9:10,",
-          "listings": 1
+          "name": "6n",
+          "listings": 8,
+          "display_name": "6n"
         },
         {
-          "name": "a",
-          "listings": 2
+          "name": "700",
+          "listings": 2,
+          "display_name": "700"
         },
         {
-          "name": "adx",
-          "listings": 4
+          "name": "9",
+          "listings": 1,
+          "display_name": "9"
         },
         {
-          "name": "adxtg",
-          "listings": 1
+          "name": "9.5",
+          "listings": 1,
+          "display_name": "9.5"
         },
         {
-          "name": "aeroz",
-          "listings": 1
+          "name": "90",
+          "listings": 1,
+          "display_name": "90"
         },
         {
-          "name": "africa",
-          "listings": 2
+          "name": "97",
+          "listings": 1,
+          "display_name": "97"
         },
         {
-          "name": "agricola",
-          "listings": 1
+          "name": "adulto",
+          "listings": 1,
+          "display_name": "Adulto"
         },
         {
-          "name": "ahorrador",
-          "listings": 1
+          "name": "agos",
+          "listings": 1,
+          "display_name": "Agos"
         },
         {
-          "name": "al",
-          "listings": 1
+          "name": "aguila",
+          "listings": 1,
+          "display_name": "Aguila"
         },
         {
-          "name": "alquiler",
-          "listings": 1
+          "name": "alarma",
+          "listings": 3,
+          "display_name": "Alarma"
+        },
+        {
+          "name": "altas",
+          "listings": 1,
+          "display_name": "Altas"
+        },
+        {
+          "name": "andar",
+          "listings": 1,
+          "display_name": "Andar"
+        },
+        {
+          "name": "apollo",
+          "listings": 1,
+          "display_name": "Apollo"
         },
         {
           "name": "apolo",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Apolo"
         },
         {
-          "name": "arizona",
-          "listings": 3
+          "name": "arrastre",
+          "listings": 2,
+          "display_name": "Arrastre"
         },
         {
-          "name": "automatica",
-          "listings": 2
+          "name": "asegurada",
+          "listings": 1,
+          "display_name": "Asegurada"
         },
         {
-          "name": "automática",
-          "listings": 1
+          "name": "asta",
+          "listings": 2,
+          "display_name": "Asta"
         },
         {
           "name": "automática150",
-          "listings": 1
+          "listings": 1,
+          "display_name": "AUTOMÁTICA150"
         },
         {
-          "name": "avenida",
-          "listings": 9
+          "name": "bajar",
+          "listings": 1,
+          "display_name": "Bajar"
         },
         {
-          "name": "ax4",
-          "listings": 1
+          "name": "batería",
+          "listings": 1,
+          "display_name": "Batería"
         },
         {
-          "name": "azul",
-          "listings": 1
+          "name": "baúl",
+          "listings": 1,
+          "display_name": "Baúl"
         },
         {
-          "name": "banshee",
-          "listings": 2
-        },
-        {
-          "name": "benlli",
-          "listings": 1
-        },
-        {
-          "name": "bera",
-          "listings": 1
+          "name": "baúles",
+          "listings": 1,
+          "display_name": "Baúles"
         },
         {
           "name": "best",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Best"
         },
         {
-          "name": "bet",
-          "listings": 1
+          "name": "biológica",
+          "listings": 1,
+          "display_name": "Biológica"
         },
         {
-          "name": "bicicleta",
-          "listings": 4
+          "name": "blue",
+          "listings": 1,
+          "display_name": "Blue"
         },
         {
-          "name": "bicilindrica,",
-          "listings": 1
-        },
-        {
-          "name": "bicimoto",
-          "listings": 1
-        },
-        {
-          "name": "bien",
-          "listings": 1
-        },
-        {
-          "name": "body",
-          "listings": 1
-        },
-        {
-          "name": "bomber",
-          "listings": 2
-        },
-        {
-          "name": "boss",
-          "listings": 3
-        },
-        {
-          "name": "buen",
-          "listings": 1
-        },
-        {
-          "name": "buggie",
-          "listings": 3
+          "name": "brenson",
+          "listings": 1,
+          "display_name": "Brenson"
         },
         {
           "name": "buggy",
-          "listings": 3
-        },
-        {
-          "name": "burgman",
-          "listings": 1
+          "listings": 6,
+          "display_name": "Buggy"
         },
         {
           "name": "cafe",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Cafe"
         },
         {
-          "name": "cambio",
-          "listings": 1
+          "name": "cero",
+          "listings": 1,
+          "display_name": "Cero"
         },
         {
-          "name": "canam",
-          "listings": 2
+          "name": "chasa",
+          "listings": 1,
+          "display_name": "Chasa"
         },
         {
-          "name": "capacidad:",
-          "listings": 1
+          "name": "choques",
+          "listings": 1,
+          "display_name": "Choques"
         },
         {
-          "name": "carburada",
-          "listings": 2
+          "name": "cili",
+          "listings": 1,
+          "display_name": "Cili"
         },
         {
-          "name": "carro",
-          "listings": 3
+          "name": "cilindro",
+          "listings": 1,
+          "display_name": "Cilindro"
         },
         {
-          "name": "carro,",
-          "listings": 1
-        },
-        {
-          "name": "cilindraje:",
-          "listings": 1
-        },
-        {
-          "name": "color",
-          "listings": 2
+          "name": "colombia",
+          "listings": 1,
+          "display_name": "Colombia"
         },
         {
           "name": "commander",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Commander"
         },
         {
-          "name": "como",
-          "listings": 1
+          "name": "comprado",
+          "listings": 1,
+          "display_name": "Comprado"
         },
         {
-          "name": "completamente",
-          "listings": 1
+          "name": "cotidiano",
+          "listings": 1,
+          "display_name": "Cotidiano"
         },
         {
-          "name": "con",
-          "listings": 3
+          "name": "coyote",
+          "listings": 1,
+          "display_name": "Coyote"
         },
         {
-          "name": "cr4",
-          "listings": 3
+          "name": "cryton",
+          "listings": 1,
+          "display_name": "Cryton"
         },
         {
-          "name": "cripton",
-          "listings": 1
+          "name": "ct",
+          "listings": 1,
+          "display_name": "CT"
         },
         {
-          "name": "cross",
-          "listings": 1
+          "name": "cuenta",
+          "listings": 1,
+          "display_name": "Cuenta"
         },
         {
           "name": "cyber",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Cyber"
         },
         {
-          "name": "de",
-          "listings": 3
+          "name": "d3",
+          "listings": 1,
+          "display_name": "D3"
         },
         {
-          "name": "de.",
-          "listings": 1
+          "name": "dajaj",
+          "listings": 1,
+          "display_name": "Dajaj"
         },
         {
-          "name": "desertx",
-          "listings": 1
+          "name": "dieño",
+          "listings": 1,
+          "display_name": "Dieño"
         },
         {
           "name": "dinamic",
-          "listings": 1
-        },
-        {
-          "name": "diseño",
-          "listings": 1
-        },
-        {
-          "name": "doble",
-          "listings": 1
-        },
-        {
-          "name": "documentos",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Dinamic"
         },
         {
           "name": "dt",
-          "listings": 1
-        },
-        {
-          "name": "ducari",
-          "listings": 1
-        },
-        {
-          "name": "ducaty",
-          "listings": 1
+          "listings": 1,
+          "display_name": "DT"
         },
         {
           "name": "dyn",
-          "listings": 1
+          "listings": 1,
+          "display_name": "DYN"
         },
         {
           "name": "dynamic",
-          "listings": 3
+          "listings": 4,
+          "display_name": "Dynamic"
         },
         {
-          "name": "ebox",
-          "listings": 2
-        },
-        {
-          "name": "electrica",
-          "listings": 2
-        },
-        {
-          "name": "eléctrica",
-          "listings": 10
+          "name": "electrónica",
+          "listings": 1,
+          "display_name": "Electrónica"
         },
         {
           "name": "em",
-          "listings": 1
+          "listings": 1,
+          "display_name": "EM"
         },
         {
-          "name": "en",
-          "listings": 18
+          "name": "encuentra",
+          "listings": 1,
+          "display_name": "Encuentra"
         },
         {
-          "name": "enduro",
-          "listings": 2
+          "name": "entrega",
+          "listings": 1,
+          "display_name": "Entrega"
         },
         {
-          "name": "esta",
-          "listings": 1
+          "name": "equipada",
+          "listings": 2,
+          "display_name": "Equipada"
         },
         {
-          "name": "estacas,",
-          "listings": 1
+          "name": "estacas",
+          "listings": 1,
+          "display_name": "Estacas"
         },
         {
-          "name": "está",
-          "listings": 1
-        },
-        {
-          "name": "evobike",
-          "listings": 1
-        },
-        {
-          "name": "excelente",
-          "listings": 12
-        },
-        {
-          "name": "exclusividad",
-          "listings": 1
-        },
-        {
-          "name": "execelente",
-          "listings": 1
-        },
-        {
-          "name": "exelente",
-          "listings": 2
-        },
-        {
-          "name": "extrenando",
-          "listings": 1
-        },
-        {
-          "name": "f.z.",
-          "listings": 1
+          "name": "f.z",
+          "listings": 1,
+          "display_name": "F.Z"
         },
         {
           "name": "f800r",
-          "listings": 1
+          "listings": 1,
+          "display_name": "F800R"
         },
         {
           "name": "falcon",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Falcon"
         },
         {
-          "name": "fazzer",
-          "listings": 1
+          "name": "fatboy",
+          "listings": 1,
+          "display_name": "Fatboy"
         },
         {
-          "name": "forrada",
-          "listings": 1
+          "name": "finales",
+          "listings": 1,
+          "display_name": "Finales"
+        },
+        {
+          "name": "fratelli",
+          "listings": 1,
+          "display_name": "Fratelli"
         },
         {
           "name": "freewin",
-          "listings": 1
-        },
-        {
-          "name": "full",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Freewin"
         },
         {
           "name": "fzn150",
-          "listings": 1
+          "listings": 1,
+          "display_name": "FZN150"
         },
         {
-          "name": "gas",
-          "listings": 3
-        },
-        {
-          "name": "gris",
-          "listings": 1
-        },
-        {
-          "name": "grizzly",
-          "listings": 2
-        },
-        {
-          "name": "gsxr-150",
-          "listings": 1
-        },
-        {
-          "name": "guzzi",
-          "listings": 1
-        },
-        {
-          "name": "hammer",
-          "listings": 2
-        },
-        {
-          "name": "hermosa",
-          "listings": 3
+          "name": "harkey",
+          "listings": 1,
+          "display_name": "Harkey"
         },
         {
           "name": "highper",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Highper"
         },
         {
-          "name": "hornet1000",
-          "listings": 1
+          "name": "huperstrada",
+          "listings": 2,
+          "display_name": "Huperstrada"
         },
         {
-          "name": "ignitor",
-          "listings": 1
-        },
-        {
-          "name": "impecable",
-          "listings": 1
+          "name": "ideal",
+          "listings": 1,
+          "display_name": "Ideal"
         },
         {
           "name": "impo",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Impo"
         },
         {
-          "name": "intruder",
-          "listings": 1
+          "name": "incluye",
+          "listings": 1,
+          "display_name": "Incluye"
         },
         {
-          "name": "joy",
-          "listings": 1
+          "name": "injection",
+          "listings": 1,
+          "display_name": "Injection"
+        },
+        {
+          "name": "inmediato",
+          "listings": 3,
+          "display_name": "Inmediato"
+        },
+        {
+          "name": "interno",
+          "listings": 1,
+          "display_name": "Interno"
+        },
+        {
+          "name": "jet",
+          "listings": 1,
+          "display_name": "Jet"
         },
         {
           "name": "joyride",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Joyride"
         },
         {
-          "name": "junior",
-          "listings": 1
-        },
-        {
-          "name": "kawaski",
-          "listings": 1
+          "name": "julio.2027",
+          "listings": 1,
+          "display_name": "JULIO.2027"
         },
         {
           "name": "keweey",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Keweey"
         },
         {
-          "name": "kit",
-          "listings": 1
+          "name": "kimco",
+          "listings": 1,
+          "display_name": "Kimco"
         },
         {
-          "name": "kle",
-          "listings": 1
-        },
-        {
-          "name": "kmt",
-          "listings": 1
-        },
-        {
-          "name": "kymko",
-          "listings": 1
-        },
-        {
-          "name": "la",
-          "listings": 1
+          "name": "laborar",
+          "listings": 1,
+          "display_name": "Laborar"
         },
         {
           "name": "ledo",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Ledo"
         },
         {
-          "name": "llanta",
-          "listings": 1
+          "name": "mantenimiento",
+          "listings": 2,
+          "display_name": "Mantenimiento"
         },
         {
-          "name": "llantas",
-          "listings": 1
+          "name": "mantenimientos",
+          "listings": 1,
+          "display_name": "Mantenimientos"
         },
         {
-          "name": "lo",
-          "listings": 1
+          "name": "matrícula",
+          "listings": 1,
+          "display_name": "Matrícula"
         },
         {
-          "name": "marca",
-          "listings": 1
+          "name": "mecánico",
+          "listings": 1,
+          "display_name": "Mecánico"
         },
         {
-          "name": "matriculada",
-          "listings": 1
+          "name": "medio",
+          "listings": 1,
+          "display_name": "Medio"
         },
         {
           "name": "mela",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Mela"
         },
         {
           "name": "meteoro",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Meteoro"
         },
         {
-          "name": "modelo",
-          "listings": 3
+          "name": "mobulaa",
+          "listings": 1,
+          "display_name": "Mobulaa"
         },
         {
-          "name": "modelo:",
-          "listings": 1
-        },
-        {
-          "name": "modificada",
-          "listings": 1
+          "name": "model0",
+          "listings": 1,
+          "display_name": "MODEL0"
         },
         {
           "name": "montesa",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Montesa"
+        },
+        {
+          "name": "motoakt",
+          "listings": 1,
+          "display_name": "Motoakt"
         },
         {
           "name": "motocarro",
-          "listings": 2
-        },
-        {
-          "name": "motocross",
-          "listings": 3
+          "listings": 3,
+          "display_name": "Motocarro"
         },
         {
           "name": "motosiclera",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Motosiclera"
         },
         {
           "name": "mt",
-          "listings": 11
+          "listings": 12,
+          "display_name": "MT"
         },
         {
-          "name": "mt-15",
-          "listings": 1
+          "name": "muchos",
+          "listings": 2,
+          "display_name": "Muchos"
         },
         {
-          "name": "mt03",
-          "listings": 1
+          "name": "multiproposoto",
+          "listings": 1,
+          "display_name": "Multiproposoto"
         },
         {
-          "name": "mt09",
-          "listings": 1
-        },
-        {
-          "name": "mt15",
-          "listings": 1
-        },
-        {
-          "name": "multistrada",
-          "listings": 4
-        },
-        {
-          "name": "muy",
-          "listings": 2
-        },
-        {
-          "name": "n",
-          "listings": 1
-        },
-        {
-          "name": "n-max",
-          "listings": 2
-        },
-        {
-          "name": "naked",
-          "listings": 1
-        },
-        {
-          "name": "negra,",
-          "listings": 1
-        },
-        {
-          "name": "nemax",
-          "listings": 1
+          "name": "negotiable",
+          "listings": 1,
+          "display_name": "Negotiable"
         },
         {
           "name": "nhr",
-          "listings": 1
+          "listings": 1,
+          "display_name": "NHR"
         },
         {
-          "name": "nmx",
-          "listings": 1
+          "name": "ni",
+          "listings": 1,
+          "display_name": "NI"
         },
         {
-          "name": "no",
-          "listings": 1
+          "name": "niu",
+          "listings": 2,
+          "display_name": "Niu"
         },
         {
-          "name": "norden",
-          "listings": 2
+          "name": "niños",
+          "listings": 1,
+          "display_name": "Niños"
         },
         {
           "name": "nqi",
-          "listings": 1
+          "listings": 1,
+          "display_name": "NQI"
         },
         {
-          "name": "nueva",
-          "listings": 2
-        },
-        {
-          "name": "nueva,",
-          "listings": 2
+          "name": "nunca",
+          "listings": 2,
+          "display_name": "Nunca"
         },
         {
           "name": "ofero",
-          "listings": 3
+          "listings": 2,
+          "display_name": "Ofero"
         },
         {
-          "name": "panther",
-          "listings": 2
+          "name": "p",
+          "listings": 1,
+          "display_name": "P"
         },
         {
-          "name": "papeles",
-          "listings": 8
+          "name": "papales",
+          "listings": 1,
+          "display_name": "Papales"
         },
         {
-          "name": "para",
-          "listings": 1
+          "name": "particular",
+          "listings": 1,
+          "display_name": "Particular"
         },
         {
-          "name": "patineta",
-          "listings": 1
+          "name": "pasa",
+          "listings": 1,
+          "display_name": "Pasa"
         },
         {
-          "name": "perfecto",
-          "listings": 1
+          "name": "pastillas",
+          "listings": 1,
+          "display_name": "Pastillas"
         },
         {
-          "name": "pit",
-          "listings": 3
+          "name": "perfectas",
+          "listings": 1,
+          "display_name": "Perfectas"
         },
         {
-          "name": "potenza",
-          "listings": 4
+          "name": "personalizada",
+          "listings": 1,
+          "display_name": "Personalizada"
         },
         {
-          "name": "propietario",
-          "listings": 1
+          "name": "personalizado",
+          "listings": 1,
+          "display_name": "Personalizado"
         },
         {
-          "name": "pulsarn250",
-          "listings": 1
+          "name": "pit bike",
+          "listings": 3,
+          "display_name": "PIT Bike"
         },
         {
-          "name": "r15",
-          "listings": 1
+          "name": "posición",
+          "listings": 1,
+          "display_name": "Posición"
         },
         {
-          "name": "raider",
-          "listings": 2
+          "name": "protectores",
+          "listings": 1,
+          "display_name": "Protectores"
         },
         {
           "name": "raptor",
-          "listings": 1
-        },
-        {
-          "name": "rayder",
-          "listings": 1
+          "listings": 2,
+          "display_name": "Raptor"
         },
         {
           "name": "re",
-          "listings": 1
+          "listings": 1,
+          "display_name": "RE"
         },
         {
-          "name": "recién",
-          "listings": 1
+          "name": "recibo",
+          "listings": 1,
+          "display_name": "Recibo"
         },
         {
-          "name": "robusta",
-          "listings": 1
+          "name": "recorrido",
+          "listings": 1,
+          "display_name": "Recorrido"
         },
         {
-          "name": "royal",
-          "listings": 2
+          "name": "regla",
+          "listings": 1,
+          "display_name": "Regla"
         },
         {
-          "name": "rtx",
-          "listings": 1
+          "name": "reparada",
+          "listings": 2,
+          "display_name": "Reparada"
+        },
+        {
+          "name": "revo",
+          "listings": 1,
+          "display_name": "Revo"
+        },
+        {
+          "name": "s",
+          "listings": 1,
+          "display_name": "S"
         },
         {
           "name": "s1000",
-          "listings": 1
+          "listings": 1,
+          "display_name": "S1000"
         },
         {
-          "name": "scooter",
-          "listings": 2
-        },
-        {
-          "name": "scrambler",
-          "listings": 1
-        },
-        {
-          "name": "se",
-          "listings": 4
+          "name": "scorpio",
+          "listings": 1,
+          "display_name": "Scorpio"
         },
         {
           "name": "seat",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Seat"
         },
         {
-          "name": "shark",
-          "listings": 1
+          "name": "seguro",
+          "listings": 2,
+          "display_name": "Seguro"
         },
         {
-          "name": "sin",
-          "listings": 1
+          "name": "semi",
+          "listings": 1,
+          "display_name": "Semi"
         },
         {
-          "name": "soat",
-          "listings": 6
+          "name": "señoritera",
+          "listings": 1,
+          "display_name": "Señoritera"
         },
         {
-          "name": "soat.",
-          "listings": 1
+          "name": "siste",
+          "listings": 1,
+          "display_name": "Siste"
         },
         {
-          "name": "solo",
-          "listings": 1
+          "name": "sliders",
+          "listings": 1,
+          "display_name": "Sliders"
         },
         {
           "name": "sport",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Sport"
         },
         {
-          "name": "srm",
-          "listings": 2
+          "name": "stark",
+          "listings": 1,
+          "display_name": "Stark"
         },
         {
-          "name": "streetglide",
-          "listings": 1
+          "name": "super soco",
+          "listings": 1,
+          "display_name": "Super Soco"
         },
         {
-          "name": "super",
-          "listings": 2
+          "name": "también",
+          "listings": 1,
+          "display_name": "También"
         },
         {
-          "name": "switch",
-          "listings": 1
+          "name": "tecnicomecanica",
+          "listings": 1,
+          "display_name": "Tecnicomecanica"
         },
         {
-          "name": "tacometro",
-          "listings": 1
-        },
-        {
-          "name": "talaria",
-          "listings": 1
-        },
-        {
-          "name": "tarjeta",
-          "listings": 1
-        },
-        {
-          "name": "tiene",
-          "listings": 1
+          "name": "tecnología",
+          "listings": 1,
+          "display_name": "Tecnología"
         },
         {
           "name": "titan",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Titan"
         },
         {
-          "name": "tmax",
-          "listings": 2
+          "name": "toda",
+          "listings": 1,
+          "display_name": "Toda"
         },
         {
-          "name": "tornado",
-          "listings": 2
+          "name": "todo",
+          "listings": 2,
+          "display_name": "Todo"
         },
         {
-          "name": "ttds200",
-          "listings": 1
+          "name": "todos",
+          "listings": 2,
+          "display_name": "Todos"
         },
         {
-          "name": "tv's",
-          "listings": 1
+          "name": "traspa",
+          "listings": 1,
+          "display_name": "Traspa"
         },
         {
-          "name": "unico",
-          "listings": 4
+          "name": "tratada",
+          "listings": 1,
+          "display_name": "Tratada"
         },
         {
-          "name": "v-stron",
-          "listings": 1
+          "name": "tricilindrico",
+          "listings": 1,
+          "display_name": "Tricilindrico"
+        },
+        {
+          "name": "tuluá",
+          "listings": 1,
+          "display_name": "Tuluá"
         },
         {
           "name": "v3",
-          "listings": 1
+          "listings": 1,
+          "display_name": "V3"
         },
         {
-          "name": "vehículo",
-          "listings": 2
+          "name": "verde-negro",
+          "listings": 1,
+          "display_name": "Verde-Negro"
         },
         {
-          "name": "vendo",
-          "listings": 1
-        },
-        {
-          "name": "venom",
-          "listings": 1
-        },
-        {
-          "name": "versión",
-          "listings": 1
-        },
-        {
-          "name": "victoria",
-          "listings": 1
-        },
-        {
-          "name": "viper",
-          "listings": 1
-        },
-        {
-          "name": "viva",
-          "listings": 3
-        },
-        {
-          "name": "vogepro",
-          "listings": 1
-        },
-        {
-          "name": "vogue",
-          "listings": 1
-        },
-        {
-          "name": "vstron",
-          "listings": 1
-        },
-        {
-          "name": "víctory",
-          "listings": 1
-        },
-        {
-          "name": "wincher-maleta-exploradoras",
-          "listings": 1
+          "name": "vigentes",
+          "listings": 2,
+          "display_name": "Vigentes"
         },
         {
           "name": "x",
-          "listings": 1
-        },
-        {
-          "name": "x-adv",
-          "listings": 1
-        },
-        {
-          "name": "x-max",
-          "listings": 1
-        },
-        {
-          "name": "x-pulse",
-          "listings": 1
+          "listings": 1,
+          "display_name": "X"
         },
         {
           "name": "xr",
-          "listings": 3
+          "listings": 3,
+          "display_name": "XR"
         },
         {
-          "name": "xt660",
-          "listings": 1
+          "name": "yadea",
+          "listings": 2,
+          "display_name": "Yadea"
         },
         {
-          "name": "xtown",
-          "listings": 1
-        },
-        {
-          "name": "ycf",
-          "listings": 2
-        },
-        {
-          "name": "yz450f",
-          "listings": 1
+          "name": "yw125xfl",
+          "listings": 1,
+          "display_name": "YW125XFL"
         },
         {
           "name": "yzx",
-          "listings": 1
+          "listings": 1,
+          "display_name": "YZX"
         },
         {
           "name": "z",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Z"
         },
         {
-          "name": "zx10r",
-          "listings": 1
+          "name": "zforce",
+          "listings": 1,
+          "display_name": "Zforce"
         },
         {
-          "name": "¡se",
-          "listings": 1
-        },
-        {
-          "name": "única",
-          "listings": 3
-        },
-        {
-          "name": "único",
-          "listings": 7
+          "name": "ágil",
+          "listings": 1,
+          "display_name": "Ágil"
         }
       ]
     },
     {
       "name": "Ducati",
-      "listings": 135,
+      "listings": 157,
+      "display_name": "Ducati",
       "models": [
         {
-          "name": "desert",
-          "listings": 11
-        },
-        {
-          "name": "desertx",
-          "listings": 4
+          "name": "desert x",
+          "listings": 18,
+          "display_name": "Desert X"
         },
         {
           "name": "diavel",
-          "listings": 6
-        },
-        {
-          "name": "díavel",
-          "listings": 1
+          "listings": 11,
+          "display_name": "Diavel"
         },
         {
           "name": "hypermotard",
-          "listings": 17
-        },
-        {
-          "name": "marca:",
-          "listings": 1
+          "listings": 20,
+          "display_name": "Hypermotard"
         },
         {
           "name": "monster",
-          "listings": 13
-        },
-        {
-          "name": "multiestrada",
-          "listings": 1
+          "listings": 17,
+          "display_name": "Monster"
         },
         {
           "name": "multistrada",
-          "listings": 35
-        },
-        {
-          "name": "multristrada",
-          "listings": 1
+          "listings": 49,
+          "display_name": "Multistrada"
         },
         {
           "name": "panigale",
-          "listings": 14
+          "listings": 15,
+          "display_name": "Panigale"
+        },
+        {
+          "name": "rs",
+          "listings": 1,
+          "display_name": "RS"
         },
         {
           "name": "scrambler",
-          "listings": 19
+          "listings": 16,
+          "display_name": "Scrambler"
+        },
+        {
+          "name": "street",
+          "listings": 1,
+          "display_name": "Street"
         },
         {
           "name": "streetfighter",
-          "listings": 7
+          "listings": 6,
+          "display_name": "Streetfighter"
         },
         {
           "name": "v4",
-          "listings": 1
-        },
-        {
-          "name": "vendo",
-          "listings": 1
+          "listings": 1,
+          "display_name": "V4"
         },
         {
           "name": "x",
-          "listings": 2
+          "listings": 1,
+          "display_name": "X"
         },
         {
           "name": "xdiavel",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Xdiavel"
+        }
+      ]
+    },
+    {
+      "name": "Ebox",
+      "listings": 3,
+      "display_name": "Ebox",
+      "models": [
+        {
+          "name": "electric",
+          "listings": 3,
+          "display_name": "Electric"
+        }
+      ]
+    },
+    {
+      "name": "Felo",
+      "listings": 1,
+      "display_name": "Felo",
+      "models": [
+        {
+          "name": "m1",
+          "listings": 1,
+          "display_name": "M1"
         }
       ]
     },
     {
       "name": "Harley-Davidson",
-      "listings": 32,
+      "listings": 41,
+      "display_name": "Harley-Davidson",
       "models": [
         {
           "name": "breakout",
-          "listings": 1
+          "listings": 3,
+          "display_name": "Breakout"
+        },
+        {
+          "name": "cvo",
+          "listings": 2,
+          "display_name": "CVO"
+        },
+        {
+          "name": "davdison",
+          "listings": 1,
+          "display_name": "Davdison"
         },
         {
           "name": "dyna",
-          "listings": 1
+          "listings": 2,
+          "display_name": "Dyna"
         },
         {
           "name": "fat",
-          "listings": 1
+          "listings": 3,
+          "display_name": "Fat"
         },
         {
-          "name": "harley",
-          "listings": 24
+          "name": "fatbob",
+          "listings": 2,
+          "display_name": "Fatbob"
+        },
+        {
+          "name": "fatboy",
+          "listings": 2,
+          "display_name": "Fatboy"
+        },
+        {
+          "name": "flhxu",
+          "listings": 1,
+          "display_name": "Flhxu"
+        },
+        {
+          "name": "flsb",
+          "listings": 1,
+          "display_name": "Flsb"
+        },
+        {
+          "name": "forty",
+          "listings": 2,
+          "display_name": "Forty"
+        },
+        {
+          "name": "fxlrs",
+          "listings": 1,
+          "display_name": "Fxlrs"
+        },
+        {
+          "name": "iron",
+          "listings": 1,
+          "display_name": "Iron"
+        },
+        {
+          "name": "panamerica",
+          "listings": 1,
+          "display_name": "Panamerica"
         },
         {
           "name": "ra1250s",
-          "listings": 2
+          "listings": 2,
+          "display_name": "RA1250S"
+        },
+        {
+          "name": "road",
+          "listings": 1,
+          "display_name": "Road"
+        },
+        {
+          "name": "roadster",
+          "listings": 1,
+          "display_name": "Roadster"
+        },
+        {
+          "name": "softail",
+          "listings": 2,
+          "display_name": "Softail"
         },
         {
           "name": "sportster",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Sportster"
+        },
+        {
+          "name": "street",
+          "listings": 3,
+          "display_name": "Street"
+        },
+        {
+          "name": "ultra",
+          "listings": 2,
+          "display_name": "Ultra"
+        },
+        {
+          "name": "vrod",
+          "listings": 1,
+          "display_name": "Vrod"
         },
         {
           "name": "xg",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XG"
         }
       ]
     },
     {
       "name": "Hero",
-      "listings": 102,
+      "listings": 115,
+      "display_name": "Hero",
       "models": [
         {
           "name": "dash",
-          "listings": 3
+          "listings": 3,
+          "display_name": "Dash"
         },
         {
           "name": "eco",
-          "listings": 6
+          "listings": 10,
+          "display_name": "Eco"
+        },
+        {
+          "name": "huni",
+          "listings": 1,
+          "display_name": "Huni"
         },
         {
           "name": "hunk",
-          "listings": 45
+          "listings": 48,
+          "display_name": "Hunk"
         },
         {
           "name": "ignitor",
-          "listings": 5
+          "listings": 6,
+          "display_name": "Ignitor"
         },
         {
-          "name": "se",
-          "listings": 1
+          "name": "karizma",
+          "listings": 1,
+          "display_name": "Karizma"
         },
         {
           "name": "splendor",
-          "listings": 3
+          "listings": 2,
+          "display_name": "Splendor"
         },
         {
           "name": "thriller",
-          "listings": 7
+          "listings": 9,
+          "display_name": "Thriller"
         },
         {
           "name": "xoom",
-          "listings": 1
+          "listings": 2,
+          "display_name": "Xoom"
         },
         {
           "name": "xpulse",
-          "listings": 31
+          "listings": 33,
+          "display_name": "Xpulse"
         }
       ]
     },
     {
       "name": "Honda",
-      "listings": 245,
+      "listings": 280,
+      "display_name": "Honda",
       "models": [
         {
           "name": "adv",
-          "listings": 2
+          "listings": 2,
+          "display_name": "ADV"
         },
         {
           "name": "adv350",
-          "listings": 2
+          "listings": 3,
+          "display_name": "ADV350"
         },
         {
-          "name": "adv350,",
-          "listings": 1
-        },
-        {
-          "name": "adv75r",
-          "listings": 1
-        },
-        {
-          "name": "africa",
-          "listings": 4
+          "name": "africa twin",
+          "listings": 10,
+          "display_name": "Africa Twin"
         },
         {
           "name": "atv",
-          "listings": 1
+          "listings": 1,
+          "display_name": "ATV"
         },
         {
           "name": "c70",
-          "listings": 1
-        },
-        {
-          "name": "cali,",
-          "listings": 1
+          "listings": 1,
+          "display_name": "C70"
         },
         {
           "name": "cb",
-          "listings": 45
+          "listings": 46,
+          "display_name": "CB"
+        },
+        {
+          "name": "cb1",
+          "listings": 1,
+          "display_name": "CB1"
         },
         {
           "name": "cb100",
-          "listings": 1
+          "listings": 2,
+          "display_name": "CB100"
         },
         {
           "name": "cb1000r",
-          "listings": 2
+          "listings": 1,
+          "display_name": "CB1000R"
         },
         {
           "name": "cb1000ral",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CB1000RAL"
         },
         {
           "name": "cb125f",
-          "listings": 2
+          "listings": 2,
+          "display_name": "CB125F"
         },
         {
           "name": "cb160f",
-          "listings": 1
+          "listings": 2,
+          "display_name": "CB160F"
         },
         {
           "name": "cb190",
-          "listings": 2
+          "listings": 2,
+          "display_name": "CB190"
         },
         {
           "name": "cb190r",
-          "listings": 11
+          "listings": 10,
+          "display_name": "CB190R"
         },
         {
           "name": "cb250",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CB250"
         },
         {
           "name": "cb300",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CB300"
         },
         {
           "name": "cb500f",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CB500F"
         },
         {
           "name": "cb500x",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CB500X"
         },
         {
           "name": "cb650r",
-          "listings": 1
+          "listings": 2,
+          "display_name": "CB650R"
+        },
+        {
+          "name": "cb750a",
+          "listings": 1,
+          "display_name": "CB750A"
         },
         {
           "name": "cbf",
-          "listings": 2
+          "listings": 4,
+          "display_name": "CBF"
         },
         {
           "name": "cbf125f",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CBF125F"
         },
         {
           "name": "cbr",
-          "listings": 6
+          "listings": 9,
+          "display_name": "CBR"
         },
         {
           "name": "cbr1000",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CBR1000"
+        },
+        {
+          "name": "cbr1000rr-r",
+          "listings": 1,
+          "display_name": "CBR1000RR-R"
+        },
+        {
+          "name": "cbr190r",
+          "listings": 1,
+          "display_name": "CBR190R"
         },
         {
           "name": "cbr500r",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CBR500R"
         },
         {
           "name": "cbx",
-          "listings": 1
+          "listings": 1,
+          "display_name": "CBX"
         },
         {
           "name": "click",
-          "listings": 3
-        },
-        {
-          "name": "como",
-          "listings": 1
+          "listings": 3,
+          "display_name": "Click"
         },
         {
           "name": "crf",
-          "listings": 6
-        },
-        {
-          "name": "crf1100",
-          "listings": 1
+          "listings": 7,
+          "display_name": "CRF"
         },
         {
           "name": "dio",
-          "listings": 10
-        },
-        {
-          "name": "dió",
-          "listings": 1
+          "listings": 8,
+          "display_name": "Dio"
         },
         {
           "name": "dream",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Dream"
         },
         {
           "name": "dtc90",
-          "listings": 1
+          "listings": 1,
+          "display_name": "DTC90"
         },
         {
           "name": "elite",
-          "listings": 2
-        },
-        {
-          "name": "expectacular",
-          "listings": 1
+          "listings": 3,
+          "display_name": "Elite"
         },
         {
           "name": "goldwing",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Goldwing"
         },
         {
           "name": "hornet",
-          "listings": 1
-        },
-        {
-          "name": "jialing",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Hornet"
         },
         {
           "name": "magna",
-          "listings": 1
-        },
-        {
-          "name": "marca",
-          "listings": 1
+          "listings": 2,
+          "display_name": "Magna"
         },
         {
           "name": "maxiscooter",
-          "listings": 1
-        },
-        {
-          "name": "motocross",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Maxiscooter"
         },
         {
           "name": "navi",
-          "listings": 9
+          "listings": 11,
+          "display_name": "Navi"
         },
         {
           "name": "nc",
-          "listings": 1
-        },
-        {
-          "name": "nc750",
-          "listings": 1
+          "listings": 2,
+          "display_name": "NC"
         },
         {
           "name": "nc750x",
-          "listings": 1
+          "listings": 3,
+          "display_name": "NC750X"
+        },
+        {
+          "name": "nc750xd",
+          "listings": 1,
+          "display_name": "NC750XD"
+        },
+        {
+          "name": "neo",
+          "listings": 1,
+          "display_name": "Neo"
+        },
+        {
+          "name": "ns",
+          "listings": 1,
+          "display_name": "NS"
         },
         {
           "name": "nx",
-          "listings": 3
+          "listings": 6,
+          "display_name": "NX"
         },
         {
           "name": "nx190",
-          "listings": 1
+          "listings": 1,
+          "display_name": "NX190"
         },
         {
           "name": "pcx",
-          "listings": 9
+          "listings": 13,
+          "display_name": "PCX"
         },
         {
           "name": "pcx150",
-          "listings": 2
+          "listings": 2,
+          "display_name": "PCX150"
         },
         {
           "name": "pcx160",
-          "listings": 3
+          "listings": 2,
+          "display_name": "PCX160"
         },
         {
           "name": "pioneer",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Pioneer"
         },
         {
-          "name": "preciosa",
-          "listings": 1
+          "name": "rebel",
+          "listings": 2,
+          "display_name": "Rebel"
         },
         {
           "name": "replica",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Replica"
         },
         {
-          "name": "repuesto",
-          "listings": 1
-        },
-        {
-          "name": "se",
-          "listings": 2
+          "name": "repsol",
+          "listings": 1,
+          "display_name": "Repsol"
         },
         {
           "name": "shadow",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Shadow"
         },
         {
           "name": "tornado",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Tornado"
         },
         {
           "name": "transalp",
-          "listings": 2
+          "listings": 5,
+          "display_name": "Transalp"
         },
         {
           "name": "trx",
-          "listings": 1
+          "listings": 1,
+          "display_name": "TRX"
         },
         {
-          "name": "vendo",
-          "listings": 3
-        },
-        {
-          "name": "venta",
-          "listings": 1
+          "name": "valel",
+          "listings": 1,
+          "display_name": "Valel"
         },
         {
           "name": "vtx",
-          "listings": 1
+          "listings": 1,
+          "display_name": "VTX"
         },
         {
           "name": "wave",
-          "listings": 4
+          "listings": 4,
+          "display_name": "Wave"
         },
         {
           "name": "x-adv",
-          "listings": 7
+          "listings": 27,
+          "display_name": "X-ADV"
         },
         {
           "name": "x-blade",
-          "listings": 3
+          "listings": 3,
+          "display_name": "X-Blade"
         },
         {
-          "name": "xadv",
-          "listings": 13
-        },
-        {
-          "name": "xadv-750",
-          "listings": 2
-        },
-        {
-          "name": "xadv750,",
-          "listings": 1
+          "name": "xblade",
+          "listings": 3,
+          "display_name": "Xblade"
         },
         {
           "name": "xl",
-          "listings": 4
+          "listings": 4,
+          "display_name": "XL"
+        },
+        {
+          "name": "xlr",
+          "listings": 1,
+          "display_name": "XLR"
         },
         {
           "name": "xr",
-          "listings": 12
+          "listings": 12,
+          "display_name": "XR"
+        },
+        {
+          "name": "xr150l",
+          "listings": 1,
+          "display_name": "XR150L"
         },
         {
           "name": "xr190l",
-          "listings": 1
+          "listings": 2,
+          "display_name": "XR190L"
         },
         {
           "name": "xr250",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XR250"
+        },
+        {
+          "name": "xr650l",
+          "listings": 1,
+          "display_name": "XR650L"
         },
         {
           "name": "xre",
-          "listings": 14
+          "listings": 19,
+          "display_name": "XRE"
         },
         {
           "name": "xre190",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XRE190"
         },
         {
           "name": "xre300",
-          "listings": 4
-        },
-        {
-          "name": "áfrica",
-          "listings": 2
+          "listings": 3,
+          "display_name": "XRE300"
         }
       ]
     },
     {
       "name": "Husqvarna",
-      "listings": 63,
+      "listings": 71,
+      "display_name": "Husqvarna",
       "models": [
         {
+          "name": "250",
+          "listings": 1,
+          "display_name": "250"
+        },
+        {
           "name": "401",
-          "listings": 1
+          "listings": 1,
+          "display_name": "401"
         },
         {
           "name": "701",
-          "listings": 13
+          "listings": 15,
+          "display_name": "701"
         },
         {
           "name": "ee3",
-          "listings": 1
-        },
-        {
-          "name": "enduro",
-          "listings": 2
+          "listings": 1,
+          "display_name": "EE3"
         },
         {
           "name": "fe",
-          "listings": 1
+          "listings": 1,
+          "display_name": "FE"
         },
         {
           "name": "fe250",
-          "listings": 1
+          "listings": 1,
+          "display_name": "FE250"
         },
         {
           "name": "norden",
-          "listings": 12
-        },
-        {
-          "name": "scrambler",
-          "listings": 1
+          "listings": 16,
+          "display_name": "Norden"
         },
         {
           "name": "svartpilen",
-          "listings": 29
+          "listings": 31,
+          "display_name": "Svartpilen"
         },
         {
           "name": "tc50",
-          "listings": 1
+          "listings": 1,
+          "display_name": "TC50"
+        },
+        {
+          "name": "te",
+          "listings": 1,
+          "display_name": "TE"
+        },
+        {
+          "name": "te150",
+          "listings": 1,
+          "display_name": "TE150"
         },
         {
           "name": "vitpilen",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Vitpilen"
         }
       ]
     },
     {
       "name": "KTM",
-      "listings": 171,
+      "listings": 172,
+      "display_name": "KTM",
       "models": [
         {
           "name": "1050",
-          "listings": 1
+          "listings": 1,
+          "display_name": "1050"
         },
         {
-          "name": "1190",
-          "listings": 1
+          "name": "1090",
+          "listings": 2,
+          "display_name": "1090"
         },
         {
           "name": "1290",
-          "listings": 9
+          "listings": 11,
+          "display_name": "1290"
         },
         {
           "name": "1390",
-          "listings": 5
+          "listings": 4,
+          "display_name": "1390"
         },
         {
           "name": "200",
-          "listings": 10
+          "listings": 9,
+          "display_name": "200"
         },
         {
           "name": "250",
-          "listings": 8
+          "listings": 8,
+          "display_name": "250"
         },
         {
           "name": "300",
-          "listings": 2
+          "listings": 2,
+          "display_name": "300"
         },
         {
           "name": "350",
-          "listings": 2
+          "listings": 2,
+          "display_name": "350"
         },
         {
           "name": "390",
-          "listings": 38
+          "listings": 32,
+          "display_name": "390"
         },
         {
           "name": "450",
-          "listings": 1
+          "listings": 1,
+          "display_name": "450"
         },
         {
           "name": "50",
-          "listings": 2
+          "listings": 3,
+          "display_name": "50"
         },
         {
           "name": "650",
-          "listings": 1
+          "listings": 1,
+          "display_name": "650"
         },
         {
           "name": "690",
-          "listings": 13
+          "listings": 13,
+          "display_name": "690"
         },
         {
           "name": "790",
-          "listings": 4
+          "listings": 3,
+          "display_name": "790"
         },
         {
           "name": "890",
-          "listings": 19
+          "listings": 20,
+          "display_name": "890"
         },
         {
           "name": "90",
-          "listings": 1
+          "listings": 1,
+          "display_name": "90"
         },
         {
           "name": "950",
-          "listings": 1
+          "listings": 1,
+          "display_name": "950"
         },
         {
           "name": "990",
-          "listings": 4
+          "listings": 4,
+          "display_name": "990"
         },
         {
           "name": "adventure",
-          "listings": 2
-        },
-        {
-          "name": "aventure",
-          "listings": 1
+          "listings": 3,
+          "display_name": "Adventure"
         },
         {
           "name": "duke",
-          "listings": 35
+          "listings": 37,
+          "display_name": "Duke"
         },
         {
           "name": "exc",
-          "listings": 1
+          "listings": 2,
+          "display_name": "EXC"
         },
         {
-          "name": "ktm",
-          "listings": 1
-        },
-        {
-          "name": "naked",
-          "listings": 1
+          "name": "mantenimiento",
+          "listings": 1,
+          "display_name": "Mantenimiento"
         },
         {
           "name": "rc",
-          "listings": 3
+          "listings": 5,
+          "display_name": "RC"
+        },
+        {
+          "name": "rc390",
+          "listings": 1,
+          "display_name": "RC390"
+        },
+        {
+          "name": "six",
+          "listings": 1,
+          "display_name": "SIX"
+        },
+        {
+          "name": "super 690",
+          "listings": 1,
+          "display_name": "Super 690"
+        },
+        {
+          "name": "super duke",
+          "listings": 1,
+          "display_name": "Super Duke"
         },
         {
           "name": "superduke",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Superduke"
         },
         {
           "name": "sx-f",
-          "listings": 1
+          "listings": 1,
+          "display_name": "SX-F"
+        }
+      ]
+    },
+    {
+      "name": "Kameyo",
+      "listings": 3,
+      "display_name": "Kameyo",
+      "models": [
+        {
+          "name": "250",
+          "listings": 1,
+          "display_name": "250"
         },
         {
-          "name": "súper",
-          "listings": 1
+          "name": "300",
+          "listings": 1,
+          "display_name": "300"
         },
         {
-          "name": "vendo",
-          "listings": 1
-        },
-        {
-          "name": "venta",
-          "listings": 1
+          "name": "mtrd",
+          "listings": 1,
+          "display_name": "Mtrd"
         }
       ]
     },
     {
       "name": "Kawasaki",
-      "listings": 86,
+      "listings": 94,
+      "display_name": "Kawasaki",
       "models": [
         {
           "name": "500",
-          "listings": 1
-        },
-        {
-          "name": "en",
-          "listings": 2
+          "listings": 1,
+          "display_name": "500"
         },
         {
           "name": "er",
-          "listings": 1
+          "listings": 1,
+          "display_name": "ER"
         },
         {
           "name": "er6n",
-          "listings": 3
-        },
-        {
-          "name": "ex",
-          "listings": 1
+          "listings": 3,
+          "display_name": "ER6N"
         },
         {
           "name": "kle",
-          "listings": 2
+          "listings": 2,
+          "display_name": "KLE"
         },
         {
           "name": "kle300",
-          "listings": 1
+          "listings": 1,
+          "display_name": "KLE300"
         },
         {
           "name": "kle500",
-          "listings": 1
+          "listings": 1,
+          "display_name": "KLE500"
+        },
+        {
+          "name": "klr",
+          "listings": 1,
+          "display_name": "KLR"
         },
         {
           "name": "klx",
-          "listings": 2
+          "listings": 2,
+          "display_name": "KLX"
+        },
+        {
+          "name": "klz1000bgfl",
+          "listings": 1,
+          "display_name": "KLZ1000BGFL"
         },
         {
           "name": "klz1000epfnn",
-          "listings": 1
+          "listings": 1,
+          "display_name": "KLZ1000EPFNN"
         },
         {
           "name": "kmx",
-          "listings": 1
+          "listings": 1,
+          "display_name": "KMX"
         },
         {
           "name": "kx",
-          "listings": 6
+          "listings": 7,
+          "display_name": "KX"
         },
         {
           "name": "mule",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Mule"
         },
         {
           "name": "ninja",
-          "listings": 11
+          "listings": 11,
+          "display_name": "Ninja"
         },
         {
           "name": "teryx4",
-          "listings": 1
-        },
-        {
-          "name": "vendo",
-          "listings": 1
+          "listings": 1,
+          "display_name": "TERYX4"
         },
         {
           "name": "versys",
-          "listings": 21
+          "listings": 24,
+          "display_name": "Versys"
         },
         {
           "name": "versys-x",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Versys-X"
         },
         {
           "name": "vulcan",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Vulcan"
+        },
+        {
+          "name": "wind",
+          "listings": 1,
+          "display_name": "Wind"
         },
         {
           "name": "z",
-          "listings": 6
+          "listings": 8,
+          "display_name": "Z"
         },
         {
           "name": "z1000",
-          "listings": 3
+          "listings": 2,
+          "display_name": "Z1000"
         },
         {
           "name": "z1000sx",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Z1000SX"
         },
         {
           "name": "z1100",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Z1100"
         },
         {
           "name": "z250",
-          "listings": 1
+          "listings": 3,
+          "display_name": "Z250"
         },
         {
           "name": "z400",
-          "listings": 2
+          "listings": 5,
+          "display_name": "Z400"
         },
         {
           "name": "z500",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Z500"
         },
         {
           "name": "z900",
-          "listings": 7
+          "listings": 4,
+          "display_name": "Z900"
         },
         {
           "name": "zr1000",
-          "listings": 1
+          "listings": 1,
+          "display_name": "ZR1000"
         },
         {
           "name": "zr900",
-          "listings": 1
+          "listings": 1,
+          "display_name": "ZR900"
         },
         {
-          "name": "zx10-r",
-          "listings": 1
+          "name": "zx10r",
+          "listings": 2,
+          "display_name": "ZX10R"
         },
         {
           "name": "zx6r",
-          "listings": 1
+          "listings": 1,
+          "display_name": "ZX6R"
         }
       ]
     },
     {
       "name": "Kymco",
-      "listings": 61,
+      "listings": 67,
+      "display_name": "Kymco",
       "models": [
         {
-          "name": "agility",
-          "listings": 27
+          "name": "125",
+          "listings": 1,
+          "display_name": "125"
         },
         {
-          "name": "aguility",
-          "listings": 1
+          "name": "agility",
+          "listings": 34,
+          "display_name": "Agility"
         },
         {
           "name": "downtown",
-          "listings": 3
-        },
-        {
-          "name": "dowton",
-          "listings": 1
+          "listings": 6,
+          "display_name": "Downtown"
         },
         {
           "name": "fly",
-          "listings": 2
+          "listings": 1,
+          "display_name": "Fly"
         },
         {
           "name": "like",
-          "listings": 1
-        },
-        {
-          "name": "mongoose",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Like"
         },
         {
           "name": "rocket",
-          "listings": 5
+          "listings": 4,
+          "display_name": "Rocket"
         },
         {
-          "name": "super",
-          "listings": 3
+          "name": "super 8",
+          "listings": 2,
+          "display_name": "Super 8"
         },
         {
           "name": "twist",
-          "listings": 11
+          "listings": 14,
+          "display_name": "Twist"
         },
         {
           "name": "urban",
-          "listings": 2
-        },
-        {
-          "name": "vendo",
-          "listings": 2
+          "listings": 1,
+          "display_name": "Urban"
         },
         {
           "name": "xciting",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Xciting"
         },
         {
           "name": "xtown",
-          "listings": 1
+          "listings": 2,
+          "display_name": "Xtown"
         }
       ]
     },
     {
       "name": "MV Agusta",
-      "listings": 7,
+      "listings": 8,
+      "display_name": "MV Agusta",
       "models": [
         {
           "name": "brutale",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Brutale"
         },
         {
           "name": "f3",
-          "listings": 1
+          "listings": 1,
+          "display_name": "F3"
         },
         {
           "name": "lxp",
-          "listings": 1
+          "listings": 1,
+          "display_name": "LXP"
         },
         {
           "name": "rivale",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Rivale"
         },
         {
           "name": "turismo",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Turismo"
+        }
+      ]
+    },
+    {
+      "name": "Moto Guzzi",
+      "listings": 1,
+      "display_name": "Moto Guzzi",
+      "models": [
+        {
+          "name": "v85",
+          "listings": 1,
+          "display_name": "V85"
         }
       ]
     },
     {
       "name": "PLR",
-      "listings": 43,
+      "listings": 47,
+      "display_name": "PLR",
       "models": [
         {
           "name": "110",
-          "listings": 1
+          "listings": 1,
+          "display_name": "110"
+        },
+        {
+          "name": "110cc",
+          "listings": 1,
+          "display_name": "110CC"
         },
         {
           "name": "125cc",
-          "listings": 1
+          "listings": 1,
+          "display_name": "125CC"
+        },
+        {
+          "name": "250",
+          "listings": 1,
+          "display_name": "250"
         },
         {
           "name": "300",
-          "listings": 1
+          "listings": 1,
+          "display_name": "300"
+        },
+        {
+          "name": "300cc",
+          "listings": 1,
+          "display_name": "300CC"
         },
         {
           "name": "320cc",
-          "listings": 1
+          "listings": 1,
+          "display_name": "320CC"
         },
         {
-          "name": "buggie",
-          "listings": 1
+          "name": "450",
+          "listings": 1,
+          "display_name": "450"
+        },
+        {
+          "name": "550cc",
+          "listings": 1,
+          "display_name": "550CC"
+        },
+        {
+          "name": "565cc",
+          "listings": 1,
+          "display_name": "565CC"
+        },
+        {
+          "name": "90",
+          "listings": 1,
+          "display_name": "90"
         },
         {
           "name": "buggy",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Buggy"
         },
         {
           "name": "commander",
-          "listings": 3
+          "listings": 1,
+          "display_name": "Commander"
         },
         {
           "name": "cuatriciclo",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Cuatriciclo"
         },
         {
-          "name": "electrica",
-          "listings": 1
-        },
-        {
-          "name": "enduro",
-          "listings": 2
+          "name": "cyberquead",
+          "listings": 1,
+          "display_name": "Cyberquead"
         },
         {
           "name": "f320",
-          "listings": 1
-        },
-        {
-          "name": "moto",
-          "listings": 1
-        },
-        {
-          "name": "motocross",
-          "listings": 5
+          "listings": 1,
+          "display_name": "F320"
         },
         {
           "name": "panther",
-          "listings": 3
+          "listings": 4,
+          "display_name": "Panther"
         },
         {
           "name": "pitbike",
-          "listings": 2
+          "listings": 5,
+          "display_name": "Pitbike"
         },
         {
           "name": "racing",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Racing"
         },
         {
           "name": "raptor",
-          "listings": 6
+          "listings": 5,
+          "display_name": "Raptor"
         },
         {
           "name": "rhino",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Rhino"
         },
         {
           "name": "shark",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Shark"
         },
         {
           "name": "viper",
-          "listings": 1
+          "listings": 2,
+          "display_name": "Viper"
         },
         {
           "name": "xavage",
-          "listings": 4
+          "listings": 3,
+          "display_name": "Xavage"
         },
         {
           "name": "xpedition",
-          "listings": 1
+          "listings": 2,
+          "display_name": "Xpedition"
+        },
+        {
+          "name": "xplor",
+          "listings": 1,
+          "display_name": "Xplor"
         }
       ]
     },
     {
       "name": "Piaggio",
       "listings": 3,
+      "display_name": "Piaggio",
       "models": [
         {
-          "name": "ape501",
-          "listings": 1
-        },
-        {
           "name": "beverly",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Beverly"
         },
         {
-          "name": "vespa",
-          "listings": 1
+          "name": "vxl",
+          "listings": 2,
+          "display_name": "VXL"
         }
       ]
     },
     {
       "name": "Polaris",
-      "listings": 20,
+      "listings": 17,
+      "display_name": "Polaris",
       "models": [
         {
-          "name": "general",
-          "listings": 1
-        },
-        {
           "name": "ranger",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Ranger"
         },
         {
           "name": "rzr",
-          "listings": 15
+          "listings": 14,
+          "display_name": "RZR"
         },
         {
           "name": "sportsman",
-          "listings": 2
+          "listings": 1,
+          "display_name": "Sportsman"
         },
         {
           "name": "xp",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XP"
         }
       ]
     },
     {
       "name": "Royal Enfield",
-      "listings": 70,
+      "listings": 74,
+      "display_name": "Royal Enfield",
       "models": [
         {
-          "name": "-",
-          "listings": 2
-        },
-        {
-          "name": "350",
-          "listings": 1
-        },
-        {
           "name": "bear",
-          "listings": 1
-        },
-        {
-          "name": "calle",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Bear"
         },
         {
           "name": "classic",
-          "listings": 3
+          "listings": 3,
+          "display_name": "Classic"
         },
         {
           "name": "continental",
-          "listings": 1
+          "listings": 3,
+          "display_name": "Continental"
+        },
+        {
+          "name": "endfild",
+          "listings": 1,
+          "display_name": "Endfild"
+        },
+        {
+          "name": "enfiald",
+          "listings": 3,
+          "display_name": "Enfiald"
+        },
+        {
+          "name": "enfiel",
+          "listings": 1,
+          "display_name": "Enfiel"
         },
         {
           "name": "grr",
-          "listings": 1
+          "listings": 1,
+          "display_name": "GRR"
         },
         {
           "name": "grr450",
-          "listings": 1
-        },
-        {
-          "name": "hermosa",
-          "listings": 1
-        },
-        {
-          "name": "himalaya",
-          "listings": 2
+          "listings": 1,
+          "display_name": "GRR450"
         },
         {
           "name": "himalayan",
-          "listings": 27
-        },
-        {
-          "name": "himlayan",
-          "listings": 1
+          "listings": 29,
+          "display_name": "Himalayan"
         },
         {
           "name": "hntr",
-          "listings": 3
+          "listings": 5,
+          "display_name": "Hntr"
+        },
+        {
+          "name": "hunter",
+          "listings": 1,
+          "display_name": "Hunter"
         },
         {
           "name": "interceptor",
-          "listings": 4
+          "listings": 5,
+          "display_name": "Interceptor"
         },
         {
           "name": "meteor",
-          "listings": 11
+          "listings": 9,
+          "display_name": "Meteor"
         },
         {
           "name": "scram",
-          "listings": 5
+          "listings": 7,
+          "display_name": "Scram"
         },
         {
-          "name": "se",
-          "listings": 1
-        },
-        {
-          "name": "super",
-          "listings": 2
+          "name": "super meteor",
+          "listings": 3,
+          "display_name": "Super Meteor"
         },
         {
           "name": "tbx",
-          "listings": 1
+          "listings": 1,
+          "display_name": "TBX"
+        }
+      ]
+    },
+    {
+      "name": "SRM",
+      "listings": 9,
+      "display_name": "SRM",
+      "models": [
+        {
+          "name": "110cc",
+          "listings": 1,
+          "display_name": "110CC"
         },
         {
-          "name": "vendo",
-          "listings": 1
+          "name": "125cc",
+          "listings": 1,
+          "display_name": "125CC"
+        },
+        {
+          "name": "adultos",
+          "listings": 1,
+          "display_name": "Adultos"
+        },
+        {
+          "name": "hammer",
+          "listings": 2,
+          "display_name": "Hammer"
+        },
+        {
+          "name": "junior",
+          "listings": 3,
+          "display_name": "Junior"
+        },
+        {
+          "name": "niños",
+          "listings": 1,
+          "display_name": "Niños"
         }
       ]
     },
     {
       "name": "SYM",
       "listings": 38,
+      "display_name": "SYM",
       "models": [
         {
           "name": "adx",
-          "listings": 9
+          "listings": 12,
+          "display_name": "ADX"
         },
         {
           "name": "adx150",
-          "listings": 1
+          "listings": 1,
+          "display_name": "ADX150"
         },
         {
           "name": "adxtg",
-          "listings": 10
+          "listings": 7,
+          "display_name": "Adxtg"
         },
         {
-          "name": "av12w",
-          "listings": 1
+          "name": "angel",
+          "listings": 2,
+          "display_name": "Angel"
         },
         {
           "name": "crox",
-          "listings": 5
+          "listings": 5,
+          "display_name": "Crox"
         },
         {
           "name": "drg",
-          "listings": 1
+          "listings": 1,
+          "display_name": "DRG"
         },
         {
           "name": "joymax",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Joymax"
         },
         {
           "name": "maxiscooter",
-          "listings": 1
-        },
-        {
-          "name": "maxsym",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Maxiscooter"
         },
         {
           "name": "me20b",
-          "listings": 1
-        },
-        {
-          "name": "new",
-          "listings": 2
+          "listings": 1,
+          "display_name": "ME20B"
         },
         {
           "name": "nhr",
-          "listings": 1
+          "listings": 3,
+          "display_name": "NHR"
         },
         {
           "name": "nht300",
-          "listings": 1
+          "listings": 1,
+          "display_name": "NHT300"
+        },
+        {
+          "name": "nhtrazer",
+          "listings": 1,
+          "display_name": "Nhtrazer"
         },
         {
           "name": "nhx",
-          "listings": 1
+          "listings": 1,
+          "display_name": "NHX"
         },
         {
-          "name": "touring",
-          "listings": 1
+          "name": "xc",
+          "listings": 1,
+          "display_name": "XC"
+        }
+      ]
+    },
+    {
+      "name": "Starker",
+      "listings": 2,
+      "display_name": "Starker",
+      "models": [
+        {
+          "name": "auteko",
+          "listings": 1,
+          "display_name": "Auteko"
         },
         {
-          "name": "vendo",
-          "listings": 1
+          "name": "avanti",
+          "listings": 1,
+          "display_name": "Avanti"
         }
       ]
     },
     {
       "name": "Suzuki",
-      "listings": 213,
+      "listings": 269,
+      "display_name": "Suzuki",
       "models": [
         {
           "name": "access",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Access"
+        },
+        {
+          "name": "address",
+          "listings": 1,
+          "display_name": "Address"
         },
         {
           "name": "adventure",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Adventure"
+        },
+        {
+          "name": "agility",
+          "listings": 1,
+          "display_name": "Agility"
         },
         {
           "name": "ax",
-          "listings": 1
+          "listings": 1,
+          "display_name": "AX"
         },
         {
           "name": "ax4",
-          "listings": 3
-        },
-        {
-          "name": "best",
-          "listings": 1
+          "listings": 4,
+          "display_name": "AX4"
         },
         {
           "name": "burgman",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Burgman"
         },
         {
           "name": "dl",
-          "listings": 1
+          "listings": 2,
+          "display_name": "DL"
         },
         {
           "name": "dr",
-          "listings": 19
+          "listings": 23,
+          "display_name": "DR"
         },
         {
           "name": "dr150",
-          "listings": 3
+          "listings": 3,
+          "display_name": "DR150"
         },
         {
           "name": "dr650",
-          "listings": 3
+          "listings": 2,
+          "display_name": "DR650"
         },
         {
           "name": "gixxer",
-          "listings": 86
+          "listings": 103,
+          "display_name": "Gixxer"
         },
         {
           "name": "gn",
-          "listings": 7
+          "listings": 12,
+          "display_name": "GN"
         },
         {
           "name": "gs",
-          "listings": 2
+          "listings": 1,
+          "display_name": "GS"
+        },
+        {
+          "name": "gs500",
+          "listings": 2,
+          "display_name": "GS500"
         },
         {
           "name": "gsr",
-          "listings": 2
+          "listings": 2,
+          "display_name": "GSR"
         },
         {
           "name": "gsx",
-          "listings": 11
+          "listings": 15,
+          "display_name": "GSX"
         },
         {
           "name": "gsx-r",
-          "listings": 1
+          "listings": 1,
+          "display_name": "GSX-R"
         },
         {
           "name": "gsx-s",
-          "listings": 7
-        },
-        {
-          "name": "gsx-s1000",
-          "listings": 1
-        },
-        {
-          "name": "gsx-s1000za",
-          "listings": 1
+          "listings": 6,
+          "display_name": "GSX-S"
         },
         {
           "name": "gsx-s150",
-          "listings": 2
+          "listings": 1,
+          "display_name": "GSX-S150"
         },
         {
           "name": "gsx-s150abs",
-          "listings": 1
+          "listings": 1,
+          "display_name": "GSX-S150ABS"
+        },
+        {
+          "name": "gsx-s750",
+          "listings": 3,
+          "display_name": "GSX-S750"
         },
         {
           "name": "gsx125r",
-          "listings": 1
+          "listings": 1,
+          "display_name": "GSX125R"
         },
         {
           "name": "gsxr-600",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Gsxr-600"
         },
         {
-          "name": "gsxs",
-          "listings": 2
-        },
-        {
-          "name": "gsxs750",
-          "listings": 1
+          "name": "gsxr150",
+          "listings": 1,
+          "display_name": "GSXR150"
         },
         {
           "name": "gz",
-          "listings": 1
+          "listings": 1,
+          "display_name": "GZ"
+        },
+        {
+          "name": "hayabusa",
+          "listings": 1,
+          "display_name": "Hayabusa"
         },
         {
           "name": "hayate",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Hayate"
+        },
+        {
+          "name": "intruder",
+          "listings": 1,
+          "display_name": "Intruder"
+        },
+        {
+          "name": "ltf-250",
+          "listings": 1,
+          "display_name": "LTF-250"
         },
         {
           "name": "sv",
-          "listings": 1
+          "listings": 1,
+          "display_name": "SV"
+        },
+        {
+          "name": "sv650",
+          "listings": 1,
+          "display_name": "SV650"
         },
         {
           "name": "v",
-          "listings": 1
-        },
-        {
-          "name": "v-store",
-          "listings": 1
+          "listings": 2,
+          "display_name": "V"
         },
         {
           "name": "v-strom",
-          "listings": 22
-        },
-        {
-          "name": "vendo/permuto",
-          "listings": 1
+          "listings": 60,
+          "display_name": "V-Strom"
         },
         {
           "name": "viva",
-          "listings": 1
+          "listings": 7,
+          "display_name": "Viva"
         },
         {
-          "name": "vstrom",
-          "listings": 21
-        },
-        {
-          "name": "vstrom250sx",
-          "listings": 1
+          "name": "xf650",
+          "listings": 1,
+          "display_name": "XF650"
         },
         {
           "name": "xr",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XR"
         },
         {
-          "name": "¡vendo",
-          "listings": 1
+          "name": "z1000",
+          "listings": 1,
+          "display_name": "Z1000"
         }
       ]
     },
     {
       "name": "TVS",
-      "listings": 109,
+      "listings": 134,
+      "display_name": "TVS",
       "models": [
         {
-          "name": "apache",
-          "listings": 79
+          "name": "100",
+          "listings": 3,
+          "display_name": "100"
         },
         {
-          "name": "max",
-          "listings": 1
+          "name": "160",
+          "listings": 1,
+          "display_name": "160"
+        },
+        {
+          "name": "apache",
+          "listings": 95,
+          "display_name": "Apache"
+        },
+        {
+          "name": "iqube",
+          "listings": 1,
+          "display_name": "Iqube"
         },
         {
           "name": "n125",
-          "listings": 1
+          "listings": 1,
+          "display_name": "N125"
         },
         {
           "name": "ntorq",
-          "listings": 4
+          "listings": 2,
+          "display_name": "Ntorq"
         },
         {
           "name": "raider",
-          "listings": 15
+          "listings": 22,
+          "display_name": "Raider"
         },
         {
-          "name": "se",
-          "listings": 1
+          "name": "rockz",
+          "listings": 1,
+          "display_name": "Rockz"
         },
         {
           "name": "sport",
-          "listings": 6
+          "listings": 7,
+          "display_name": "Sport"
         },
         {
           "name": "stryker",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Stryker"
+        }
+      ]
+    },
+    {
+      "name": "Talaria",
+      "listings": 2,
+      "display_name": "Talaria",
+      "models": [
+        {
+          "name": "mx5",
+          "listings": 1,
+          "display_name": "MX5"
         },
         {
-          "name": "unico",
-          "listings": 1
+          "name": "sting",
+          "listings": 1,
+          "display_name": "Sting"
         }
       ]
     },
     {
       "name": "Triumph",
-      "listings": 38,
+      "listings": 47,
+      "display_name": "Triumph",
       "models": [
         {
-          "name": "bonneville",
-          "listings": 1
-        },
-        {
-          "name": "espectacular",
-          "listings": 1
-        },
-        {
-          "name": "naked",
-          "listings": 1
-        },
-        {
           "name": "rocket",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Rocket"
         },
         {
           "name": "scrambler",
-          "listings": 12
+          "listings": 19,
+          "display_name": "Scrambler"
         },
         {
           "name": "speed",
-          "listings": 5
+          "listings": 7,
+          "display_name": "Speed"
+        },
+        {
+          "name": "speedmaster",
+          "listings": 1,
+          "display_name": "Speedmaster"
+        },
+        {
+          "name": "speedtriple",
+          "listings": 1,
+          "display_name": "Speedtriple"
         },
         {
           "name": "street",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Street"
         },
         {
           "name": "tiger",
-          "listings": 14
+          "listings": 15,
+          "display_name": "Tiger"
         },
         {
           "name": "trident",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Trident"
         }
       ]
     },
     {
       "name": "UM",
       "listings": 4,
+      "display_name": "UM",
       "models": [
         {
           "name": "renegade",
-          "listings": 3
+          "listings": 3,
+          "display_name": "Renegade"
         },
         {
           "name": "rev",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Rev"
         }
       ]
     },
     {
       "name": "Vento",
       "listings": 3,
+      "display_name": "Vento",
       "models": [
         {
           "name": "screamer",
-          "listings": 3
+          "listings": 3,
+          "display_name": "Screamer"
         }
       ]
     },
     {
       "name": "Vespa",
-      "listings": 13,
+      "listings": 10,
+      "display_name": "Vespa",
       "models": [
         {
           "name": "150",
-          "listings": 2
-        },
-        {
-          "name": "con",
-          "listings": 1
+          "listings": 1,
+          "display_name": "150"
         },
         {
           "name": "gts",
-          "listings": 2
-        },
-        {
-          "name": "gtv",
-          "listings": 1
+          "listings": 2,
+          "display_name": "GTS"
         },
         {
           "name": "primavera",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Primavera"
         },
         {
           "name": "px",
-          "listings": 1
-        },
-        {
-          "name": "sei",
-          "listings": 1
+          "listings": 1,
+          "display_name": "PX"
         },
         {
           "name": "sprint",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Sprint"
+        },
+        {
+          "name": "sxl",
+          "listings": 1,
+          "display_name": "SXL"
         },
         {
           "name": "vxl",
-          "listings": 3
+          "listings": 3,
+          "display_name": "VXL"
         }
       ]
     },
     {
       "name": "Victory",
-      "listings": 121,
+      "listings": 150,
+      "display_name": "Victory",
       "models": [
         {
+          "name": "000",
+          "listings": 1,
+          "display_name": "000"
+        },
+        {
+          "name": "200",
+          "listings": 1,
+          "display_name": "200"
+        },
+        {
           "name": "advance",
-          "listings": 5
+          "listings": 5,
+          "display_name": "Advance"
         },
         {
           "name": "arizona",
-          "listings": 1
+          "listings": 5,
+          "display_name": "Arizona"
         },
         {
           "name": "bet",
-          "listings": 1
+          "listings": 3,
+          "display_name": "Bet"
         },
         {
           "name": "black",
-          "listings": 7
+          "listings": 13,
+          "display_name": "Black"
         },
         {
           "name": "blackline",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Blackline"
         },
         {
           "name": "bold",
-          "listings": 3
+          "listings": 4,
+          "display_name": "Bold"
         },
         {
           "name": "bomber",
-          "listings": 15
+          "listings": 22,
+          "display_name": "Bomber"
         },
         {
           "name": "combat",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Combat"
         },
         {
-          "name": "en",
-          "listings": 1
+          "name": "discovery",
+          "listings": 1,
+          "display_name": "Discovery"
         },
         {
           "name": "hunter",
-          "listings": 4
+          "listings": 6,
+          "display_name": "Hunter"
+        },
+        {
+          "name": "legend",
+          "listings": 1,
+          "display_name": "Legend"
         },
         {
           "name": "life",
-          "listings": 6
+          "listings": 11,
+          "display_name": "Life"
+        },
+        {
+          "name": "lite",
+          "listings": 1,
+          "display_name": "Lite"
         },
         {
           "name": "mach",
-          "listings": 1
+          "listings": 1,
+          "display_name": "Mach"
         },
         {
           "name": "mrx",
-          "listings": 27
-        },
-        {
-          "name": "new",
-          "listings": 7
+          "listings": 30,
+          "display_name": "MRX"
         },
         {
           "name": "nitro",
-          "listings": 2
+          "listings": 3,
+          "display_name": "Nitro"
+        },
+        {
+          "name": "ns",
+          "listings": 1,
+          "display_name": "NS"
         },
         {
           "name": "one",
-          "listings": 7
+          "listings": 8,
+          "display_name": "One"
         },
         {
-          "name": "scooter",
-          "listings": 1
-        },
-        {
-          "name": "se",
-          "listings": 1
+          "name": "shock",
+          "listings": 1,
+          "display_name": "Shock"
         },
         {
           "name": "switch",
-          "listings": 12
+          "listings": 14,
+          "display_name": "Switch"
         },
         {
           "name": "venom",
-          "listings": 9
-        },
-        {
-          "name": "venun",
-          "listings": 1
-        },
-        {
-          "name": "x1",
-          "listings": 1
-        },
-        {
-          "name": "zontes",
-          "listings": 4
+          "listings": 12,
+          "display_name": "Venom"
         },
         {
           "name": "zs",
-          "listings": 2
+          "listings": 2,
+          "display_name": "ZS"
+        }
+      ]
+    },
+    {
+      "name": "Voge",
+      "listings": 6,
+      "display_name": "Voge",
+      "models": [
+        {
+          "name": "300",
+          "listings": 2,
+          "display_name": "300"
+        },
+        {
+          "name": "ds300",
+          "listings": 1,
+          "display_name": "DS300"
+        },
+        {
+          "name": "rally",
+          "listings": 3,
+          "display_name": "Rally"
+        }
+      ]
+    },
+    {
+      "name": "YCF",
+      "listings": 4,
+      "display_name": "YCF",
+      "models": [
+        {
+          "name": "150",
+          "listings": 2,
+          "display_name": "150"
+        },
+        {
+          "name": "niño",
+          "listings": 1,
+          "display_name": "Niño"
         }
       ]
     },
     {
       "name": "Yamaha",
-      "listings": 412,
+      "listings": 496,
+      "display_name": "Yamaha",
       "models": [
         {
           "name": "aerox",
-          "listings": 13
+          "listings": 19,
+          "display_name": "Aerox"
         },
         {
           "name": "af115s",
-          "listings": 1
-        },
-        {
-          "name": "areox",
-          "listings": 1
+          "listings": 1,
+          "display_name": "AF115S"
         },
         {
           "name": "at115",
-          "listings": 1
+          "listings": 1,
+          "display_name": "AT115"
         },
         {
           "name": "banshee",
-          "listings": 2
+          "listings": 4,
+          "display_name": "Banshee"
         },
         {
-          "name": "bwis",
-          "listings": 1
+          "name": "bolt",
+          "listings": 1,
+          "display_name": "Bolt"
         },
         {
           "name": "bws",
-          "listings": 16
-        },
-        {
-          "name": "bws-x",
-          "listings": 1
-        },
-        {
-          "name": "bwsx",
-          "listings": 1
+          "listings": 26,
+          "display_name": "BWS"
         },
         {
           "name": "crypton",
-          "listings": 8
-        },
-        {
-          "name": "deportiva",
-          "listings": 1
-        },
-        {
-          "name": "disco",
-          "listings": 1
+          "listings": 10,
+          "display_name": "Crypton"
         },
         {
           "name": "dt",
-          "listings": 5
-        },
-        {
-          "name": "enduro",
-          "listings": 1
+          "listings": 5,
+          "display_name": "DT"
         },
         {
           "name": "fazer",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Fazer"
         },
         {
           "name": "fino",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Fino"
         },
         {
           "name": "fz",
-          "listings": 52
+          "listings": 66,
+          "display_name": "FZ"
+        },
+        {
+          "name": "fz150",
+          "listings": 1,
+          "display_name": "FZ150"
+        },
+        {
+          "name": "fz16",
+          "listings": 1,
+          "display_name": "FZ16"
         },
         {
           "name": "fz25",
-          "listings": 4
+          "listings": 10,
+          "display_name": "FZ25"
         },
         {
           "name": "fz8n",
-          "listings": 1
-        },
-        {
-          "name": "fz8s",
-          "listings": 1
-        },
-        {
-          "name": "fzn",
-          "listings": 1
-        },
-        {
-          "name": "fzn-150-a",
-          "listings": 1
+          "listings": 1,
+          "display_name": "FZ8N"
         },
         {
           "name": "fzn-150d",
-          "listings": 1
+          "listings": 1,
+          "display_name": "FZN-150d"
+        },
+        {
+          "name": "fzn250",
+          "listings": 1,
+          "display_name": "FZN250"
+        },
+        {
+          "name": "gpd155-a",
+          "listings": 1,
+          "display_name": "GPD155-A"
         },
         {
           "name": "grizzly",
-          "listings": 1
-        },
-        {
-          "name": "impecable",
-          "listings": 1
+          "listings": 2,
+          "display_name": "Grizzly"
         },
         {
           "name": "jog",
-          "listings": 2
+          "listings": 2,
+          "display_name": "Jog"
         },
         {
           "name": "mt",
-          "listings": 32
+          "listings": 37,
+          "display_name": "MT"
         },
         {
           "name": "mt-03",
-          "listings": 2
+          "listings": 7,
+          "display_name": "MT-03"
+        },
+        {
+          "name": "mt-07",
+          "listings": 1,
+          "display_name": "MT-07"
         },
         {
           "name": "mt-09",
-          "listings": 5
+          "listings": 10,
+          "display_name": "MT-09"
         },
         {
           "name": "mt-15",
-          "listings": 3
+          "listings": 13,
+          "display_name": "MT-15"
         },
         {
-          "name": "mt03",
-          "listings": 3
-        },
-        {
-          "name": "mt07",
-          "listings": 1
-        },
-        {
-          "name": "mt09",
-          "listings": 2
-        },
-        {
-          "name": "mt15",
-          "listings": 4
-        },
-        {
-          "name": "mt15-",
-          "listings": 1
+          "name": "mt-o3",
+          "listings": 1,
+          "display_name": "MT-O3"
         },
         {
           "name": "mtn",
-          "listings": 1
+          "listings": 1,
+          "display_name": "MTN"
         },
         {
-          "name": "n-max",
-          "listings": 10
-        },
-        {
-          "name": "naked",
-          "listings": 2
+          "name": "mtn890",
+          "listings": 1,
+          "display_name": "MTN890"
         },
         {
           "name": "nmax",
-          "listings": 49
-        },
-        {
-          "name": "nmax155",
-          "listings": 3
+          "listings": 84,
+          "display_name": "N-Max"
         },
         {
           "name": "r",
-          "listings": 1
+          "listings": 2,
+          "display_name": "R"
         },
         {
           "name": "r15",
-          "listings": 16
-        },
-        {
-          "name": "r15/",
-          "listings": 1
+          "listings": 17,
+          "display_name": "R15"
         },
         {
           "name": "r3",
-          "listings": 2
+          "listings": 2,
+          "display_name": "R3"
         },
         {
           "name": "r6",
-          "listings": 3
+          "listings": 3,
+          "display_name": "R6"
+        },
+        {
+          "name": "r6r",
+          "listings": 2,
+          "display_name": "R6R"
         },
         {
           "name": "raptor",
-          "listings": 6
+          "listings": 9,
+          "display_name": "Raptor"
         },
         {
-          "name": "royal",
-          "listings": 1
+          "name": "star",
+          "listings": 1,
+          "display_name": "Star"
         },
         {
-          "name": "se",
-          "listings": 2
-        },
-        {
-          "name": "super",
-          "listings": 6
-        },
-        {
-          "name": "supertenere",
-          "listings": 1
+          "name": "super tenere",
+          "listings": 6,
+          "display_name": "Super Tenere"
         },
         {
           "name": "sz",
-          "listings": 2
+          "listings": 2,
+          "display_name": "SZ"
+        },
+        {
+          "name": "sz-rr",
+          "listings": 1,
+          "display_name": "SZ-RR"
+        },
+        {
+          "name": "sz15rr",
+          "listings": 1,
+          "display_name": "SZ15RR"
         },
         {
           "name": "szr",
-          "listings": 5
+          "listings": 4,
+          "display_name": "SZR"
+        },
+        {
+          "name": "t-105e",
+          "listings": 1,
+          "display_name": "T-105e"
+        },
+        {
+          "name": "t115",
+          "listings": 1,
+          "display_name": "T115"
         },
         {
           "name": "tenere",
-          "listings": 3
+          "listings": 6,
+          "display_name": "Tenere"
         },
         {
           "name": "tmax",
-          "listings": 2
+          "listings": 4,
+          "display_name": "Tmax"
+        },
+        {
+          "name": "todos",
+          "listings": 1,
+          "display_name": "Todos"
         },
         {
           "name": "tracer",
-          "listings": 3
+          "listings": 5,
+          "display_name": "Tracer"
         },
         {
-          "name": "unicornio",
-          "listings": 1
+          "name": "trasero",
+          "listings": 1,
+          "display_name": "Trasero"
         },
         {
           "name": "va",
-          "listings": 1
-        },
-        {
-          "name": "vendo",
-          "listings": 2
+          "listings": 1,
+          "display_name": "VA"
         },
         {
           "name": "wr",
-          "listings": 1
+          "listings": 1,
+          "display_name": "WR"
         },
         {
           "name": "wr250f",
-          "listings": 1
+          "listings": 1,
+          "display_name": "WR250F"
         },
         {
           "name": "x",
-          "listings": 2
-        },
-        {
-          "name": "x-max",
-          "listings": 4
-        },
-        {
-          "name": "x-max300",
-          "listings": 1
-        },
-        {
-          "name": "xj6f",
-          "listings": 1
+          "listings": 3,
+          "display_name": "X"
         },
         {
           "name": "xmax",
-          "listings": 19
+          "listings": 23,
+          "display_name": "X-Max"
         },
         {
           "name": "xsr",
-          "listings": 2
+          "listings": 2,
+          "display_name": "XSR"
         },
         {
           "name": "xt",
-          "listings": 4
+          "listings": 4,
+          "display_name": "XT"
         },
         {
           "name": "xt1200",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XT1200"
         },
         {
           "name": "xt1200ze",
-          "listings": 1
+          "listings": 2,
+          "display_name": "XT1200ZE"
         },
         {
           "name": "xt225",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XT225"
+        },
+        {
+          "name": "xt660",
+          "listings": 1,
+          "display_name": "XT660"
         },
         {
           "name": "xt660r",
-          "listings": 2
+          "listings": 2,
+          "display_name": "XT660R"
         },
         {
           "name": "xt660z",
-          "listings": 2
+          "listings": 2,
+          "display_name": "XT660Z"
         },
         {
           "name": "xtz",
-          "listings": 34
-        },
-        {
-          "name": "xtz150",
-          "listings": 2
+          "listings": 31,
+          "display_name": "XTZ"
         },
         {
           "name": "xtz250",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XTZ250"
+        },
+        {
+          "name": "xtz250z",
+          "listings": 1,
+          "display_name": "XTZ250Z"
         },
         {
           "name": "xtz690",
-          "listings": 1
+          "listings": 2,
+          "display_name": "XTZ690"
         },
         {
           "name": "xv",
-          "listings": 1
+          "listings": 1,
+          "display_name": "XV"
         },
         {
           "name": "ybr",
-          "listings": 1
+          "listings": 1,
+          "display_name": "YBR"
         },
         {
           "name": "ybr125",
-          "listings": 1
+          "listings": 1,
+          "display_name": "YBR125"
         },
         {
           "name": "yc",
-          "listings": 1
+          "listings": 1,
+          "display_name": "YC"
         },
         {
           "name": "yc-z",
-          "listings": 1
+          "listings": 1,
+          "display_name": "YC-Z"
         },
         {
           "name": "ycz",
-          "listings": 2
+          "listings": 1,
+          "display_name": "YCZ"
         },
         {
           "name": "yfm250r",
-          "listings": 1
+          "listings": 1,
+          "display_name": "YFM250R"
         },
         {
           "name": "yfz",
-          "listings": 2
-        },
-        {
-          "name": "yfz350",
-          "listings": 1
+          "listings": 1,
+          "display_name": "YFZ"
         },
         {
           "name": "yw125",
-          "listings": 1
+          "listings": 1,
+          "display_name": "YW125"
         },
         {
           "name": "yw125x",
-          "listings": 3
+          "listings": 3,
+          "display_name": "YW125X"
+        },
+        {
+          "name": "yxr66fspw",
+          "listings": 1,
+          "display_name": "YXR66FSPW"
         },
         {
           "name": "yz",
-          "listings": 7
+          "listings": 9,
+          "display_name": "YZ"
+        },
+        {
+          "name": "yz-125",
+          "listings": 1,
+          "display_name": "YZ-125"
+        },
+        {
+          "name": "yz450f",
+          "listings": 1,
+          "display_name": "YZ450F"
+        },
+        {
+          "name": "yz85",
+          "listings": 1,
+          "display_name": "YZ85"
         },
         {
           "name": "yzf",
-          "listings": 3
+          "listings": 4,
+          "display_name": "YZF"
         },
         {
           "name": "yzf-r1",
-          "listings": 2
+          "listings": 1,
+          "display_name": "YZF-R1"
         },
         {
           "name": "yzf-r15",
-          "listings": 2
+          "listings": 2,
+          "display_name": "YZF-R15"
+        },
+        {
+          "name": "yzf-r3",
+          "listings": 1,
+          "display_name": "YZF-R3"
+        },
+        {
+          "name": "yzf-r7",
+          "listings": 1,
+          "display_name": "YZF-R7"
         },
         {
           "name": "ztx",
-          "listings": 1
-        },
-        {
-          "name": "¡se",
-          "listings": 1
+          "listings": 1,
+          "display_name": "ZTX"
         }
       ]
     },
     {
       "name": "Zontes",
-      "listings": 18,
+      "listings": 25,
+      "display_name": "Zontes",
       "models": [
         {
+          "name": "155",
+          "listings": 1,
+          "display_name": "155"
+        },
+        {
           "name": "155u",
-          "listings": 1
+          "listings": 3,
+          "display_name": "155u"
         },
         {
           "name": "310",
-          "listings": 2
+          "listings": 3,
+          "display_name": "310"
         },
         {
           "name": "310m",
-          "listings": 2
+          "listings": 2,
+          "display_name": "310m"
         },
         {
           "name": "350",
-          "listings": 1
+          "listings": 5,
+          "display_name": "350"
         },
         {
           "name": "368",
-          "listings": 1
+          "listings": 1,
+          "display_name": "368"
         },
         {
           "name": "368g",
-          "listings": 5
+          "listings": 5,
+          "display_name": "368g"
         },
         {
           "name": "703",
-          "listings": 1
+          "listings": 1,
+          "display_name": "703"
         },
         {
           "name": "703f",
-          "listings": 2
+          "listings": 2,
+          "display_name": "703f"
         },
         {
           "name": "adv",
-          "listings": 1
-        },
-        {
-          "name": "se",
-          "listings": 1
+          "listings": 1,
+          "display_name": "ADV"
         },
         {
           "name": "t2",
-          "listings": 1
+          "listings": 1,
+          "display_name": "T2"
         }
       ]
     }
@@ -3625,39 +4375,48 @@
   "departments": [
     {
       "name": "Antioquia",
-      "listings": 983
+      "listings": 1055,
+      "display_name": "Antioquia"
     },
     {
       "name": "Atlántico",
-      "listings": 69
+      "listings": 99,
+      "display_name": "Atlántico"
     },
     {
       "name": "Bogotá D.C.",
-      "listings": 1135
+      "listings": 1204,
+      "display_name": "Bogotá D.C."
     },
     {
       "name": "Cauca",
-      "listings": 3
+      "listings": 3,
+      "display_name": "Cauca"
     },
     {
       "name": "Cundinamarca",
-      "listings": 385
+      "listings": 453,
+      "display_name": "Cundinamarca"
     },
     {
-      "name": "Norte De Santander",
-      "listings": 23
+      "name": "Norte de Santander",
+      "listings": 31,
+      "display_name": "Norte de Santander"
     },
     {
-      "name": "Quindio",
-      "listings": 34
+      "name": "Quindío",
+      "listings": 41,
+      "display_name": "Quindío"
     },
     {
       "name": "Santander",
-      "listings": 186
+      "listings": 210,
+      "display_name": "Santander"
     },
     {
-      "name": "Valle Del Cauca",
-      "listings": 423
+      "name": "Valle del Cauca",
+      "listings": 507,
+      "display_name": "Valle del Cauca"
     }
   ],
   "model_year": {
@@ -3666,6 +4425,6 @@
   },
   "engine_cc": {
     "min": 50.0,
-    "max": 2500.0
+    "max": 2491.0
   }
 }

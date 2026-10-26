@@ -1,30 +1,30 @@
 [
   {
     "vehicle_type": "car",
-    "condition_share_pct": 39.827,
-    "identity_share_pct": 57.4355,
-    "other_share_pct": 2.7376,
-    "identity_over_condition": 1.4421,
+    "condition_share_pct": 41.3295,
+    "identity_share_pct": 56.2571,
+    "other_share_pct": 2.4134,
+    "identity_over_condition": 1.3612,
     "median_age_years": 5.0,
-    "annual_depreciation_pct": 8.2999,
-    "annual_ci_low_pct": 7.9641,
-    "annual_ci_high_pct": 8.6344,
-    "age_slope_log": -0.0866,
+    "annual_depreciation_pct": 8.1741,
+    "annual_ci_low_pct": 7.8882,
+    "annual_ci_high_pct": 8.4592,
+    "age_slope_log": -0.0853,
     "age_p_value": 0.0,
-    "n": 7639.0
+    "n": 8443.0
   },
   {
     "vehicle_type": "motorcycle",
-    "condition_share_pct": 15.9706,
-    "identity_share_pct": 77.1638,
-    "other_share_pct": 6.8655,
-    "identity_over_condition": 4.8316,
+    "condition_share_pct": 16.0104,
+    "identity_share_pct": 78.6008,
+    "other_share_pct": 5.3888,
+    "identity_over_condition": 4.9094,
     "median_age_years": 3.0,
-    "annual_depreciation_pct": 3.2909,
-    "annual_ci_low_pct": 2.3771,
-    "annual_ci_high_pct": 4.1961,
-    "age_slope_log": -0.0335,
+    "annual_depreciation_pct": 3.3644,
+    "annual_ci_low_pct": 2.6057,
+    "annual_ci_high_pct": 4.1171,
+    "age_slope_log": -0.0342,
     "age_p_value": 0.0,
-    "n": 4052.0
+    "n": 4505.0
   }
 ]

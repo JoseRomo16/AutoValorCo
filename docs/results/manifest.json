@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-10-07T00:17:33+00:00",
+  "generated_at": "2026-10-25T21:55:01+00:00",
   "gold_rows": {
-    "car": 7639,
-    "motorcycle": 4052
+    "car": 8443,
+    "motorcycle": 4505
   },
-  "capture_span_days": 5.542,
+  "capture_span_days": 19.489,
   "detail_coverage": {
     "car": 0.0,
-    "motorcycle": 0.5676
+    "motorcycle": 0.6242
   },
   "thresholds": {
     "min_brand_listings": 200,
@@ -33,7 +33,7 @@
     "segment_error.json"
   ],
   "skipped": {
-    "price_index.car": "the lake spans 5.5 days, under the 180 an index needs; the weekly captures reach it on 2027-03-29",
-    "price_index.motorcycle": "the lake spans 5.5 days, under the 180 an index needs; the weekly captures reach it on 2027-03-29"
+    "price_index.car": "the lake spans 19.5 days, under the 180 an index needs; the weekly captures reach it on 2027-03-29",
+    "price_index.motorcycle": "the lake spans 19.5 days, under the 180 an index needs; the weekly captures reach it on 2027-03-29"
   }
 }
