@@ -48,7 +48,7 @@ CONDITION_FEATURES = ("vehicle_age_years", "mileage_km", "km_per_year")
 ``km_per_year`` is condition and not identity — it is mileage normalised by age.
 """
 
-IDENTITY_FEATURES = ("brand", "model", "engine_cc", "is_quad")
+IDENTITY_FEATURES = ("brand", "model", "engine_cc", "is_quad", "is_cargo")
 """What the vehicle *is*. Fixed at the factory; nothing about this particular example."""
 
 MIN_BRAND_LISTINGS = 20

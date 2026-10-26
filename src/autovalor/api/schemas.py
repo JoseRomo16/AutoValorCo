@@ -199,6 +199,13 @@ class CatalogEntry(BaseModel):
 
     name: str
     listings: int = Field(description="Training listings that carried this level.")
+    display_name: str = Field(
+        description=(
+            "The same level spelled for a reader. Model tokens are mined from titles in "
+            "lower case, so 'cx-30' displays as 'CX-30'; makes and departments display as "
+            "themselves. Send `name`, show `display_name`."
+        )
+    )
 
 
 class CatalogBrand(BaseModel):
@@ -206,6 +213,7 @@ class CatalogBrand(BaseModel):
 
     name: str
     listings: int
+    display_name: str = Field(description="The make as a reader sees it; equals `name`.")
     models: list[CatalogEntry] = Field(description="Model tokens for this make, alphabetically.")
 
 

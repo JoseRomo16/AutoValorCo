@@ -39,9 +39,11 @@ it nor ``department`` is a clean sampling frame."""
 TREE_BOOLEAN = ("is_official_store",)
 """Booleans every vertical carries."""
 
-MOTORCYCLE_BOOLEAN = ("is_quad",)
-"""Quads, buggies and side-by-sides sit in the motorcycle vertical but not on its price
-curve, so the flag reaches the model there and nowhere else."""
+MOTORCYCLE_BOOLEAN = ("is_quad", "is_cargo")
+"""Quads, buggies and side-by-sides, and cargo three-wheelers, sit in the motorcycle
+vertical but not on its price curve, so the flags reach the model there and nowhere else.
+``is_cargo`` covers 11 listings today: it is here so the population is separable, not
+because it is expected to move the MAPE."""
 
 DETAIL_CATEGORICAL = ("body_type", "transmission", "brakes", "color")
 """Categoricals that only exist on the listing page.

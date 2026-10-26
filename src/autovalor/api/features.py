@@ -13,11 +13,13 @@ in 512 MB. ``docs/STATUS.md`` already lists ``vehicle_age`` being implemented tw
 debt; this is the third site and the test below is what keeps the three honest.
 """
 
+from collections.abc import Iterable
 from datetime import UTC, datetime
 
 import pandas as pd
 
 from autovalor.api.schemas import PredictRequest
+from autovalor.features.naming import slug
 
 UNKNOWN_CITY = "Desconocida"
 """Cities are not asked for: a user knows their department, and the model gets most of the
@@ -29,13 +31,42 @@ def current_year() -> int:
     return datetime.now(UTC).year
 
 
-def to_frame(request: PredictRequest, *, year: int | None = None) -> pd.DataFrame:
+def resolve_department(value: str, known: Iterable[str]) -> str:
+    """Return the department as the model knows it, however the caller spelled it.
+
+    The lake used to store whatever the site published, so "Valle Del Cauca" and "Quindio"
+    were the trained levels and are what older clients send. The levels are now written
+    the way Colombia writes them, and a request carrying the old spelling would otherwise
+    miss every category and go down the trees' missing branch — a wrong answer that looks
+    exactly like a right one. Matching on the accent-free slug accepts both.
+
+    Args:
+        value: Department as the caller sent it.
+        known: Department levels the served model was fitted on.
+
+    Returns:
+        The matching level, or ``value`` unchanged when nothing matches. Unchanged rather
+        than rejected: a department the model never saw is a real answer ("no data for
+        that region"), and turning it into an error would make the form unusable for one.
+    """
+    key = slug(value)
+    for level in known:
+        if slug(level) == key:
+            return level
+    return value
+
+
+def to_frame(
+    request: PredictRequest, *, year: int | None = None, departments: Iterable[str] = ()
+) -> pd.DataFrame:
     """Return the one-row, gold-shaped frame the model scores.
 
     Args:
         request: The validated request.
         year: Year to age the vehicle against; defaults to the current one. Gold ages a
             listing against the year it was last seen, which for a live request is now.
+        departments: Department levels the served model carries, used to accept any
+            spelling of the one in the request. Empty leaves the request's spelling alone.
 
     Returns:
         A single-row frame carrying every column the tree specification reads.
@@ -52,17 +83,19 @@ def to_frame(request: PredictRequest, *, year: int | None = None) -> pd.DataFram
             {
                 "brand": request.brand,
                 "model": request.model,
-                "department": request.department,
+                "department": resolve_department(request.department, departments),
                 "city": UNKNOWN_CITY,
                 "vehicle_age_years": float(age),
                 "mileage_km": float(request.mileage_km),
                 "engine_cc": None if request.engine_cc is None else float(request.engine_cc),
                 "km_per_year": float(km_per_year),
                 "is_official_store": False,
-                # Only read for motorcycles. A request cannot say "this is a quad", and
-                # guessing from the brand would be worse than the default: the flag exists
-                # to let the model separate a population it saw while fitting.
+                # Only read for motorcycles. A request cannot say "this is a quad" or "this
+                # is a cargo trike", and guessing from the brand would be worse than the
+                # default: the flags exist to let the model separate populations it saw
+                # while fitting, not to be asked about.
                 "is_quad": False,
+                "is_cargo": False,
             }
         ]
     )

@@ -19,12 +19,14 @@ model knows, and dropping it would make a legitimate vehicle unaskable.
 
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
+from autovalor.features.naming import display_model
 from autovalor.models.dataset import VehicleType
 
 logger = logging.getLogger("autovalor.models")
@@ -32,10 +34,16 @@ logger = logging.getLogger("autovalor.models")
 CATALOG_NAME = "catalog.json"
 """File written next to the manifest, one per vertical."""
 
-CATALOG_FORMAT = 1
-"""Bumped when the on-disk shape changes. Read separately from the bundle format: a bundle
+CATALOG_FORMAT = 2
+"""What :func:`build_catalog` writes. Read separately from the bundle format: a bundle
 exported before catalogues existed is still a loadable bundle, it just cannot answer
 ``/catalog``, and that is better than refusing to serve predictions over a missing list."""
+
+READABLE_FORMATS = frozenset({1, 2})
+"""What :func:`load_catalog` accepts. Format 2 added a display name per level; a format-1
+file is read with each level displaying as itself, which is what it meant. The service and
+the bundle it serves are deployed separately, so a build that refused the previous format
+would turn an ordinary deploy order into an outage."""
 
 BRAND_COLUMN = "brand"
 MODEL_COLUMN = "model"
@@ -50,14 +58,27 @@ class CatalogError(RuntimeError):
 
 @dataclass(frozen=True)
 class NamedCount:
-    """One categorical level and how many training listings carried it."""
+    """One categorical level, how it is spelled for a reader, and how many listings it has.
+
+    ``name`` is the level the model was fitted on and the string ``/predict`` expects.
+    ``display_name`` is the same level spelled for a person. They differ for model tokens,
+    which are mined out of titles in lower case, and are equal for makes and departments,
+    which already carry their own capitalisation. Resolving it here rather than in the
+    frontend keeps one spelling of a model across the dropdown, the explanation card and
+    anything else that reads the catalogue.
+    """
 
     name: str
     listings: int
+    display_name: str
 
     def to_json(self) -> dict[str, Any]:
         """Return the JSON form."""
-        return {"name": self.name, "listings": self.listings}
+        return {
+            "name": self.name,
+            "listings": self.listings,
+            "display_name": self.display_name,
+        }
 
 
 @dataclass(frozen=True)
@@ -71,12 +92,14 @@ class BrandEntry:
     name: str
     listings: int
     models: tuple[NamedCount, ...]
+    display_name: str
 
     def to_json(self) -> dict[str, Any]:
         """Return the JSON form."""
         return {
             "name": self.name,
             "listings": self.listings,
+            "display_name": self.display_name,
             "models": [model.to_json() for model in self.models],
         }
 
@@ -126,7 +149,9 @@ class VehicleCatalog:
         }
 
 
-def _counts(frame: pd.DataFrame, column: str) -> tuple[NamedCount, ...]:
+def _counts(
+    frame: pd.DataFrame, column: str, *, display: Callable[[str], str] = lambda name: name
+) -> tuple[NamedCount, ...]:
     """Count the levels of one column, alphabetically.
 
     Alphabetical rather than by frequency because these land in a ``<select>``, where a
@@ -134,7 +159,23 @@ def _counts(frame: pd.DataFrame, column: str) -> tuple[NamedCount, ...]:
     popularity order has what it needs.
     """
     counts = frame[column].dropna().astype(str).value_counts()
-    return tuple(NamedCount(name=name, listings=int(counts[name])) for name in sorted(counts.index))
+    return tuple(
+        NamedCount(name=name, listings=int(counts[name]), display_name=display(name))
+        for name in sorted(counts.index)
+    )
+
+
+def _named_count(payload: dict[str, Any]) -> NamedCount:
+    """Read one level back, defaulting its display name to the level itself.
+
+    The default is what lets this build read a format-1 catalogue's shape without a
+    special case: a level with no stored display name is one that needs none.
+    """
+    return NamedCount(
+        name=payload["name"],
+        listings=int(payload["listings"]),
+        display_name=payload.get("display_name", payload["name"]),
+    )
 
 
 def _range(frame: pd.DataFrame, column: str) -> NumericRange | None:
@@ -172,7 +213,8 @@ def build_catalog(frame: pd.DataFrame, *, vehicle_type: VehicleType) -> VehicleC
         BrandEntry(
             name=str(name),
             listings=len(group),
-            models=_counts(group, MODEL_COLUMN),
+            models=_counts(group, MODEL_COLUMN, display=display_model),
+            display_name=str(name),
         )
         for name, group in known_brand.groupby(
             known_brand[BRAND_COLUMN].astype(str), sort=True, observed=True
@@ -242,9 +284,9 @@ def load_catalog(directory: Path) -> VehicleCatalog | None:
         return None
 
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if payload.get("format") != CATALOG_FORMAT:
+    if payload.get("format") not in READABLE_FORMATS:
         msg = f"{path} is catalogue format {payload.get('format')!r}, this build reads "
-        raise CatalogError(msg + str(CATALOG_FORMAT))
+        raise CatalogError(msg + ", ".join(str(known) for known in sorted(READABLE_FORMATS)))
 
     engine = payload.get("engine_cc")
     return VehicleCatalog(
@@ -254,17 +296,12 @@ def load_catalog(directory: Path) -> VehicleCatalog | None:
             BrandEntry(
                 name=brand["name"],
                 listings=int(brand["listings"]),
-                models=tuple(
-                    NamedCount(name=model["name"], listings=int(model["listings"]))
-                    for model in brand["models"]
-                ),
+                models=tuple(_named_count(model) for model in brand["models"]),
+                display_name=brand.get("display_name", brand["name"]),
             )
             for brand in payload["brands"]
         ),
-        departments=tuple(
-            NamedCount(name=entry["name"], listings=int(entry["listings"]))
-            for entry in payload["departments"]
-        ),
+        departments=tuple(_named_count(entry) for entry in payload["departments"]),
         model_year=NumericRange(
             min=float(payload["model_year"]["min"]), max=float(payload["model_year"]["max"])
         ),

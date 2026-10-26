@@ -75,6 +75,7 @@ def make_gold_frame(
             "model": [MODELS[i] for i in brand_index],
             "engine_cc": rng.choice([1000, 1400, 1600, None], size=n),
             "is_quad": False,
+            "is_cargo": False,
             "price_cop": np.exp(log_price).round().astype("int64"),
             "log_price": log_price,
             "model_year": 2026 - age,

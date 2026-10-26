@@ -20,7 +20,7 @@ models:
 
   - name: stg_title_features
     description: >
-      Make, model, engine size and the quad flag, all mined from the listing title
+      Make, model, engine size and the population flags, all mined from the listing title
       because the search card does not carry them as structured fields.
     columns:
       - name: listing_id
@@ -31,6 +31,9 @@ models:
         data_tests:
           - not_null
       - name: is_quad
+        data_tests:
+          - not_null
+      - name: is_cargo
         data_tests:
           - not_null
 
@@ -89,6 +92,7 @@ models:
                 - model_year_in_future
                 - mileage_missing
                 - mileage_too_high
+                - not_a_motor_vehicle
 
 unit_tests:
   - name: title_features_resolves_the_make
@@ -112,29 +116,80 @@ unit_tests:
           - {listing_id: "d", vehicle_type: "motorcycle", title: "Moto Hunk 150 Roja", model_year: 2018, last_seen_at: "2026-10-01", price_cop: 1}
           # Quad with its own make, where "cuatrimoto" is the vertical's word, not a model.
           - {listing_id: "e", vehicle_type: "motorcycle", title: "Cuatrimoto Plr Shark 250cc", model_year: 2022, last_seen_at: "2026-10-01", price_cop: 1}
-          # No make and no known model: it has to stay unresolved rather than guess.
+          # No make and no known model: it has to stay unresolved rather than guess, and
+          # with every token dropped there is no model left to report either.
           - {listing_id: "f", vehicle_type: "motorcycle", title: "Excelente Estado Papeles Al Dia", model_year: 2017, last_seen_at: "2026-10-01", price_cop: 1}
           # Motorcycle model aliases must not leak into the car vertical.
           - {listing_id: "g", vehicle_type: "car", title: "Chevrolet Spark Gt 2018", model_year: 2018, last_seen_at: "2026-10-01", price_cop: 1}
+          # A title that names its make outright no longer hands the seller's verb back
+          # as the model: "vendo" is a dropped token and the scan moves on.
+          - {listing_id: "h", vehicle_type: "motorcycle", title: "Vendo Yamaha Nmax 155 Azul", model_year: 2023, last_seen_at: "2026-10-01", price_cop: 1}
+          # The make repeated, spelled across two words, or carrying a division name is
+          # not the model. All three used to come out as the make itself.
+          - {listing_id: "i", vehicle_type: "car", title: "Mazda Mazda 2 2022 1.5 Grand Touring At", model_year: 2022, last_seen_at: "2026-10-01", price_cop: 1}
+          # Family word plus the token after it, which is what separates a Clase C from
+          # a Clase GLE. 405 of 480 Mercedes-Benz listings came out as "clase".
+          - {listing_id: "j", vehicle_type: "car", title: "Mercedes-Benz Clase Gle 2018 350 Luxury 3.5", model_year: 2018, last_seen_at: "2026-10-01", price_cop: 1}
+          # A distributor that also sells another make's bikes: the manufacturer wins.
+          - {listing_id: "k", vehicle_type: "motorcycle", title: "Akt Voge Ds300 Aventura", model_year: 2027, last_seen_at: "2026-10-01", price_cop: 1}
+          # ... but a distributor with no other make in the title keeps its own listings.
+          - {listing_id: "l", vehicle_type: "motorcycle", title: "Akt Nkd 125 2021", model_year: 2021, last_seen_at: "2026-10-01", price_cop: 1}
+          # Punctuation stuck to the token, and a spelling the alias seed unifies.
+          - {listing_id: "m", vehicle_type: "motorcycle", title: "Yamaha Mt03 320cc, Impecable", model_year: 2022, last_seen_at: "2026-10-01", price_cop: 1}
+          # A bare number is a real motorcycle model and must survive.
+          - {listing_id: "n", vehicle_type: "motorcycle", title: "Ktm 390 Adventure 2024", model_year: 2024, last_seen_at: "2026-10-01", price_cop: 1}
+          # A cargo three-wheeler: flagged, not dropped, and not a quad.
+          - {listing_id: "o", vehicle_type: "motorcycle", title: "Motocarro Carguero Akt 200", model_year: 2024, last_seen_at: "2026-10-01", price_cop: 1}
       - input: ref('vehicle_brands')
         rows:
-          - {alias: "yamaha", brand: "Yamaha", applies_to: "motorcycle", alias_kind: "brand"}
-          - {alias: "suzuki", brand: "Suzuki", applies_to: "both", alias_kind: "brand"}
-          - {alias: "plr", brand: "PLR", applies_to: "motorcycle", alias_kind: "brand"}
-          - {alias: "chevrolet", brand: "Chevrolet", applies_to: "car", alias_kind: "brand"}
-          - {alias: "xtz", brand: "Yamaha", applies_to: "motorcycle", alias_kind: "model"}
-          - {alias: "agility", brand: "Kymco", applies_to: "motorcycle", alias_kind: "model"}
-          - {alias: "hunk", brand: "Hero", applies_to: "motorcycle", alias_kind: "model"}
-          - {alias: "spark", brand: "Chevrolet", applies_to: "car", alias_kind: "model"}
+          - {alias: "yamaha", brand: "Yamaha", applies_to: "motorcycle", alias_kind: "brand", brand_rank: 0}
+          - {alias: "suzuki", brand: "Suzuki", applies_to: "both", alias_kind: "brand", brand_rank: 0}
+          - {alias: "plr", brand: "PLR", applies_to: "motorcycle", alias_kind: "brand", brand_rank: 0}
+          - {alias: "voge", brand: "Voge", applies_to: "motorcycle", alias_kind: "brand", brand_rank: 0}
+          - {alias: "ktm", brand: "KTM", applies_to: "motorcycle", alias_kind: "brand", brand_rank: 0}
+          - {alias: "akt", brand: "AKT", applies_to: "motorcycle", alias_kind: "brand", brand_rank: 1}
+          - {alias: "chevrolet", brand: "Chevrolet", applies_to: "car", alias_kind: "brand", brand_rank: 0}
+          - {alias: "mazda", brand: "Mazda", applies_to: "car", alias_kind: "brand", brand_rank: 0}
+          - {alias: "mercedes-benz", brand: "Mercedes-Benz", applies_to: "car", alias_kind: "brand", brand_rank: 0}
+          - {alias: "xtz", brand: "Yamaha", applies_to: "motorcycle", alias_kind: "model", brand_rank: 0}
+          - {alias: "agility", brand: "Kymco", applies_to: "motorcycle", alias_kind: "model", brand_rank: 0}
+          - {alias: "hunk", brand: "Hero", applies_to: "motorcycle", alias_kind: "model", brand_rank: 0}
+          - {alias: "nkd", brand: "AKT", applies_to: "motorcycle", alias_kind: "model", brand_rank: 0}
+          - {alias: "spark", brand: "Chevrolet", applies_to: "car", alias_kind: "model", brand_rank: 0}
+      - input: ref('model_tokens')
+        rows:
+          - {token: "vendo", applies_to: "both", rule: "drop", reason: "ad_word"}
+          - {token: "impecable", applies_to: "both", rule: "drop", reason: "ad_word"}
+          - {token: "excelente", applies_to: "both", rule: "drop", reason: "ad_word"}
+          - {token: "estado", applies_to: "both", rule: "drop", reason: "spec_word"}
+          - {token: "papeles", applies_to: "both", rule: "drop", reason: "document"}
+          - {token: "al", applies_to: "both", rule: "drop", reason: "function_word"}
+          - {token: "dia", applies_to: "both", rule: "drop", reason: "function_word"}
+          - {token: "roja", applies_to: "both", rule: "drop", reason: "color"}
+          - {token: "azul", applies_to: "both", rule: "drop", reason: "color"}
+          - {token: "moto", applies_to: "motorcycle", rule: "drop", reason: "vertical_word"}
+          - {token: "cuatrimoto", applies_to: "motorcycle", rule: "drop", reason: "vertical_word"}
+          - {token: "motocarro", applies_to: "motorcycle", rule: "drop", reason: "vertical_word"}
+          - {token: "grand", applies_to: "car", rule: "join", reason: "model_family"}
+          - {token: "clase", applies_to: "car", rule: "join", reason: "model_family"}
+      - input: ref('model_aliases')
+        rows:
+          - {alias: "mt03", model: "mt-03", brand: "Yamaha", applies_to: "motorcycle"}
+          - {alias: "nmax155", model: "nmax", brand: "Yamaha", applies_to: "motorcycle"}
     expect:
       rows:
-        - {listing_id: "a", brand: "Yamaha", model: "xtz"}
-        - {listing_id: "b", brand: "Yamaha", model: "xtz"}
-        # Resolved by the make, so the model falls back to the positional rule, which
-        # takes the first remaining token -- here the seller's verb. Known wart; the
-        # case is kept so a future fix has something to flip.
-        - {listing_id: "c", brand: "Suzuki", model: "vendo"}
-        - {listing_id: "d", brand: "Hero", model: "hunk"}
-        - {listing_id: "e", brand: "PLR", model: "shark"}
-        - {listing_id: "f", brand: "Desconocida", model: "excelente"}
-        - {listing_id: "g", brand: "Chevrolet", model: "spark"}
+        - {listing_id: "a", brand: "Yamaha", model: "xtz", is_quad: false, is_cargo: false}
+        - {listing_id: "b", brand: "Yamaha", model: "xtz", is_quad: false, is_cargo: false}
+        - {listing_id: "c", brand: "Suzuki", model: "agility", is_quad: false, is_cargo: false}
+        - {listing_id: "d", brand: "Hero", model: "hunk", is_quad: false, is_cargo: false}
+        - {listing_id: "e", brand: "PLR", model: "shark", is_quad: true, is_cargo: false}
+        - {listing_id: "f", brand: "Desconocida", model: null, is_quad: false, is_cargo: false}
+        - {listing_id: "g", brand: "Chevrolet", model: "spark", is_quad: false, is_cargo: false}
+        - {listing_id: "h", brand: "Yamaha", model: "nmax", is_quad: false, is_cargo: false}
+        - {listing_id: "i", brand: "Mazda", model: "2", is_quad: false, is_cargo: false}
+        - {listing_id: "j", brand: "Mercedes-Benz", model: "clase gle", is_quad: false, is_cargo: false}
+        - {listing_id: "k", brand: "Voge", model: "ds300", is_quad: false, is_cargo: false}
+        - {listing_id: "l", brand: "AKT", model: "nkd", is_quad: false, is_cargo: false}
+        - {listing_id: "m", brand: "Yamaha", model: "mt-03", is_quad: false, is_cargo: false}
+        - {listing_id: "n", brand: "KTM", model: "390", is_quad: false, is_cargo: false}
+        - {listing_id: "o", brand: "AKT", model: "carguero", is_quad: false, is_cargo: true}

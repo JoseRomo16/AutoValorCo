@@ -129,6 +129,84 @@ Cobertura de features sacadas del título, sin peticiones extra:
 La marca de motos era 80,4 % hasta el 2026-10-06, cuando el mapa modelo → marca del seed
 subió 290 anuncios. Ver [Resolver la marca de las motos](#resolver-la-marca-de-las-motos).
 
+### La limpieza del catálogo (2026-10-21)
+
+Hecha **sin una sola petición nueva**: todo sale de títulos ya capturados. El motivo es de
+producto —los desplegables del formulario mostraban la basura del token `model`— pero el
+efecto llega al modelo, porque `brand` y `model` son sus dos features de más peso.
+
+Las reglas son **por tipo de vehículo**, y eso no es un detalle de implementación: `1.6` es
+cilindrada en un carro y nada en una moto, mientras que un número pelado **sí** es un modelo
+de moto (KTM 390, BMW 1200) y nunca uno de carro. Una regla única borraría el catálogo de
+KTM o dejaría las cilindradas de Mazda como modelos.
+
+| | Carros | Motos |
+| --- | --- | --- |
+| Anuncios en gold | 7.639 | 4.052 → **4.041** |
+| Sin marca resolver | 62 (0,8 %) | 504 (12,4 %) |
+| Sin marca resolver, después | **1** | **329 (8,1 %)** |
+| Marca resuelta | 99,2 % → **99,99 %** | 87,6 % → **91,9 %** |
+| Marcas en el catálogo | 47 → **70** | 33 → **43** |
+| Tokens de modelo | 507 → **534** | 821 → **767** |
+
+Los tokens de carros **suben** a propósito: `clase` era un solo nivel con 405 de los 481
+Mercedes-Benz dentro, y ahora son `clase c`, `clase gle`, `clase glc`, `clase gla`… Es el
+cambio más probable detrás del peor segmento de carros (Mercedes-Benz, 19,9 % de MAPE, el
+único por encima de la meta), y se mide en el Paso 0b.
+
+Cuatro piezas, todas en dbt y con sus mapas versionados como seeds:
+
+- **`vehicle_brands` gana una columna `brand_rank`.** 0 es fabricante, 1 es distribuidor
+  que además vende otras marcas con su nombre (AKT, Victory, y Auteco, que ahora apunta a
+  Victory en vez de ser una marca propia). Un fabricante le gana a un distribuidor, así que
+  "Akt Voge Ds300" es una Voge y "Auteco Kymco Twist" una Kymco; el distribuidor sigue
+  ganando todos los títulos donde no se nombra otra marca, así que no pierde su catálogo.
+  **Es la única excepción deliberada a la aditividad** y tiene test propio.
+- **`model_tokens`** (331 filas) lista los tokens que nunca son un modelo, con qué hacer al
+  encontrarlos. `drop` salta el token y sigue —el verbo del vendedor, el estado, los
+  papeles, el color, el tipo de moto, la dirección del concesionario—; sin esto el modelo de
+  un título que nombraba su marca era la primera palabra que apareciera, que en "Vendo
+  Suzuki Agility 125" era "vendo". `join` se queda con el token y le pega el siguiente,
+  porque la palabra sola nombra una familia: "Clase", "Serie", "Land", "Model".
+- **`model_aliases`** (96 filas) deja una sola escritura por modelo. `v-strom` llegaba en
+  cinco grafías, `nmax` en seis, `himalayan` en tres.
+- **`colombian_departments`** normaliza el nombre contra un slug sin tildes ni mayúsculas,
+  así que "Valle Del Cauca" pasa a "Valle del Cauca" y una grafía que nadie ha capturado
+  todavía también resuelve. Los 32 departamentos están en el seed, no solo los capturados.
+  La API acepta las dos formas y normaliza (`api.features.resolve_department`), porque el
+  sitio y el servicio no se despliegan a la vez.
+
+Dos arreglos que solo aparecieron al medir, y los dos valían cientos de filas:
+
+- **La marca se quita del texto como alias completo y de mayor a menor longitud.** Quitar
+  primero el alias corto se come el delimitador que el largo necesitaba: dejaba "benz" como
+  modelo de los 481 Mercedes-Benz y "am" en 40 Can-Am. Con el orden invertido, desaparecen.
+- **Quitar solo el nombre canónico no bastaba.** Los 77 Citroën tenían "citroën" como
+  modelo, porque el título lo escribe con diéresis y la marca canónica no.
+
+Lo que sale y lo que se marca:
+
+| | Filas | Qué se hizo |
+| --- | --- | --- |
+| Bicicletas, bicimotos, patinetas | 11 | fuera de gold, `invalid_reason = 'not_a_motor_vehicle'` |
+| Cuatrimotos, buggies, side-by-sides | 123 | `is_quad`, como antes (+ `cuatriciclo` al patrón) |
+| Motocarros, cargueros, tricargos | 15 | `is_cargo`, columna y feature nuevos |
+
+`is_cargo` es feature solo de motos, igual que `is_quad`. Son 15 filas: está para que la
+población sea separable, no porque se espere que mueva el MAPE.
+
+El nombre de presentación no se guarda dos veces. `features/naming.py` lo deriva con una
+regla —sigla arriba, palabra con mayúscula inicial, nombre con guion por segmentos— y
+`catalog.json` lo publica resuelto por marca, modelo y departamento, así que el desplegable
+y la tarjeta de `/explain` escriben "CX-30" igual. La regla no alcanza para "bZ4X" ni para
+distinguir "Rio" de "RZR", y esas dos listas están en el módulo, medidas contra el lago.
+
+**Lo que sigue sucio y no se tocó**: en BMW y Yamaha el token de modelo es solo la primera
+palabra, así que "BMW R 1250 GS" sale como `r` (91 anuncios), y hay `f` (53), `g` (40) y
+`mt` (40). Es la limitación de siempre —`split_part(..., ' ', 1)`—, no algo que la limpieza
+haya introducido, y arreglarla cambia los niveles dominantes de dos marcas grandes, así que
+es una decisión aparte y no un paso de higiene.
+
 ### F2 — Modelación (cerrada)
 
 Los cinco pasos están cerrados: partición honesta, línea base, ensambles afinados, banda
