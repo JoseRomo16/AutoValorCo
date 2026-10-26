@@ -2,7 +2,7 @@
   "format": 2,
   "vehicle_type": "motorcycle",
   "version": "2026-10-25.12948",
-  "saved_at": "2026-10-25T21:43:44+00:00",
+  "saved_at": "2026-10-26T17:48:03+00:00",
   "spec": {
     "numeric": [
       "vehicle_age_years",
@@ -958,6 +958,11 @@
     "coverage": 0.7935627081021087,
     "mean_relative_width": 0.8376683239188933,
     "n": 901,
+    "gate": {
+      "min_coverage": 0.78,
+      "max_coverage": 0.82,
+      "max_relative_width": 0.6
+    },
     "failures": [
       "mean width 84% of the estimate, above 60%"
     ],

@@ -117,6 +117,21 @@ export type LabelFailureCode = {
   message: string;
 };
 
+/**
+ * The rule the label gate is, as three thresholds rather than three typed-in numbers.
+ *
+ * Required, unlike `baseline_mape` and the temporal metrics: those are measurements a
+ * format-1 bundle genuinely lacks, and a page can say nothing instead. This one describes
+ * the rule the same page is explaining, so a zero would print "0 %" into a sentence about
+ * what the band has to achieve. The bundle is a file committed next to this code, not a
+ * response from a service that may be older, so the build is the right place to fail.
+ */
+export type LabelGate = {
+  min_coverage: number;
+  max_coverage: number;
+  max_relative_width: number;
+};
+
 /** The second measurement, on a partition ordered by date. Null while the lake is young. */
 export type TemporalMetrics = {
   mape: number;
@@ -144,6 +159,8 @@ export type ServedModelInfo = {
   publishes_label: boolean;
   label_failures: string[];
   label_failure_codes: LabelFailureCode[];
+  /** The thresholds `publishes_label` was decided against. The same for both verticals. */
+  label_gate: LabelGate;
   temporal: TemporalMetrics;
   trained_on_rows: number;
   n_train: number;
@@ -167,7 +184,12 @@ type BundleManifest = {
     uncalibrated_coverage?: number;
   };
   metrics_temporal?: TemporalMetrics;
-  label: { publishes_label: boolean; failures: string[]; failure_codes?: LabelFailureCode[] };
+  label: {
+    publishes_label: boolean;
+    failures: string[];
+    failure_codes?: LabelFailureCode[];
+    gate: LabelGate;
+  };
   lake: { rows: number; n_train: number };
 };
 
@@ -198,6 +220,20 @@ export function catalogueContrast(): CatalogueContrastRow[] {
 }
 
 /**
+ * Read the label rule the served bundles were judged against.
+ *
+ * Separate from `servedModels` because the gate is a property of the rule, not of a
+ * vertical: both bundles carry the same three thresholds, and a page describing the rule
+ * should not have to pick a vehicle type to learn what it says. Reads the car bundle
+ * because every bundle carries it; a disagreement between the two would mean they were
+ * exported by different code, which `make export-model` writes in one pass.
+ */
+export function labelGate(): LabelGate {
+  const bundle = readJson<BundleManifest>(path.join(MODELS_DIR, "car", "model.json"));
+  return bundle.label.gate;
+}
+
+/**
  * Read both served bundles' own manifests.
  *
  * Straight from `artifacts/models/`, which is what the API image serves, so the
@@ -225,6 +261,7 @@ export function servedModels(): ServedModelInfo[] {
       publishes_label: bundle.label.publishes_label,
       label_failures: bundle.label.failures,
       label_failure_codes: bundle.label.failure_codes ?? [],
+      label_gate: bundle.label.gate,
       temporal: bundle.metrics_temporal ?? null,
       trained_on_rows: bundle.lake.rows,
       n_train: bundle.lake.n_train,

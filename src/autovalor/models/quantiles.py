@@ -87,6 +87,47 @@ double: every honest listing lands inside it and the label says nothing.
 
 
 @dataclass(frozen=True)
+class LabelGate:
+    """The three thresholds the label gate is made of, as data.
+
+    Exists so the product can state the rule without anyone typing 78, 82 or 60 into a
+    component. :class:`LabelFailure` already publishes a ``limit``, but only for the rule a
+    vertical *failed*: a vertical that passes carries no limits at all, and the coverage
+    window never appears in full because a failure is one-sided by construction. The page
+    has to describe the whole rule either way, so the whole rule is exported.
+
+    These are the rule, not a measurement, so they move only by editing the constants
+    above — which is a product decision taken against the holdout, never a tuning knob.
+
+    Attributes:
+        min_coverage: Lowest held-out coverage that still earns a label, as a fraction.
+        max_coverage: Highest, for the reason given on :data:`MIN_LABEL_COVERAGE`.
+        max_relative_width: Widest mean band, as a share of the estimate.
+    """
+
+    min_coverage: float
+    max_coverage: float
+    max_relative_width: float
+
+    def to_json(self) -> dict[str, float]:
+        """Return the JSON form written into the bundle manifest."""
+        return {
+            "min_coverage": self.min_coverage,
+            "max_coverage": self.max_coverage,
+            "max_relative_width": self.max_relative_width,
+        }
+
+
+LABEL_GATE = LabelGate(
+    min_coverage=MIN_LABEL_COVERAGE,
+    max_coverage=MAX_LABEL_COVERAGE,
+    max_relative_width=MAX_LABEL_RELATIVE_WIDTH,
+)
+"""The published form of the gate. Pinned to the constants above by a test, so the rule and
+what the product says the rule is cannot drift apart."""
+
+
+@dataclass(frozen=True)
 class FittedInterval:
     """Three quantile models plus the conformal correction that calibrates them.
 

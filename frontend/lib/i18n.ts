@@ -645,12 +645,18 @@ export const copy = {
         es: "Calificamos un anuncio como ganga, justo o caro solo si el rango de ese tipo de vehículo aguanta dos pruebas.",
         en: "We rate a listing as a bargain, fair or expensive only if that vehicle type's range passes two tests.",
       },
-      coverageTitle: { es: "Acertar entre el 78 % y el 82 % de las veces", en: "Be right between 78 % and 82 % of the time" },
+      coverageTitle: {
+        es: "Acertar entre el {min} y el {max} de las veces",
+        en: "Be right between {min} and {max} of the time",
+      },
       coverageWhy: {
         es: "La ventana tiene dos lados a propósito. Un rango que acierta de menos marca «ganga» anuncios normales, y uno que acierta de más mete en «justo» anuncios mal preciados.",
         en: "The window is two-sided on purpose. A range that is right too rarely flags ordinary listings as bargains, and one that is right too often absorbs mispriced listings into “fair”.",
       },
-      widthTitle: { es: "Medir 60 % del precio estimado o menos", en: "Measure 60 % of the estimated price or less" },
+      widthTitle: {
+        es: "Medir {max} del precio estimado o menos",
+        en: "Measure {max} of the estimated price or less",
+      },
       widthWhy: {
         es: "Un rango más ancho que eso abarca casi cualquier precio, así que calificar con él no aporta información.",
         en: "A range wider than that spans almost any price, so a rating based on it carries no information.",

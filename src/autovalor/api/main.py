@@ -22,6 +22,9 @@ rather than from REST habit:
     Real, not stubs. ``/health`` separates "the process is up" from "a model is loaded",
     because a checkout without artifacts is the second and a platform probe needs to tell.
 
+``/`` redirects to ``/docs`` and is kept out of the schema: it is a courtesy for whoever
+opens the deployed URL, not part of the contract the frontend is written against.
+
 Models load once at start-up and live in application state. A per-request load would read
 and parse four boosters per call; a module-level global would make the tests fight over one
 instance.
@@ -29,7 +32,7 @@ instance.
 
 import json
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Any
@@ -37,6 +40,7 @@ from typing import Annotated, Any
 import numpy as np
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from autovalor import __version__
 from autovalor.api.features import to_frame
@@ -50,6 +54,7 @@ from autovalor.api.schemas import (
     ExplainResponse,
     Factor,
     HealthResponse,
+    LabelGate,
     LocalizedText,
     ModelInfoResponse,
     PrecisionCode,
@@ -147,6 +152,24 @@ def _catalog_entry(level: NamedCount) -> CatalogEntry:
     return CatalogEntry(name=level.name, listings=level.listings, display_name=level.display_name)
 
 
+@app.get(
+    "/",
+    summary="Go to the interactive documentation",
+    response_class=RedirectResponse,
+    status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+    include_in_schema=False,
+)
+def root() -> RedirectResponse:
+    """Send the root to ``/docs``.
+
+    The deployed URL is what gets pasted into a CV and a README, and a bare FastAPI root
+    answers ``{"detail":"Not Found"}`` there. 307 rather than 301: a permanent redirect is
+    cached by the browser indefinitely, which would outlive any later decision to serve
+    something else at the root.
+    """
+    return RedirectResponse(url="/docs", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
 @app.get("/health", summary="Liveness and readiness")
 def health(models: ModelsDep) -> HealthResponse:
     """Report whether the service is up and whether it can actually answer."""
@@ -178,7 +201,32 @@ def model_info(models: ModelsDep) -> ModelInfoResponse:
         for model in (models[key] for key in sorted(models))
     ]
     version = verticals[0].model_version if verticals else "unreleased"
-    return ModelInfoResponse(version=version, target="log_price", verticals=verticals)
+    return ModelInfoResponse(
+        version=version,
+        target="log_price",
+        verticals=verticals,
+        label_gate=_label_gate(models),
+    )
+
+
+def _label_gate(models: Mapping[VehicleType, ServedModel]) -> LabelGate | None:
+    """Return the gate the served bundles were judged against.
+
+    Read from the bundles rather than from this module's constants, so the rule published
+    describes the models actually loaded. Every vertical is judged against the same
+    thresholds, so disagreement between two loaded bundles means they were exported by
+    different code — reporting nothing is the honest answer to that, because picking one
+    would describe one vertical's verdict as if it were the other's.
+    """
+    gates = {
+        (gate.min_coverage, gate.max_coverage, gate.max_relative_width)
+        for model in models.values()
+        if (gate := model.label_gate) is not None
+    }
+    if len(gates) != 1:
+        return None
+    minimum, maximum, width = gates.pop()
+    return LabelGate(min_coverage=minimum, max_coverage=maximum, max_relative_width=width)
 
 
 @app.get(

@@ -2,7 +2,7 @@
   "format": 2,
   "vehicle_type": "car",
   "version": "2026-10-25.12948",
-  "saved_at": "2026-10-25T21:43:42+00:00",
+  "saved_at": "2026-10-26T17:48:01+00:00",
   "spec": {
     "numeric": [
       "vehicle_age_years",
@@ -735,6 +735,11 @@
     "coverage": 0.8004736530491415,
     "mean_relative_width": 0.39805066333023165,
     "n": 1689,
+    "gate": {
+      "min_coverage": 0.78,
+      "max_coverage": 0.82,
+      "max_relative_width": 0.6
+    },
     "failures": [],
     "failure_codes": [],
     "precision_notice": null

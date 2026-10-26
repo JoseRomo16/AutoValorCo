@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { Methodology } from "@/components/Methodology";
 import { PageIntro } from "@/components/PageIntro";
-import { manifest, segmentError, servedModels } from "@/lib/results";
+import { labelGate, manifest, segmentError, servedModels } from "@/lib/results";
 
 export const metadata: Metadata = { title: "Metodología" };
 
@@ -20,6 +20,7 @@ export default function MethodologyPage() {
         models={servedModels()}
         manifest={manifest()}
         segments={segmentError()}
+        gate={labelGate()}
       />
     </>
   );

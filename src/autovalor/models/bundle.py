@@ -41,10 +41,12 @@ from autovalor.models.catalog import VehicleCatalog, load_catalog, save_catalog
 from autovalor.models.dataset import VehicleType
 from autovalor.models.metrics import IntervalReport
 from autovalor.models.quantiles import (
+    LABEL_GATE,
     QUANTILES,
     FittedInterval,
     Label,
     LabelFailure,
+    LabelGate,
     LabelPolicy,
 )
 from autovalor.models.spec import FeatureSpec
@@ -69,10 +71,12 @@ BUNDLE_FORMAT = 2
 
 READABLE_BUNDLE_FORMATS = frozenset({1, 2})
 """What :func:`load_bundle` accepts. Format 2 only added fields — the uncalibrated band,
-the baseline error, the temporal measurement, the label failure codes — so a format-1
-manifest loads with those absent, which is what it meant. The service and the bundle are
-deployed separately, so a loader that refused the previous format would turn an ordinary
-deploy order into an outage."""
+the baseline error, the temporal measurement, the label failure codes, and the label gate
+— so a format-1 manifest loads with those absent, which is what it meant. The same holds
+inside format 2: the gate arrived after the format number, and a manifest written before
+it loads with ``label_gate`` as ``None``. The service and the bundle are deployed
+separately, so a loader that refused the previous format would turn an ordinary deploy
+order into an outage."""
 
 
 class BundleError(RuntimeError):
@@ -104,6 +108,10 @@ class ServedModel:
         lake: Which lake the bundle was trained on.
         catalog: The makes, models, departments and ranges the model was fitted on, for
             ``/catalog``. ``None`` for a bundle exported before catalogues existed.
+        label_gate: The thresholds :attr:`label` was judged against, read back from the
+            manifest rather than from this process's constants: the published rule has to
+            describe the model actually loaded, and an image can serve a bundle older than
+            its own code. ``None`` on a bundle exported before the gate was published.
     """
 
     vehicle_type: VehicleType
@@ -117,6 +125,7 @@ class ServedModel:
     interval_uncalibrated_coverage: float | None = None
     interval_uncalibrated_mean_relative_width: float | None = None
     metrics_temporal: dict[str, float] | None = None
+    label_gate: LabelGate | None = None
 
     def predict_log_price(self, frame: pd.DataFrame) -> Any:
         """Predict ``log(price)`` for a gold-shaped frame."""
@@ -264,6 +273,10 @@ def save_bundle(
             "coverage": label.coverage,
             "mean_relative_width": label.mean_relative_width,
             "n": label.n,
+            # The rule itself, not this vertical's verdict on it. `failure_codes` carries a
+            # limit only for the rule that failed, so a vertical that passes would leave
+            # the methodology page with nothing to quote but a typed-in number.
+            "gate": LABEL_GATE.to_json(),
             # Text and codes, side by side and saying the same thing. The text is what
             # shipped and what an older reader looks for; the codes are what a reader that
             # has to translate the sentence needs.
@@ -287,9 +300,20 @@ def _quantile_name(quantile: float) -> str:
 
 
 def _write_booster(booster: lgb.Booster, path: Path) -> None:
-    """Write a booster as gzipped text."""
-    with gzip.open(path, "wt", encoding="utf-8", compresslevel=GZIP_LEVEL) as handle:
-        handle.write(booster.model_to_string())
+    """Write a booster as gzipped text, reproducibly.
+
+    ``mtime=0`` rather than the default clock reading. gzip stores a timestamp in its
+    header, so exporting the same booster twice produced two files that differed in four
+    bytes and nothing else. These artifacts are committed, so that turned every re-export
+    into roughly 10 MB of new blobs in a public repository's history for a model that had
+    not changed. With a fixed timestamp, re-exporting an unchanged model is a no-op in git
+    and the bundle is checkable: same inputs, same bytes.
+    """
+    with (
+        path.open("wb") as raw,
+        gzip.GzipFile(fileobj=raw, mode="wb", compresslevel=GZIP_LEVEL, mtime=0) as handle,
+    ):
+        handle.write(booster.model_to_string().encode("utf-8"))
 
 
 def load_bundle(directory: Path) -> ServedModel:
@@ -362,12 +386,24 @@ def load_bundle(directory: Path) -> ServedModel:
         metrics_temporal=manifest.get("metrics_temporal"),
         lake=manifest["lake"],
         catalog=load_catalog(directory),
+        label_gate=_label_gate(manifest["label"].get("gate")),
     )
 
 
 def _optional_float(value: Any) -> float | None:
     """Read a manifest field that may be absent or explicitly null."""
     return None if value is None else float(value)
+
+
+def _label_gate(value: Any) -> LabelGate | None:
+    """Read the gate a manifest recorded, or ``None`` when it predates the field."""
+    if value is None:
+        return None
+    return LabelGate(
+        min_coverage=float(value["min_coverage"]),
+        max_coverage=float(value["max_coverage"]),
+        max_relative_width=float(value["max_relative_width"]),
+    )
 
 
 def _load_tree(path: Path, spec: FeatureSpec, levels: dict[str, pd.Index]) -> FittedTree:

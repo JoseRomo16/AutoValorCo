@@ -16,7 +16,7 @@
 
 import { useLang } from "./LanguageProvider";
 import { API_DOCS_URL, REPO_URL } from "./SiteChrome";
-import type { Manifest, SegmentErrorRow, ServedModelInfo } from "@/lib/results";
+import type { LabelGate, Manifest, SegmentErrorRow, ServedModelInfo } from "@/lib/results";
 import { copy, fill } from "@/lib/i18n";
 import type { Localized } from "@/lib/i18n";
 import { integer, isoDay, isoMonth, modelDate, percent, points } from "@/lib/format";
@@ -96,10 +96,12 @@ export function Methodology({
   models,
   manifest,
   segments,
+  gate,
 }: {
   models: ServedModelInfo[];
   manifest: Manifest;
   segments: SegmentErrorRow[];
+  gate: LabelGate;
 }) {
   const { lang, t } = useLang();
 
@@ -320,9 +322,18 @@ export function Methodology({
 
       <Block id="etiqueta" title={t(copy.method.rule.title)}>
         <p>{t(copy.method.rule.lead)}</p>
-        <p className="font-medium">{t(copy.method.rule.coverageTitle)}</p>
+        <p className="font-medium">
+          {fill(copy.method.rule.coverageTitle, lang, {
+            min: percent(gate.min_coverage * 100, lang, 0),
+            max: percent(gate.max_coverage * 100, lang, 0),
+          })}
+        </p>
         <p className="text-sm text-slate-600 dark:text-slate-400">{t(copy.method.rule.coverageWhy)}</p>
-        <p className="font-medium">{t(copy.method.rule.widthTitle)}</p>
+        <p className="font-medium">
+          {fill(copy.method.rule.widthTitle, lang, {
+            max: percent(gate.max_relative_width * 100, lang, 0),
+          })}
+        </p>
         <p className="text-sm text-slate-600 dark:text-slate-400">{t(copy.method.rule.widthWhy)}</p>
 
         <h3 className="pt-2 font-medium">{t(copy.method.rule.stateTitle)}</h3>

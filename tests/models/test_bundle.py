@@ -1,3 +1,5 @@
+import json
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -15,6 +17,7 @@ from autovalor.models.bundle import (
 )
 from autovalor.models.dataset import split_listings
 from autovalor.models.export import default_version, export
+from autovalor.models.quantiles import LABEL_GATE
 from autovalor.models.train import ModelResult, train_model
 
 from .conftest import make_gold_frame
@@ -108,6 +111,63 @@ def test_the_label_decision_travels_with_the_model(
     assert loaded.label.n > 0
     assert 0.0 <= loaded.label.coverage <= 1.0
     assert isinstance(loaded.label.publishes_label, bool)
+
+
+def test_saving_the_same_model_twice_writes_the_same_bytes(
+    saved: tuple[Path, pd.DataFrame, ModelResult],
+    tmp_path: Path,
+) -> None:
+    # gzip stores a timestamp in its header, so this used to differ in four bytes per file
+    # and nothing else. The bundles are committed, so that was ~10 MB of new blobs in a
+    # public repository's history every time an unchanged model was re-exported.
+    directory, _, result = saved
+    assert result.interval_model is not None and result.label is not None
+    manifest = json.loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
+
+    save_bundle(
+        tmp_path,
+        vehicle_type=result.vehicle_type,
+        version=manifest["version"],
+        point=result.model,  # type: ignore[arg-type]
+        interval=result.interval_model,
+        label=result.label,
+        metrics=manifest["metrics"],
+        lake=manifest["lake"],
+    )
+
+    boosters = sorted(path.name for path in directory.glob("*.txt.gz"))
+    assert boosters, "no boosters were written"
+    for name in boosters:
+        assert (tmp_path / name).read_bytes() == (directory / name).read_bytes(), name
+
+
+def test_the_gate_the_decision_was_taken_against_travels_too(
+    saved: tuple[Path, pd.DataFrame, ModelResult],
+) -> None:
+    # Read back from the manifest rather than from this process's constants, so an image
+    # serving an older bundle publishes the rule that bundle was actually judged against.
+    directory, _, _ = saved
+    loaded = load_bundle(directory)
+
+    assert loaded.label_gate == LABEL_GATE
+
+
+def test_a_bundle_without_a_gate_still_loads(
+    saved: tuple[Path, pd.DataFrame, ModelResult],
+    tmp_path: Path,
+) -> None:
+    # The field is additive, so a bundle exported before it existed has to keep serving.
+    directory, _, _ = saved
+    for item in directory.iterdir():
+        shutil.copy2(item, tmp_path / item.name)
+    manifest = json.loads((tmp_path / MANIFEST_NAME).read_text(encoding="utf-8"))
+    del manifest["label"]["gate"]
+    (tmp_path / MANIFEST_NAME).write_text(json.dumps(manifest), encoding="utf-8")
+
+    loaded = load_bundle(tmp_path)
+
+    assert loaded.label_gate is None
+    assert loaded.label.publishes_label == load_bundle(directory).label.publishes_label
 
 
 def test_the_bundle_records_the_lake_it_came_from(
