@@ -18,6 +18,7 @@ from typing import Any
 import pytest
 
 from autovalor.models.bundle import ARTIFACTS_DIR, MANIFEST_NAME
+from autovalor.models.dataset import VEHICLE_TYPES, VehicleType
 from autovalor.readme import (
     LANGUAGES,
     README_PATH,
@@ -34,7 +35,7 @@ from autovalor.readme import (
 
 
 @pytest.fixture(scope="module")
-def models() -> dict[str, Any]:
+def models() -> dict[VehicleType, dict[str, Any]]:
     """The committed bundle manifests."""
     return load_models()
 
@@ -62,53 +63,53 @@ def test_every_language_has_its_block(lang: str) -> None:
 
 @pytest.mark.parametrize("lang", LANGUAGES)
 def test_a_block_carries_its_own_markers(
-    models: dict[str, Any], results: dict[str, Any], lang: str
+    models: dict[VehicleType, dict[str, Any]], results: dict[str, Any], lang: str
 ) -> None:
-    block = render_block(models, results, lang)  # type: ignore[arg-type]
+    block = render_block(models, results, lang)
 
     assert block.startswith(start_marker(lang))
     assert block.endswith(end_marker(lang))
 
 
 def test_each_language_writes_numbers_its_own_way(
-    models: dict[str, Any], results: dict[str, Any]
+    models: dict[VehicleType, dict[str, Any]], results: dict[str, Any]
 ) -> None:
     # A bilingual README that prints 10.3 in the Spanish half reads as machine-translated.
-    spanish = render_block(models, results, "es")  # type: ignore[arg-type]
-    english = render_block(models, results, "en")  # type: ignore[arg-type]
-    mape = float(models["car"]["metrics"]["mape"]) * 100  # type: ignore[index]
+    spanish = render_block(models, results, "es")
+    english = render_block(models, results, "en")
+    mape = float(models["car"]["metrics"]["mape"]) * 100
 
     assert f"{mape:.1f}".replace(".", ",") in spanish
     assert f"{mape:.1f}" in english
 
 
 def test_the_published_error_lands_in_the_block(
-    models: dict[str, Any], results: dict[str, Any]
+    models: dict[VehicleType, dict[str, Any]], results: dict[str, Any]
 ) -> None:
     # Reads the figure from the manifest rather than hard-coding it, so the assertion
     # survives a retrain while still proving the block is wired to the real file.
-    block = render_block(models, results, "es")  # type: ignore[arg-type]
+    block = render_block(models, results, "es")
 
-    for vehicle_type in ("car", "motorcycle"):
-        mape = float(models[vehicle_type]["metrics"]["mape"]) * 100  # type: ignore[index]
+    for vehicle_type in VEHICLE_TYPES:
+        mape = float(models[vehicle_type]["metrics"]["mape"]) * 100
         assert f"{mape:.1f}".replace(".", ",") in block
 
 
 def test_the_label_state_is_the_one_the_bundle_recorded(
-    models: dict[str, Any], results: dict[str, Any]
+    models: dict[VehicleType, dict[str, Any]], results: dict[str, Any]
 ) -> None:
-    block = render_block(models, results, "en")  # type: ignore[arg-type]
+    block = render_block(models, results, "en")
 
-    for vehicle_type in ("car", "motorcycle"):
-        published = models[vehicle_type]["label"]["publishes_label"]  # type: ignore[index]
+    for vehicle_type in VEHICLE_TYPES:
+        published = models[vehicle_type]["label"]["publishes_label"]
         assert ("published" in block) if published else ("withheld" in block)
 
 
 def test_regenerating_twice_changes_nothing(
-    models: dict[str, Any], results: dict[str, Any]
+    models: dict[VehicleType, dict[str, Any]], results: dict[str, Any]
 ) -> None:
-    once = render_readme(README_PATH.read_text(encoding="utf-8"), models, results)  # type: ignore[arg-type]
-    twice = render_readme(once, models, results)  # type: ignore[arg-type]
+    once = render_readme(README_PATH.read_text(encoding="utf-8"), models, results)
+    twice = render_readme(once, models, results)
 
     assert once == twice
 
@@ -151,7 +152,7 @@ def test_check_mode_leaves_the_file_alone(tmp_path: Path) -> None:
 def test_a_bundle_without_the_new_metrics_is_reported_not_rendered(tmp_path: Path) -> None:
     # `baseline_mape` arrived with the October export. A manifest without it must fail
     # loudly here rather than render an empty cell into a published table.
-    for vehicle_type in ("car", "motorcycle"):
+    for vehicle_type in VEHICLE_TYPES:
         directory = tmp_path / vehicle_type
         directory.mkdir()
         manifest = json.loads(
