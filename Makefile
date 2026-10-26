@@ -9,7 +9,7 @@ PAGES ?= 10
 
 .DEFAULT_GOAL := help
 .PHONY: help setup scrape enrich pull-history push-history transform train export-model \
-	results serve test lint format docker-build docker-up clean
+	results readme serve test lint format docker-build docker-up clean
 
 help: ## Show the available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -50,6 +50,9 @@ export-model: ## Train the served model and write it to artifacts/models/ (TRIAL
 
 results: ## Estimate the economic results and export them to docs/ (TRIALS=N)
 	$(RUN) python -m autovalor.analysis.cli $(if $(TRIALS),--trials $(TRIALS),)
+
+readme: ## Regenerate the figures the README publishes, from model.json and docs/results
+	$(RUN) python -m autovalor.readme
 
 serve: ## Run the API locally with autoreload
 	$(RUN) uvicorn autovalor.api.main:app --reload --host $(HOST) --port $(PORT)

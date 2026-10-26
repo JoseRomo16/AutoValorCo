@@ -125,6 +125,7 @@ Copy-Item .env.example .env
 | `make transform` | Corre dbt (silver y gold) + validaciones Pandera     | F1         |
 | `make train`     | Entrena y registra modelos en MLflow                 | F2         |
 | `make results`   | Estima los resultados económicos y los exporta a `docs/` | F3     |
+| `make readme`    | Regenera las cifras de este README desde los archivos | F3        |
 | `make export-model` | Entrena el modelo servido en `artifacts/models/`   | F4         |
 | `make serve`     | Levanta la API en local (`:8000`)                    | F0         |
 | `make web`       | Levanta el frontend en local (`:3000`)               | F4         |
@@ -171,11 +172,38 @@ bien y no dice cuánto vale un año. Las tablas completas, con intervalos de con
 manifiesto de sobre qué lago se midieron, están en
 [`docs/results/`](docs/results/README.md); se regeneran con `make results`.
 
-**Lo que más sorprende: las motos casi no se deprecian con la edad.** Una Yamaha pierde
-0,9 % al año y el intervalo incluye el cero —es decir, estos datos no la distinguen de no
-perder nada—, mientras una Bajaj pierde 6,5 %. En carros el rango va de 4,8 % (Volkswagen)
-a 9,6 % (Ford), y la folk theory se sostiene: las japonesas y coreanas aguantan, las
-premium alemanas y Ford caen al doble de velocidad.
+<!-- results:start:es -->
+
+#### Las cifras del modelo servido
+
+|  | Carros | Motos |
+| --- | ---: | ---: |
+| Anuncios en total | 8.443 | 4.505 |
+| Para entrenar | 6.754 | 3.604 |
+| Para evaluar | 1.689 | 901 |
+| Error medio (MAPE) | **10,3 %** | **22,0 %** |
+| Error medio, partición temporal | 11,6 % | 23,5 % |
+| Referencia OLS | 12,9 % | 34,6 % |
+| Lo que gana el modelo sobre la referencia | 2,6 puntos | 12,5 puntos |
+| Cobertura del rango (objetivo 80 %) | 80,0 % | 79,4 % |
+| Ancho medio del rango | 40 % | 84 % |
+| Etiqueta ganga/justo/caro | publicada | retenida, solo por el ancho |
+
+#### Lo que dicen los datos del mercado
+
+- **Depreciación anual.** En motos va de 0,9 % (Yamaha) a 6,4 % (Bajaj); en carros, de 5,1 % (Volkswagen) a 9,5 % (Ford).
+- **Costo del kilometraje.** Cada 10.000 km restan $ 231.000 en el carro mediano ($ 88 millones, 53.600 km) y $ 121.000 en la moto mediana ($ 15 millones, 17.000 km).
+- **Diferencias regionales.** El mismo carro se pide 7,6 % más caro en Santander que en Bogotá D.C.; en motos la brecha va de 27,0 % (Antioquia) a −24,6 % (Quindío).
+- **Dónde falla más el modelo de carros.** Mercedes-Benz, con 15,3 % de error medio sobre 92 anuncios.
+
+Generado por `make readme` desde `artifacts/models/*/model.json` y `docs/results/`. Modelo `2026-10-25.12948`, con 4 capturas entre 2026-09-30 y 2026-10-19 (19,5 días).
+
+<!-- results:end:es -->
+
+**Lo que más sorprende: las motos casi no se deprecian con la edad.** La marca que menos
+pierde tiene un intervalo de confianza que incluye el cero, así que estos datos no la
+distinguen de no perder nada. En carros la folk theory se sostiene: las japonesas y
+coreanas aguantan, las premium alemanas y Ford caen al doble de velocidad.
 
 ![Depreciación anual por marca, carros](docs/figures/depreciation-car.png)
 
@@ -186,26 +214,21 @@ identidad y casi no pesa estado— pero medida con un método independiente, que
 vuelve una conclusión en vez de una lectura.
 
 **Y el hallazgo que más cambió el plan:** el error en motos no se repartía parejo. Estaba
-concentrado en los anuncios cuya marca no se extraía del título —19,6 % de la vertical, con
-50,2 % de MAPE—; las marcas que sí resuelven van entre 9,7 % y 19,0 %, y **Bajaj ya cumple
-la meta de F2**. Resolver esa marca con un mapa modelo → marca subió la cobertura de 80,4 %
-a **87,6 %** y bajó la vertical de **24,1 % a 22,4 %**, sin una sola petición nueva: salió
-de títulos ya capturados. Es la mejora más grande que ha dado una sola intervención en el
-proyecto, y no vino del modelado.
+concentrado en los anuncios cuya marca no se extraía del título, que tenían más del doble
+del error de las marcas que sí resuelven. Resolver esa marca con un mapa modelo → marca
+bajó el error de la vertical sin una sola petición nueva: salió de títulos ya capturados.
+Es la mejora más grande que ha dado una sola intervención en el proyecto, y no vino del
+modelado. Las cifras de cada corrida están en [`docs/STATUS.md`](docs/STATUS.md).
 
 ![Error por marca, motos](docs/figures/segment-error-motorcycle.png)
 
-Los otros dos resultados:
+Dos matices que las cifras de arriba no cuentan solas:
 
-- **10.000 km cuestan ~216.000 COP** en el carro mediano (89 M, 53.000 km) y ~81.000 COP en
-  la moto mediana (14,9 M, 17.000 km). Por segmento el efecto escala con el valor del
-  vehículo, y en las motos más baratas no es distinguible de cero: ese mercado no cobra el
-  kilometraje.
-- **El mismo carro cuesta 8,6 % más en Santander y 7,1 % más en Antioquia que en Bogotá.**
-  En motos la diferencia regional es mucho mayor: +28 % en Antioquia, −31 % en Quindío.
-  Con el matiz de que las tarjetas patrocinadas se filtran entre regiones, así que
-  `department` dice dónde se publica el anuncio, que no es exactamente dónde está el
-  mercado.
+- **El kilometraje no se cobra igual en todos los segmentos.** El efecto escala con el
+  valor del vehículo, y en las motos más baratas no es distinguible de cero: ese mercado no
+  cobra el kilometraje.
+- **`department` dice dónde se publica el anuncio**, que no es exactamente dónde está el
+  mercado: las tarjetas patrocinadas se filtran entre regiones.
 
 ![Diferencias regionales, motos](docs/figures/regional-motorcycle.png)
 
@@ -256,8 +279,8 @@ Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs
 | Fase   | Objetivo    | Criterio de cierre                                                                                    | Estado      |
 | ------ | ----------- | ----------------------------------------------------------------------------------------------------- | ----------- |
 | **F0** | Requisitos  | Repo inicial, estructura, Makefile y CI en verde                                                      | cerrada     |
-| **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada (7.207 / 3.765) |
-| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | cerrada (carros 11,3 %, motos 22,4 %) |
+| **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada; el lago de hoy, en las cifras de arriba |
+| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | cerrada; carros cumplen la meta, motos no (cifras arriba) |
 | **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación y efectos regionales (Fasecolda: fuera de alcance) | cerrada salvo el índice (necesita 6 meses de histórico) |
 | **F4** | Producto    | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | **actual** — API desplegada; frontend en curso |
 
@@ -325,24 +348,56 @@ worth. Full tables with confidence intervals, plus the manifest recording which 
 were measured on, live in [`docs/results/`](docs/results/README.md); `make results`
 regenerates them.
 
-**The surprise is that motorcycles barely depreciate with age.** A Yamaha loses 0.9 % a
-year and the interval includes zero — this data cannot tell it apart from losing nothing —
-while a Bajaj loses 6.5 %. Cars run from 4.8 % (Volkswagen) to 9.6 % (Ford). That is the
+<!-- results:start:en -->
+
+#### Figures for the served model
+
+|  | Cars | Motorcycles |
+| --- | ---: | ---: |
+| Listings in total | 8,443 | 4,505 |
+| Used for training | 6,754 | 3,604 |
+| Used for evaluation | 1,689 | 901 |
+| Mean error (MAPE) | **10.3 %** | **22.0 %** |
+| Mean error, time-ordered split | 11.6 % | 23.5 % |
+| OLS reference | 12.9 % | 34.6 % |
+| What the model gains over the reference | 2.6 points | 12.5 points |
+| Range coverage (80 % target) | 80.0 % | 79.4 % |
+| Mean range width | 40 % | 84 % |
+| Bargain/fair/expensive label | published | withheld, on width alone |
+
+#### What the market data says
+
+- **Annual depreciation.** Motorcycles run from 0.9 % (Yamaha) to 6.4 % (Bajaj); cars from 5.1 % (Volkswagen) to 9.5 % (Ford).
+- **What mileage costs.** Every 10,000 km take COP 231,000 off the median car (COP 88M, 53,600 km) and COP 121,000 off the median motorcycle (COP 15M, 17,000 km).
+- **Regional spread.** The same car is asked 7.6 % dearer in Santander than in Bogotá D.C.; for motorcycles the gap runs from 27.0 % (Antioquia) to −24.6 % (Quindío).
+- **Where the car model is weakest.** Mercedes-Benz, at 15.3 % mean error over 92 listings.
+
+Generated by `make readme` from `artifacts/models/*/model.json` and `docs/results/`. Model `2026-10-25.12948`, from 4 captures between 2026-09-30 and 2026-10-19 (19.5 days).
+
+<!-- results:end:en -->
+
+**The surprise is that motorcycles barely depreciate with age.** The slowest-depreciating
+brand has a confidence interval that includes zero, so this data cannot tell it apart from
+losing nothing. Cars behave the way folk theory says: the Japanese and Korean makes hold
+their value and the German premium brands and Ford fall about twice as fast. That is the
 same story SHAP told from the other side, that the motorcycle model leans on identity and
 barely on condition, but measured by an independent method.
 
-Two more: **10,000 km cost ~216,000 COP** on the median car and ~81,000 COP on the median
-motorcycle, scaling with the vehicle's value and indistinguishable from zero on the
-cheapest motorcycles; and **the same car is 8.6 % dearer in Santander than in Bogotá**,
-with a far wider regional spread for motorcycles (+28 % in Antioquia, −31 % in Quindío).
-
 Breaking the served model's error down by segment turned up the most actionable result:
-the motorcycle vertical's 24.1 % was concentrated in the listings whose brand could not be
-parsed out of the title — 19.6 % of the vertical, at 50.2 % MAPE, against 9.7 %–19.0 % for
-every brand that did resolve. Mapping model names back to their make lifted brand coverage
-from 80.4 % to **87.6 %** and the vertical from **24.1 % to 22.4 %**, with no new requests:
-it all came out of titles already captured. The largest single improvement the project has
-had, and it did not come from modeling.
+the motorcycle error was concentrated in the listings whose brand could not be parsed out
+of the title, which carried more than double the error of the brands that did resolve.
+Mapping model names back to their make brought the error down with no new requests: it all
+came out of titles already captured. The largest single improvement the project has had,
+and it did not come from modeling. Run-by-run figures are in
+[`docs/STATUS.md`](docs/STATUS.md).
+
+Two caveats the figures above do not carry on their own:
+
+- **Mileage is not priced the same across segments.** The effect scales with the vehicle's
+  value and is indistinguishable from zero on the cheapest motorcycles: that market does
+  not charge for mileage.
+- **`department` records where a listing is published**, which is not quite where the
+  market is: sponsored cards leak across regions.
 
 ### The app
 
@@ -373,8 +428,8 @@ Detailed status, open decisions and how to resume: **[`docs/STATUS.md`](docs/STA
 | Phase  | Goal        | Exit criteria                                                                                              | Status      |
 | ------ | ----------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
 | **F0** | Requirements| Initial repo, structure, Makefile and green CI                                                             | closed      |
-| **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed (7,207 / 3,765) |
-| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | closed      |
+| **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed; today's lake is in the figures above |
+| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | closed; cars meet the target, motorcycles do not (figures above) |
 | **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, regional effects (Fasecolda: out of scope)                  | closed but the index |
 | **F4** | Product     | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment | **current** — API deployed; frontend in progress |
 

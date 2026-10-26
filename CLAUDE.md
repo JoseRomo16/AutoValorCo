@@ -38,6 +38,7 @@ docs/          # ADRs, diccionario de datos, results/ (JSON y CSV versionados) y
 - `make train` entrena y registra modelos en MLflow (hedónico y LightGBM; CatBoost solo con `--model catboost`)
 - `make export-model` entrena el modelo servido y lo escribe en `artifacts/models/` (es lo que va dentro de la imagen)
 - `make results` estima los resultados económicos de F3 y los exporta a `docs/results` y `docs/figures`
+- `make readme` regenera las cifras del README desde `model.json` y `docs/results`; `tests/test_readme.py` falla si quedó desactualizado
 - `make serve` levanta la API en local
 - `make web` levanta el frontend en local; `make web-build` hace el export estático; `make web-lint` corre ESLint + tsc
 - `make test` corre pytest; `make lint` corre ruff + mypy
@@ -79,15 +80,21 @@ lados a propósito: cubrir de menos dispara "ganga" en anuncios normales, cubrir
 en "justo" anuncios mal preciados.
 
 Si una vertical no cumple, se publica igual pero con **precio estimado, rango y aviso de
-precisión, sin etiqueta** — hoy es el caso de motos (83,6 % y 84 %). No inventes una
-excepción ni subas el umbral para que pase: el gate se evalúa sobre el holdout y arreglarlo
-contra el holdout lo vuelve una cifra en muestra.
+precisión, sin etiqueta** — hoy es el caso de motos, que **falla solo el ancho**: su
+cobertura ya entra en la ventana. No inventes una excepción ni subas el umbral para que
+pase: el gate se evalúa sobre el holdout y arreglarlo contra el holdout lo vuelve una cifra
+en muestra.
+
+Los tres umbrales no se teclean en ningún lado: `LABEL_GATE` en `models/quantiles.py` los
+publica, `save_bundle` los escribe en `model.json` bajo `label.gate` y `/model-info` los
+devuelve en `label_gate`. **Las cifras vigentes de cada vertical están en el bloque
+generado del README** (`make readme`); no las copies a mano a ningún documento.
 
 ## Fases y criterios de cierre
 
 - F0 Requisitos: repo inicial, CI verde, estructura y Makefile. (cerrada)
 - F1 Datos: piloto de 1.000 anuncios para medir σ del error; cierre con ≥ 6.000 carros y ≥ 2.600 motos limpios (captura bruta ~7.500 y ~3.500). Captura semanal activa desde aquí. (cerrada)
-- F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (**cerrada**: carros 11,3 % y publican etiqueta; motos 24,1 % y publican precio + rango sin etiqueta, por la regla de abajo. El modelo servido es LightGBM.)
+- F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (**cerrada**: carros cumplen la meta y publican etiqueta; motos no llegan y publican precio + rango sin etiqueta, por la regla de arriba. El modelo servido es LightGBM. Cifras vigentes: bloque generado del README.)
 - F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, efectos regionales y costo del kilometraje. (**cerrada** salvo el índice mensual, que espera histórico hasta ~2027-03-29. La comparación con Fasecolda quedó **fuera de alcance**: la guía no se obtiene por HTTP público y la suscripción la descarta la regla de costo cero.)
 - F4 Producto: API (/predict, /explain, /catalog, /market, /health, /model-info), app Next.js, Docker, despliegue en Render. (**actual**: la API está desplegada y probada; el frontend está en curso.)
 

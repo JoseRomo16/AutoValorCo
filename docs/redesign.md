@@ -18,7 +18,7 @@ cada paso, qué se midió y qué decisiones quedaron abiertas**.
 | — | Los cuatro datos del lago que faltaba exportar | **cerrado** | rama `feat/lake-facts` |
 | 1 | Diagnóstico de las tres páginas | **cerrado** | este documento, abajo |
 | 2 | Copy completo de `i18n.ts`, ES y EN | **cerrado** | rama `feat/web-copy` |
-| 3 | Pendientes de API y documentación | **sin empezar** | — |
+| 3 | Pendientes de API y documentación | **cerrado** | rama `fix/api-and-docs` |
 | 4 | Fundaciones: tokens, fuentes, tema, header y footer | **sin empezar** | — |
 | 5 | Las tres páginas | **sin empezar** | — |
 | 6 | Verificación: capturas, Lighthouse, lint y pruebas | **sin empezar** | — |
@@ -122,19 +122,52 @@ Residuos de cola larga que la limpieza no atrapa, por si alguna vez vale otra co
 seeds: AKT trae `dynanic` (1 anuncio, grafía no mapeada de `dynamic`) y `motocarro` y
 `carguero` como modelos, que son las filas de `is_cargo`. Son 3 anuncios.
 
+## Paso 3 — qué entró
+
+Dos cosas pedía el prompt, y las dos están.
+
+**`GET /` redirige a `/docs`**, con tres pruebas: que redirige, que lo hace también sin
+modelos cargados —es una cortesía, no una ruta de predicción— y que el destino responde 200,
+porque un redirect a un 404 es peor que no tenerlo. Es `307` y no `301`: un permanente se
+cachea en el navegador para siempre y sobreviviría a cualquier decisión posterior sobre la
+raíz. Queda fuera del esquema OpenAPI, que describe el contrato contra el que está escrito el
+frontend.
+
+**Las cifras del README se generan.** `make readme` renderiza un bloque por idioma entre
+marcadores desde `model.json` y `docs/results/`, y `tests/test_readme.py` falla si quedó
+viejo. El detalle está en [`STATUS.md`](STATUS.md#las-cifras-ya-no-se-teclean-en-ningún-documento).
+`CLAUDE.md` y `STATUS.md` quedaron alineados; las secciones históricas de `STATUS.md` no se
+reescribieron, se marcaron.
+
+De paso salió un problema que nadie había mirado: **gzip guardaba la hora en la cabecera de
+cada booster**, así que re-exportar un modelo idéntico reescribía ~10 MB de binario en un repo
+público. `_write_booster` fija `mtime=0` y hay una prueba de que guardar el mismo modelo dos
+veces produce los mismos bytes. Se verificó que los ocho boosters del re-export de hoy son
+byte a byte idénticos a los de `main` al descomprimirlos, así que se restauraron desde `HEAD`
+en vez de commitear el churn.
+
 ## Decisiones abiertas
 
-1. **Los umbrales del gate en el copy.** `78 %`, `82 %` y `60 %` siguen escritos en
-   `i18n.ts` (`method.rule.coverageTitle` y `method.rule.widthTitle`). No son una medición
-   que se desactualice: son la regla, y el prompt prohíbe moverla. `model.json` publica el
-   límite solo cuando una vertical falla (`limit: 0.60`), así que la ventana de cobertura no
-   existe como dato cuando se cumple. Exportar los tres desde `models/quantiles.py` es
-   posible y costaría re-exportar el modelo. **Pendiente de decisión del usuario.**
+1. ~~**Los umbrales del gate en el copy.**~~ **Decidido el 2026-10-26: se exportan.** Eran
+   los tres últimos números escritos a mano en `i18n.ts`. Ahora `models/quantiles.py`
+   publica `LABEL_GATE`, `save_bundle` lo escribe en `model.json` bajo `label.gate`, y
+   `/model-info` lo devuelve como `label_gate`. Las dos cadenas pasaron a plantilla con
+   `{min}`, `{max}`. Por qué se exportan si son la regla y no una medición: `failure_codes`
+   trae `limit` **solo de la regla que falló**, y como una falla es de un lado por
+   construcción, la ventana de cobertura no aparece completa nunca — y una vertical que
+   cumple no trae ningún límite. La página describe la regla entera en los dos casos.
+   El momento se eligió por costo: el modelo todavía no está desplegado, así que el
+   re-export no obliga a un despliegue extra.
 2. **La partición temporal.** Hoy toma el quinto de anuncios visto más recientemente, lo que
    reparte una misma captura entre entrenamiento y evaluación porque `last_seen_at` solo
    toma cuatro valores. Cortar por fecha dejaría holdouts de 575 y 425 filas. Ver
    [`STATUS.md`](STATUS.md#la-validación-temporal-por-primera-vez).
-3. **Los departamentos de poca base**, arriba.
+3. ~~**Los departamentos de poca base.**~~ **Decidido el 2026-10-26: agrupar al final y
+   avisar.** Los de menos de 50 anuncios van al final del desplegable bajo un encabezado, y
+   al elegir uno aparece el aviso de menor precisión. El copy ya tiene
+   `form.departmentLowData` y `form.departmentLowDataHint` para las dos mitades. Se
+   descartó excluirlos: tres de diez departamentos de carros caen bajo el umbral y dejar sin
+   servicio a quien vive ahí cuesta más que advertirle. **Se implementa en el Paso 5.**
 
 ## Lo que no se vuelve a litigar
 
@@ -146,7 +179,13 @@ seeds: AKT trae `dynanic` (1 anuncio, grafía no mapeada de `dynamic`) y `motoca
 - **Mercado y Metodología leen archivos del repositorio en tiempo de construcción**, nunca
   por HTTP. Solo el formulario llama a la API.
 - **Ninguna cifra se escribe en un componente ni en `i18n.ts`.** Si un número no existe en un
-  archivo, se exporta desde Python.
+  archivo, se exporta desde Python. Desde el 2026-10-26 esto no tiene excepciones: los tres
+  umbrales del gate eran la última y se exportan (decisión 1).
+- **La versión del bundle sigue siendo `2026-10-25.12948`.** El re-export del gate se corrió
+  con `--version 2026-10-25.12948` a propósito: `default_version` sella la fecha de hoy, y
+  subirla habría dicho "modelo distinto" por un campo de metadatos aditivo, rompiendo la
+  identidad que `STATUS.md` y la lista de despliegue ya publican. Las métricas se verificaron
+  idénticas tras el re-export.
 - **Los cambios en las respuestas de la API son aditivos**, y el sitio funciona contra la API
   vieja y la nueva.
 
