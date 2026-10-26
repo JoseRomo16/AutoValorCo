@@ -22,9 +22,9 @@ import {
   type PredictResponse,
   type PriceLabel,
 } from "@/lib/api";
-import { copy } from "@/lib/i18n";
-import type { Localized } from "@/lib/i18n";
-import { cop, factorAsPercent, percent, signedPercent } from "@/lib/format";
+import { copy, fill, pick } from "@/lib/i18n";
+import type { Lang, Localized } from "@/lib/i18n";
+import { cop, factorAsPercent, modelDate, percent } from "@/lib/format";
 
 const LABEL_COPY: Record<PriceLabel, { title: Localized; why: Localized; tone: string }> = {
   bargain: {
@@ -43,6 +43,37 @@ const LABEL_COPY: Record<PriceLabel, { title: Localized; why: Localized; tone: s
     tone: "border-amber-400 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30",
   },
 };
+
+/** The gate's failure codes, as the exported model publishes them. */
+const PRECISION_COPY: Record<string, Localized> = {
+  width_above_max: copy.result.precision.widthAboveMax,
+  coverage_below_min: copy.result.precision.coverageBelowMin,
+  coverage_above_max: copy.result.precision.coverageAboveMax,
+};
+
+/**
+ * Say in the reader's language why no label was published.
+ *
+ * The service also sends its own English sentence, and rendering that was how English text
+ * ended up on the Spanish page. The codes carry the same two figures, so the sentence can
+ * be written here instead. An older deployed image sends no codes, and a code this build
+ * does not know is possible too; both fall back to the reason without the numbers rather
+ * than to English.
+ */
+function precisionReason(prediction: PredictResponse, lang: Lang): string {
+  const sentences = (prediction.precision_codes ?? []).flatMap((entry) => {
+    const text = PRECISION_COPY[entry.code];
+    if (text === undefined) return [];
+    return [
+      fill(text, lang, {
+        value: percent(entry.value * 100, lang, 0),
+        limit: percent(entry.limit * 100, lang, 0),
+      }),
+    ];
+  });
+  if (sentences.length === 0) return pick(copy.result.precision.unknown, lang);
+  return sentences.join(" ");
+}
 
 type Props = {
   prediction: PredictResponse;
@@ -63,6 +94,17 @@ export function PriceResult({ prediction, explanation, askingPrice }: Props) {
   const estimatePosition = ((band.estimate_cop - band.lower_cop) / span) * 100;
 
   const strongest = Math.max(...explanation.factors.map((factor) => Math.abs(factor.factor - 1)), 0.01);
+
+  // "You are asking 8 % above the estimate" rather than a bare signed percentage, which
+  // leaves the reader to work out which way the sign points.
+  const gap =
+    askingPrice === null ? 0 : ((askingPrice - band.estimate_cop) / band.estimate_cop) * 100;
+  const askingComparison =
+    Math.abs(gap) < 1
+      ? t(copy.result.askingEqual)
+      : fill(gap > 0 ? copy.result.askingAbove : copy.result.askingBelow, lang, {
+          pct: percent(Math.abs(gap), lang, 0),
+        });
 
   return (
     <section aria-labelledby="result" className="space-y-8">
@@ -118,15 +160,12 @@ export function PriceResult({ prediction, explanation, askingPrice }: Props) {
 
         {prediction.label === null && prediction.precision_notice !== null && (
           <div className="mt-5 rounded-lg border border-slate-300 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-            <p className="font-semibold">{t(copy.result.noLabel)}</p>
+            <p className="font-semibold">{t(copy.result.noLabelTitle)}</p>
             <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">
-              {t(copy.result.noLabelWhy)}
+              {t(copy.result.noLabelBody)}
             </p>
-            {/* The service's own wording underneath, carrying the numbers the gate was
-                decided on. It is English because it comes from the model artifact, and it
-                stays verbatim on purpose: it is the measurement, not a message. */}
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              {t(copy.result.noLabelMeasured)}: {prediction.precision_notice}
+              {precisionReason(prediction, lang)}
             </p>
           </div>
         )}
@@ -135,15 +174,14 @@ export function PriceResult({ prediction, explanation, askingPrice }: Props) {
           <p className="mt-5 text-sm text-slate-700 dark:text-slate-300">
             <span className="font-medium">{t(copy.result.asking)}:</span>{" "}
             <span className="tnum">{cop(askingPrice, lang)}</span>{" "}
-            <span className="text-slate-500 dark:text-slate-400">
-              ({signedPercent(((askingPrice - band.estimate_cop) / band.estimate_cop) * 100, lang, 0)}{" "}
-              {t(copy.result.vsEstimate)})
-            </span>
+            <span className="text-slate-500 dark:text-slate-400">{askingComparison}</span>
           </p>
         )}
 
         <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-          {t(copy.result.modelVersion)}: {prediction.model_version}
+          {fill(copy.result.modelVersion, lang, {
+            date: modelDate(prediction.model_version, lang),
+          })}
         </p>
       </div>
 

@@ -7,9 +7,9 @@ import { useLang } from "./LanguageProvider";
 import { copy } from "@/lib/i18n";
 
 const INTROS = {
-  value: { title: copy.form.heading, body: copy.form.intro },
-  market: { title: copy.market.heading, body: copy.market.intro },
-  method: { title: copy.method.heading, body: copy.method.intro },
+  value: { title: copy.hero.title, body: copy.hero.lead },
+  market: { title: copy.market.heading, body: copy.market.lead },
+  method: { title: copy.method.heading, body: copy.method.lead },
 } as const;
 
 export function PageIntro({ page }: { page: keyof typeof INTROS }) {

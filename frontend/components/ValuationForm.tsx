@@ -36,8 +36,9 @@ import {
   type VehicleType,
   type VerticalCatalog,
 } from "@/lib/api";
-import { copy } from "@/lib/i18n";
-import { integer } from "@/lib/format";
+import { copy, fill } from "@/lib/i18n";
+import type { Localized } from "@/lib/i18n";
+import { integer, modelDate } from "@/lib/format";
 
 /** Below this many training listings a model token goes under "show all". */
 const RARE_MODEL_LISTINGS = 3;
@@ -48,6 +49,28 @@ const LABEL = "mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300
 const HINT = "mt-1 text-xs text-slate-500 dark:text-slate-400";
 
 type Status = "loading-catalog" | "ready" | "submitting" | "failed";
+
+/**
+ * Turn a failure into something a person can act on.
+ *
+ * Three causes are worth telling apart and the browser reports two of them identically: a
+ * sleeping instance, a client with no network and a rejected cross-origin request all
+ * arrive as the same opaque `TypeError`. The tie-break is whether the lists ever landed. On
+ * a first load the service waking up is by far the likeliest, and the advice is the same
+ * either way; later, with the lists in hand, a dropped request is the connection.
+ */
+function classify(error: string | null, firstLoad: boolean): { title: Localized; body: Localized } {
+  const text = error ?? "";
+  if (/not enough|no listings|insufficient/i.test(text)) {
+    return { title: copy.result.errors.noDataTitle, body: copy.result.errors.noDataBody };
+  }
+  if (/^HTTP \d|\b40\d\b|\b50\d\b/.test(text)) {
+    return { title: copy.result.errors.unexpectedTitle, body: copy.result.errors.unexpectedBody };
+  }
+  return firstLoad
+    ? { title: copy.result.errors.wakingTitle, body: copy.result.errors.wakingBody }
+    : { title: copy.result.errors.offlineTitle, body: copy.result.errors.offlineBody };
+}
 
 export function ValuationForm() {
   const { lang, t } = useLang();
@@ -69,6 +92,15 @@ export function ValuationForm() {
   const [prediction, setPrediction] = useState<PredictResponse | null>(null);
   const [explanation, setExplanation] = useState<ExplainResponse | null>(null);
   const [reloads, setReloads] = useState(0);
+  const [slowStart, setSlowStart] = useState(false);
+
+  // Five seconds is the line between "loading" and "the instance was asleep". Under it the
+  // indicator next to the button is enough; over it the wait needs explaining.
+  useEffect(() => {
+    if (status !== "loading-catalog") return;
+    const timer = window.setTimeout(() => setSlowStart(true), 5_000);
+    return () => window.clearTimeout(timer);
+  }, [status]);
 
   // The effect only starts the request; the state lands in the promise callbacks. Setting
   // status synchronously here would be a cascading render, and the initial state already
@@ -161,18 +193,26 @@ export function ValuationForm() {
   }
 
   const busy = status === "submitting";
+  const failure = classify(error, catalogs.length === 0);
 
   return (
     <div className="space-y-8">
-      <section
-        aria-labelledby="cold-start"
-        className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-700/60 dark:bg-amber-950/30"
-      >
-        <h2 id="cold-start" className="font-semibold">
-          {t(copy.coldStart.title)}
-        </h2>
-        <p className="mt-1 text-slate-700 dark:text-slate-300">{t(copy.coldStart.body)}</p>
-      </section>
+      {/* The long notice only once the wait has actually become one. The quiet warm-up is
+          the `/catalog` request above, which wakes the service while the form is filled in;
+          saying "this may take a minute" before anyone has waited puts an apology where the
+          value proposition belongs. The threshold and the inline indicator arrive with the
+          page's own step. */}
+      {status === "loading-catalog" && slowStart && (
+        <section
+          aria-labelledby="waking"
+          className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-700/60 dark:bg-amber-950/30"
+        >
+          <h2 id="waking" className="font-semibold">
+            {t(copy.status.wakingTitle)}
+          </h2>
+          <p className="mt-1 text-slate-700 dark:text-slate-300">{t(copy.status.wakingBody)}</p>
+        </section>
+      )}
 
       <form onSubmit={submit} className="space-y-6">
         <fieldset disabled={status === "loading-catalog" || busy} className="space-y-6">
@@ -225,6 +265,8 @@ export function ValuationForm() {
               <label className={LABEL} htmlFor="model">
                 {t(copy.form.model)}
               </label>
+              {/* The combobox that replaces this select, and the safety net that keeps the
+                  unknown-make bucket out of it, arrive with the page's own step. */}
               <select
                 id="model"
                 className={FIELD}
@@ -232,7 +274,7 @@ export function ValuationForm() {
                 onChange={(event) => setModel(event.target.value)}
                 disabled={brand === ""}
               >
-                <option value="">{t(copy.form.modelAny)}</option>
+                <option value="">{t(copy.form.modelUnknown)}</option>
                 {shownModels.map((entry) => (
                   <option key={entry.name} value={entry.name}>
                     {entry.name} ({integer(entry.listings, lang)})
@@ -333,7 +375,7 @@ export function ValuationForm() {
                 value={engineCc}
                 onChange={(event) => setEngineCc(event.target.value)}
               />
-              <p className={HINT}>{t(copy.form.engineOptional)}</p>
+              <p className={HINT}>{t(copy.form.engineHint)}</p>
             </div>
 
             <div className="sm:col-span-2">
@@ -364,14 +406,20 @@ export function ValuationForm() {
             {busy ? t(copy.form.submitting) : t(copy.form.submit)}
           </button>
 
+          {/* The connection indicator, which is what replaces the notice that used to open
+              the page: a line of state next to the button while the service wakes up. */}
           {status === "loading-catalog" && (
             <span className="text-sm text-slate-600 dark:text-slate-400" role="status">
-              {t(copy.form.loadingCatalog)}
+              {t(copy.status.connecting)}
             </span>
           )}
           {catalog && status !== "loading-catalog" && (
             <span className="text-sm text-slate-500 dark:text-slate-400">
-              {integer(catalog.trained_on_rows, lang)} {t(copy.form.listings)} · {catalog.model_version}
+              {t(copy.status.ready)} ·{" "}
+              {fill(copy.form.listingsCount, lang, {
+                count: integer(catalog.trained_on_rows, lang),
+              })}{" "}
+              · {fill(copy.result.modelVersion, lang, { date: modelDate(catalog.model_version, lang) })}
             </span>
           )}
         </div>
@@ -382,14 +430,12 @@ export function ValuationForm() {
           role="alert"
           className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm dark:border-red-800 dark:bg-red-950/30"
         >
-          <p className="font-semibold">{t(copy.result.error)}</p>
-          {/* The two causes worth naming. A 404 on /catalog means the deployed image
-              predates this site, which is exactly what a first deploy looks like for a
-              few minutes; anything else on the first load is usually the cold start. */}
-          <p className="mt-1 text-slate-700 dark:text-slate-300">
-            {error.includes("404") ? t(copy.result.errorOutdated) : t(copy.result.errorOffline)}
-          </p>
-          <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">{error}</p>
+          <p className="font-semibold">{t(failure.title)}</p>
+          <p className="mt-1 text-slate-700 dark:text-slate-300">{t(failure.body)}</p>
+          <details className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            <summary className="cursor-pointer">{t(copy.result.errors.detail)}</summary>
+            <p className="mt-1 break-words">{error}</p>
+          </details>
           <button
             type="button"
             onClick={() => {
@@ -404,7 +450,7 @@ export function ValuationForm() {
             }}
             className="mt-3 rounded-md border border-red-400 px-3 py-1.5 font-medium"
           >
-            {t(copy.result.retry)}
+            {t(copy.result.errors.retry)}
           </button>
         </div>
       )}
