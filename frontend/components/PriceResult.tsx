@@ -1,46 +1,48 @@
 "use client";
 
 /**
- * The answer: a price, its range, the label when the vertical earned one, and the five
+ * The answer: a price, its range, the verdict when the vertical earned one, and the five
  * factors that moved it.
  *
- * The range is as prominent as the price on purpose. A single number for a used vehicle is
- * false precision, and the whole project is built around publishing the interval; a layout
- * that whispered it would undo that in CSS. Where the label cannot be published — today
- * motorcycles, because the band's mean width is 81 % of the estimate against a 60 % ceiling
- * — the API sends a precision notice and it is rendered in the label's place rather than
- * leaving an empty slot.
+ * **The range carries the same visual weight as the price.** A single number for a used
+ * vehicle is false precision, and the whole project is built around publishing the
+ * interval; a layout that whispered it would undo that in CSS. They sit side by side in one
+ * bordered pair, at the same size.
+ *
+ * **The range bar is grey, always.** It used to run green to amber, which told a reader
+ * "cheap on the left, expensive on the right" even for motorcycles, where no verdict is
+ * published at all. Green, neutral and terracotta are reserved for the verdict badge; the
+ * bar shows a magnitude, and magnitudes are grey.
+ *
+ * **The empty state explains rather than demonstrates.** A worked example would mean a
+ * price, a range and five factors invented in this file, and no figure on this site is
+ * written by hand. So before the first valuation the panel says what will appear, with the
+ * same shapes in the same order.
  *
  * The factors come back as multiplicative factors, which is what SHAP on a log-price model
- * actually produces, so they are shown as "raises / lowers by X %" — exact, not an
- * approximation dressed up as pesos.
+ * actually produces, so they are shown as a percentage that raises or lowers the estimate:
+ * exact, not an approximation dressed up as pesos.
  */
 
+import { useEffect } from "react";
+
 import { useLang } from "./LanguageProvider";
-import {
-  type ExplainResponse,
-  type PredictResponse,
-  type PriceLabel,
-} from "@/lib/api";
+import { type ExplainResponse, type PredictResponse, type PriceLabel } from "@/lib/api";
 import { copy, fill, pick } from "@/lib/i18n";
 import type { Lang, Localized } from "@/lib/i18n";
-import { cop, factorAsPercent, modelDate, percent } from "@/lib/format";
+import { cop, copMillions, factorAsPercent, modelDate, percent } from "@/lib/format";
 
-const LABEL_COPY: Record<PriceLabel, { title: Localized; why: Localized; tone: string }> = {
-  bargain: {
-    title: copy.result.bargain,
-    why: copy.result.bargainWhy,
-    tone: "border-emerald-400 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30",
-  },
+const VERDICT: Record<PriceLabel, { title: Localized; why: Localized; tone: string }> = {
+  bargain: { title: copy.result.bargain, why: copy.result.bargainWhy, tone: "bg-good-bg text-good" },
   fair: {
     title: copy.result.fair,
     why: copy.result.fairWhy,
-    tone: "border-sky-400 bg-sky-50 dark:border-sky-700 dark:bg-sky-950/30",
+    tone: "border border-line-strong text-neutral",
   },
   expensive: {
     title: copy.result.expensive,
     why: copy.result.expensiveWhy,
-    tone: "border-amber-400 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30",
+    tone: "bg-bad-bg text-bad",
   },
 };
 
@@ -52,7 +54,7 @@ const PRECISION_COPY: Record<string, Localized> = {
 };
 
 /**
- * Say in the reader's language why no label was published.
+ * Say in the reader's language why no verdict was published.
  *
  * The service also sends its own English sentence, and rendering that was how English text
  * ended up on the Spanish page. The codes carry the same two figures, so the sentence can
@@ -75,25 +77,127 @@ function precisionReason(prediction: PredictResponse, lang: Lang): string {
   return sentences.join(" ");
 }
 
+function Panel({
+  title,
+  badge,
+  children,
+}: {
+  title: string;
+  badge?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      aria-labelledby="result-title"
+      aria-live="polite"
+      className="rounded-lg border border-line bg-surface p-5 sm:p-7"
+    >
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2
+          id="result-title"
+          tabIndex={-1}
+          className="font-mono text-xs uppercase tracking-[0.1em] text-muted outline-none"
+        >
+          {title}
+        </h2>
+        {badge}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** The grey blocks that hold the layout still while a request is in flight. */
+function Skeleton({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={`animate-pulse rounded bg-grid ${className}`}
+      style={{ animationDuration: "1.4s" }}
+    />
+  );
+}
+
 type Props = {
-  prediction: PredictResponse;
-  explanation: ExplainResponse;
+  prediction: PredictResponse | null;
+  explanation: ExplainResponse | null;
   askingPrice: number | null;
+  /** What was priced, as a classified reads it: make model · year · km · department. */
+  spec: string | null;
+  busy: boolean;
 };
 
-export function PriceResult({ prediction, explanation, askingPrice }: Props) {
+export function PriceResult({ prediction, explanation, askingPrice, spec, busy }: Props) {
   const { lang, t } = useLang();
-  const { band } = prediction;
+  const arrived = prediction !== null && explanation !== null;
 
-  // Where the asking price sits inside the band, for the marker on the range bar.
+  // When a result lands, move focus to its heading so a screen reader reads the answer
+  // instead of leaving the user on the button wondering whether anything happened. On a
+  // phone the panel is below the form, so it also has to be brought into view.
+  useEffect(() => {
+    if (!arrived) return;
+    const heading = document.getElementById("result-title");
+    if (!heading) return;
+    if (window.matchMedia("(max-width: 959px)").matches) {
+      heading.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    heading.focus({ preventScroll: true });
+  }, [arrived, prediction]);
+
+  if (busy) {
+    return (
+      <Panel title={t(copy.result.heading)}>
+        <Skeleton className="h-4 w-2/5" />
+        <Skeleton className="mt-4 h-20 w-full" />
+        <Skeleton className="mt-5 h-8 w-full" />
+        <Skeleton className="mt-5 h-3 w-4/5" />
+        <Skeleton className="mt-2 h-3 w-3/5" />
+      </Panel>
+    );
+  }
+
+  if (!arrived) {
+    return (
+      <Panel title={t(copy.result.emptyTitle)}>
+        <p className="text-sm text-muted">{t(copy.result.emptyBody)}</p>
+        {/* The shapes the answer will take, in the order it will take them. Unfilled on
+            purpose: a worked example would need invented figures. */}
+        <div aria-hidden className="mt-6 space-y-4 opacity-45">
+          <div className="grid grid-cols-2 rounded-lg border border-line">
+            <div className="border-r border-line p-4">
+              <div className="h-2.5 w-16 rounded-full bg-grid" />
+              <div className="mt-3 h-6 w-24 rounded bg-grid" />
+            </div>
+            <div className="p-4">
+              <div className="h-2.5 w-16 rounded-full bg-grid" />
+              <div className="mt-3 h-6 w-24 rounded bg-grid" />
+            </div>
+          </div>
+          <div className="h-8 rounded bg-grid" />
+          <div className="space-y-2.5">
+            {[64, 52, 40].map((width) => (
+              <div key={width} className="flex items-center gap-3">
+                <div className="h-2.5 rounded-full bg-grid" style={{ width: `${width}%` }} />
+                <div className="h-2.5 w-10 rounded-full bg-grid" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </Panel>
+    );
+  }
+
+  const { band } = prediction;
   const span = band.upper_cop - band.lower_cop || 1;
-  const askingPosition =
+  const estimateAt = ((band.estimate_cop - band.lower_cop) / span) * 100;
+  const askingAt =
     askingPrice === null
       ? null
       : Math.min(Math.max(((askingPrice - band.lower_cop) / span) * 100, 0), 100);
-  const estimatePosition = ((band.estimate_cop - band.lower_cop) / span) * 100;
 
-  const strongest = Math.max(...explanation.factors.map((factor) => Math.abs(factor.factor - 1)), 0.01);
+  const strongest = Math.max(
+    ...explanation.factors.map((factor) => Math.abs(factor.factor - 1)),
+    0.01,
+  );
 
   // "You are asking 8 % above the estimate" rather than a bare signed percentage, which
   // leaves the reader to work out which way the sign points.
@@ -106,140 +210,140 @@ export function PriceResult({ prediction, explanation, askingPrice }: Props) {
           pct: percent(Math.abs(gap), lang, 0),
         });
 
+  const verdict = prediction.label === null ? null : VERDICT[prediction.label];
+
   return (
-    <section aria-labelledby="result" className="space-y-8">
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 sm:p-6 dark:border-slate-800 dark:bg-slate-900/50">
-        <h2 id="result" className="text-sm font-medium text-slate-600 dark:text-slate-400">
-          {t(copy.result.heading)}
-        </h2>
-        <p className="mt-1 text-4xl font-semibold tracking-tight tnum">
-          {cop(band.estimate_cop, lang)}
-        </p>
+    <Panel title={t(copy.result.heading)}>
+      {spec && <p className="-mt-1 mb-5 text-sm text-muted">{spec}</p>}
 
-        <div className="mt-6">
-          <div className="flex items-baseline justify-between gap-4 text-sm">
-            <span className="font-medium text-slate-700 dark:text-slate-300">
-              {t(copy.result.range)}
-            </span>
-            <span className="text-slate-500 tnum dark:text-slate-400">
-              ±{percent((band.relative_width / 2) * 100, lang, 0)}
-            </span>
-          </div>
-
-          <div
-            aria-hidden="true"
-            className="relative mt-2 h-9 rounded-md bg-gradient-to-r from-emerald-200 via-slate-200 to-amber-200 dark:from-emerald-900/50 dark:via-slate-700 dark:to-amber-900/50"
-          >
-            <span
-              className="absolute inset-y-0 w-0.5 bg-slate-900 dark:bg-slate-100"
-              style={{ left: `${estimatePosition}%` }}
-            />
-            {askingPosition !== null && (
-              <span
-                className="absolute -top-1 bottom-[-0.25rem] w-1 rounded bg-sky-600 dark:bg-sky-400"
-                style={{ left: `${askingPosition}%` }}
-              />
-            )}
-          </div>
-
-          <div className="mt-1.5 flex justify-between text-sm tnum">
-            <span>{cop(band.lower_cop, lang)}</span>
-            <span>{cop(band.upper_cop, lang)}</span>
-          </div>
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t(copy.result.rangeHelp)}</p>
+      {/* Price and range, same size, one object. */}
+      <dl className="grid grid-cols-1 rounded-lg border border-line sm:grid-cols-2">
+        <div className="min-w-0 border-b border-line p-4 sm:border-b-0 sm:border-r">
+          <dt className="mb-2 text-xs text-muted">{t(copy.result.heading)}</dt>
+          <dd className="font-mono text-2xl leading-tight tracking-[-0.03em] tabular-nums">
+            {copMillions(band.estimate_cop, lang)}
+            <small className="mt-1.5 block font-sans text-xs font-normal tracking-normal text-muted">
+              {cop(band.estimate_cop, lang)}
+            </small>
+          </dd>
         </div>
+        <div className="min-w-0 p-4">
+          <dt className="mb-2 text-xs text-muted">{t(copy.result.range)}</dt>
+          <dd className="font-mono text-2xl leading-tight tracking-[-0.03em] tabular-nums">
+            {`${copMillions(band.lower_cop, lang)}–${copMillions(band.upper_cop, lang)}`}
+            <small className="mt-1.5 block font-sans text-xs font-normal tracking-normal text-muted">
+              {t(copy.result.rangeHelp)}
+            </small>
+          </dd>
+        </div>
+      </dl>
 
-        {prediction.label !== null && (
-          <div className={`mt-5 rounded-lg border p-4 ${LABEL_COPY[prediction.label].tone}`}>
-            <p className="font-semibold">{t(LABEL_COPY[prediction.label].title)}</p>
-            <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">
-              {t(LABEL_COPY[prediction.label].why)}
-            </p>
-          </div>
-        )}
-
-        {prediction.label === null && prediction.precision_notice !== null && (
-          <div className="mt-5 rounded-lg border border-slate-300 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-            <p className="font-semibold">{t(copy.result.noLabelTitle)}</p>
-            <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">
-              {t(copy.result.noLabelBody)}
-            </p>
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              {precisionReason(prediction, lang)}
-            </p>
-          </div>
-        )}
-
-        {askingPrice !== null && (
-          <p className="mt-5 text-sm text-slate-700 dark:text-slate-300">
-            <span className="font-medium">{t(copy.result.asking)}:</span>{" "}
-            <span className="tnum">{cop(askingPrice, lang)}</span>{" "}
-            <span className="text-slate-500 dark:text-slate-400">{askingComparison}</span>
-          </p>
-        )}
-
-        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-          {fill(copy.result.modelVersion, lang, {
-            date: modelDate(prediction.model_version, lang),
-          })}
-        </p>
+      <div className="mt-5">
+        <div aria-hidden className="relative h-8 rounded bg-grid">
+          <span className="absolute inset-x-0 inset-y-2 rounded-sm bg-bar-muted ring-1 ring-bar-edge" />
+          <span
+            className="absolute inset-y-1 w-0.5 bg-ink"
+            style={{ left: `${estimateAt}%` }}
+          />
+          {askingAt !== null && (
+            // The asking marker is the one thing on this bar that is yellow. It carries a
+            // ring in the ink colour because plate yellow on the light grid is 1.19:1 and
+            // would otherwise vanish on paper.
+            <span
+              className="absolute -inset-y-1 w-1 rounded-sm bg-accent ring-2 ring-ink"
+              style={{ left: `${askingAt}%` }}
+            />
+          )}
+        </div>
+        <div className="mt-2 flex justify-between font-mono text-xs text-muted">
+          <span>
+            <b className="block font-medium text-ink">{copMillions(band.lower_cop, lang)}</b>P10
+          </span>
+          <span className="text-right">
+            <b className="block font-medium text-ink">{copMillions(band.upper_cop, lang)}</b>P90
+          </span>
+        </div>
       </div>
 
-      <div>
-        <h3 className="text-lg font-semibold">{t(copy.result.factors)}</h3>
-        <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-400">
-          {t(copy.result.factorsHelp)}
-        </p>
+      {(verdict || prediction.precision_notice !== null) && (
+        <div className="mt-5 grid grid-cols-[auto_1fr] items-baseline gap-x-3.5 gap-y-1 border-y border-line py-4">
+          {verdict ? (
+            <>
+              <span
+                className={`rounded px-2 py-1 font-mono text-xs leading-none ${verdict.tone}`}
+              >
+                {t(verdict.title)}
+              </span>
+              <p className="text-sm text-muted">{t(verdict.why)}</p>
+            </>
+          ) : (
+            <>
+              <span className="rounded border border-line-strong px-2 py-1 font-mono text-xs leading-none text-neutral">
+                {t(copy.result.noLabelTitle)}
+              </span>
+              <p className="text-sm text-muted">{t(copy.result.noLabelBody)}</p>
+              <p className="col-start-2 text-xs text-faint">{precisionReason(prediction, lang)}</p>
+            </>
+          )}
+          {askingPrice !== null && (
+            <p className="col-start-2 text-sm">
+              <span className="font-mono tabular-nums">{cop(askingPrice, lang)}</span>{" "}
+              <span className="text-muted">{askingComparison}</span>
+            </p>
+          )}
+        </div>
+      )}
 
-        <ul className="mt-4 space-y-2">
+      <div className="mt-5">
+        <h3 className="font-medium">{t(copy.result.factors)}</h3>
+        <p className="mt-1 text-sm text-muted">{t(copy.result.factorsHelp)}</p>
+
+        <ul className="mt-3">
           {explanation.factors.map((factor) => {
-            const pull = Math.abs(factor.factor - 1);
-            const width = Math.max((pull / strongest) * 50, 1.5);
+            const width = Math.max((Math.abs(factor.factor - 1) / strongest) * 50, 1.5);
             const raises = factor.direction === "raises";
             return (
               <li
                 key={factor.feature}
-                className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 sm:grid-cols-[14rem_1fr_6rem]"
+                className="grid grid-cols-[minmax(0,1fr)_90px_64px] items-center gap-3 border-b border-line py-2.5 last:border-b-0"
               >
-                <span className="text-sm">
-                  <span className="font-medium">{factor.label[lang]}</span>
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">
+                <div className="min-w-0">
+                  <b className="block text-sm font-medium">{factor.label[lang]}</b>
+                  <small className="font-mono text-xs text-faint">
                     {factor.value_display[lang]}
-                  </span>
-                </span>
-
-                <div
-                  aria-hidden="true"
-                  className="order-last col-span-2 h-5 sm:order-none sm:col-span-1"
-                >
-                  <div className="relative h-full">
-                    <span className="absolute inset-y-0 left-1/2 w-px bg-slate-300 dark:bg-slate-600" />
-                    <span
-                      className={`absolute inset-y-1 rounded-sm ${raises ? "bg-emerald-600/80" : "bg-sky-500/80"}`}
-                      style={
-                        raises
-                          ? { left: "50%", width: `${width}%` }
-                          : { right: "50%", width: `${width}%` }
-                      }
-                    />
-                  </div>
+                  </small>
                 </div>
-
-                <span className="text-right text-sm font-medium tnum">
+                {/* Grey, with the side of the centre line carrying the direction. Colour
+                    here would collide with the verdict's vocabulary. */}
+                <div aria-hidden className="relative h-3.5">
+                  <span className="absolute -inset-y-0.5 left-1/2 w-px bg-line-strong" />
+                  <span
+                    className="absolute inset-y-[3px] rounded-sm bg-bar"
+                    style={raises ? { left: "50%", width: `${width}%` } : { right: "50%", width: `${width}%` }}
+                  />
+                </div>
+                <span className="text-right font-mono text-sm font-medium tabular-nums">
                   {factorAsPercent(factor.factor, lang)}
-                  <span className="block text-xs font-normal text-slate-500 dark:text-slate-400">
-                    {t(raises ? copy.result.raises : copy.result.lowers)}
-                  </span>
                 </span>
               </li>
             );
           })}
         </ul>
-
-        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-          {t(copy.result.basePrice)}: <span className="tnum">{cop(explanation.base_price_cop, lang)}</span>
-        </p>
       </div>
-    </section>
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm">
+        <span className="font-mono text-xs text-faint">
+          {fill(copy.result.modelVersion, lang, {
+            date: modelDate(prediction.model_version, lang),
+          })}
+        </span>
+        <a
+          href="/metodologia/"
+          className="font-semibold text-accent-text underline underline-offset-4 hover:opacity-80"
+        >
+          {t(copy.result.howItWorks)}
+        </a>
+      </div>
+    </Panel>
   );
 }
