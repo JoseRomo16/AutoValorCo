@@ -1,24 +1,167 @@
 @import "tailwindcss";
 
 /*
- * Tailwind v4 is configured in CSS. Only two things are customised: the body type scale
- * and a focus ring that is visible in both themes, because the default outline
- * disappears against the dark background.
+ * Design tokens for AutoValor CO.
+ *
+ * The concept is a spec sheet for the used-vehicle market: warm near-black ground, hairline
+ * rules instead of shadows, extended grotesque headlines, and every figure set in mono so
+ * numbers in a column line up. The accent is the yellow of a Colombian private licence
+ * plate, which is why it is a citation rather than a mood — it is the one colour a reader
+ * already associates with a vehicle's identity here.
+ *
+ * Dark is the reference theme and light is warm paper, not white: a blue-white page beside
+ * this yellow reads as a different product.
+ *
+ * `@theme inline` on purpose. It compiles `bg-ground` to `var(--ground)` instead of baking
+ * the hex in, which is what lets one `data-theme` attribute repaint the page. A plain
+ * `@theme` would freeze the dark values into every utility.
  */
 
-@theme {
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-band: var(--band);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-text: var(--accent-text);
+  --color-good: var(--good);
+  --color-good-bg: var(--good-bg);
+  --color-neutral: var(--neutral);
+  --color-bad: var(--bad);
+  --color-bad-bg: var(--bad-bg);
+  --color-bar: var(--bar);
+  --color-bar-muted: var(--bar-muted);
+  --color-bar-edge: var(--bar-edge);
+  --color-grid: var(--grid);
+
+  --font-display: var(--font-archivo), "Arial Black", system-ui, sans-serif;
+  --font-sans: var(--font-plex), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "SFMono-Regular", Consolas, monospace;
+
+  /* A short scale: five text sizes, well apart, plus three fluid display sizes. */
+  --text-step-h1: clamp(2.375rem, 1.4rem + 3.6vw, 3.875rem);
+  --text-step-h2: clamp(1.75rem, 1.2rem + 1.8vw, 2.25rem);
+  --text-step-figure: clamp(2.5rem, 1.9rem + 2vw, 3.125rem);
+
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/*
+ * Dark first: it is the theme the design was drawn in, so it is the one that needs no
+ * override. Every value below was measured for WCAG AA; see the notes on the ones that
+ * moved away from the original reference.
+ */
+:root {
+  color-scheme: dark;
+  --ground: #14130f;
+  --band: #1b1a15;
+  --surface: #201e18;
+  --surface-2: #27251e;
+  --line: #34312a;
+  /* Was #4a463c, which drew form-field borders at 1.77:1. An input's boundary is a UI
+     component under WCAG 1.4.11 and owes 3:1, so it moved until it cleared that on the
+     lightest ground it sits on. */
+  --line-strong: #6d695f;
+  --ink: #f2efe6;
+  --muted: #d4cfc2;
+  /* Was #767163 at 3.42:1 on surface, under the 4.5:1 that 12px text needs. */
+  --faint: #c2bdb0;
+  --accent: #f6c800;
+  --accent-ink: #14130f;
+  --accent-text: #f6c800;
+  --good: #86c99e;
+  --good-bg: rgba(134, 201, 158, 0.12);
+  --neutral: #c9c4b6;
+  --bad: #e2917a;
+  --bad-bg: rgba(226, 145, 122, 0.12);
+  --bar: #8b8678;
+  --bar-muted: #45423a;
+  /* The quiet bar keeps its quiet fill and earns visibility from an outline instead. A
+     fill raised to 3:1 would stop reading as "this estimate is not distinguishable from
+     zero", which is the thing it exists to say. */
+  --bar-edge: #908d85;
+  --grid: #2b2923;
+  --veil: rgba(20, 19, 15, 0.78);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ground: #f6f3ea;
+  --band: #eeeadf;
+  --surface: #fbf9f3;
+  --surface-2: #f2eee4;
+  --line: #ddd7c8;
+  --line-strong: #8d8671; /* was #c5bea9 at 1.76:1 */
+  --ink: #1d1b16;
+  --muted: #5f5a4d;
+  --faint: #6f695a; /* was #8a8475 at 3.10:1 */
+  --accent: #f6c800;
+  --accent-ink: #1d1b16;
+  /* Plate yellow as text on paper is 1.44:1. It stays a fill with dark text on top, and
+     anything that has to be read as yellow type uses this ochre instead. */
+  --accent-text: #7a5c00;
+  --good: #2d7448;
+  --good-bg: rgba(45, 116, 72, 0.1);
+  --neutral: #57534a;
+  --bad: #a3452a;
+  --bad-bg: rgba(163, 69, 42, 0.1);
+  --bar: #847e6e; /* was #8a8474 at 2.78:1 on the grid */
+  --bar-muted: #d6d0c0;
+  --bar-edge: #7a7464;
+  --grid: #e3ded1;
+  --veil: rgba(246, 243, 234, 0.82);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+    color-scheme: light;
+    --ground: #f6f3ea;
+    --band: #eeeadf;
+    --surface: #fbf9f3;
+    --surface-2: #f2eee4;
+    --line: #ddd7c8;
+    --line-strong: #8d8671;
+    --ink: #1d1b16;
+    --muted: #5f5a4d;
+    --faint: #6f695a;
+    --accent: #f6c800;
+    --accent-ink: #1d1b16;
+    --accent-text: #7a5c00;
+    --good: #2d7448;
+    --good-bg: rgba(45, 116, 72, 0.1);
+    --neutral: #57534a;
+    --bad: #a3452a;
+    --bad-bg: rgba(163, 69, 42, 0.1);
+    --bar: #847e6e;
+    --bar-muted: #d6d0c0;
+    --bar-edge: #7a7464;
+    --grid: #e3ded1;
+    --veil: rgba(246, 243, 234, 0.82);
+  }
 }
 
 html {
-  color-scheme: light dark;
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  @apply bg-white text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 200ms var(--ease-out-soft),
+    color 200ms var(--ease-out-soft);
 }
 
 /* Tabular figures everywhere a number is compared against another number. */
@@ -26,8 +169,19 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * The focus ring follows the theme. In light, plate yellow against paper is 1.44:1 and a
+ * focus indicator that cannot be seen is not a focus indicator, so light uses the ochre.
+ */
 :focus-visible {
-  @apply outline-2 outline-offset-2 outline-emerald-600 dark:outline-emerald-400;
+  outline: 2px solid var(--accent-text);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* The translucent header. A named variable because the blur has to sit over it. */
+.veil {
+  background: var(--veil);
 }
 
 @media (prefers-reduced-motion: reduce) {

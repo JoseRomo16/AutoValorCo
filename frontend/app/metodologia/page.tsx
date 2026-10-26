@@ -16,12 +16,14 @@ export default function MethodologyPage() {
   return (
     <>
       <PageIntro page="method" />
+      <div className="mx-auto w-full max-w-[1120px] px-5 pb-20 sm:px-6">
       <Methodology
         models={servedModels()}
         manifest={manifest()}
         segments={segmentError()}
         gate={labelGate()}
       />
+      </div>
     </>
   );
 }

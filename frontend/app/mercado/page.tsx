@@ -24,6 +24,7 @@ export default function MarketPage() {
   return (
     <>
       <PageIntro page="market" />
+      <div className="mx-auto w-full max-w-[1120px] px-5 pb-20 sm:px-6">
       <MarketDashboard
         manifest={manifest()}
         depreciation={depreciation()}
@@ -32,6 +33,7 @@ export default function MarketPage() {
         regional={regionalEffect()}
         contrast={catalogueContrast()}
       />
+      </div>
     </>
   );
 }

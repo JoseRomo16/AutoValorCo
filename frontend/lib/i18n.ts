@@ -64,6 +64,10 @@ export const copy = {
     skip: { es: "Saltar al contenido", en: "Skip to content" },
     menu: { es: "Menú", en: "Menu" },
     close: { es: "Cerrar", en: "Close" },
+    // On a phone the language and theme switches collapse behind this. "Ajustes" rather
+    // than "Menú" because the navigation itself stays on screen; what hides is the pair
+    // of preferences, and a button labelled "Menu" next to a visible menu is a lie.
+    settings: { es: "Ajustes", en: "Settings" },
   },
   lang: {
     label: { es: "Idioma", en: "Language" },
@@ -87,6 +91,11 @@ export const copy = {
     api: { es: "Documentación de la API", en: "API documentation" },
     method: { es: "Cómo se calcula", en: "How this is computed" },
     dataDate: { es: "Datos al {date}", en: "Data to {date}" },
+    productTitle: { es: "El sitio", en: "The site" },
+    projectTitle: { es: "El proyecto", en: "The project" },
+    // Precedes the served model's date in the footer's last line, where the data date sits
+    // beside it. Two dates with no labels would be unreadable.
+    modelLabel: { es: "modelo del", en: "model from" },
   },
 
   /** The connection indicator next to the button, and the notice if the wait gets long. */

@@ -1,30 +1,38 @@
 "use client";
 
 /**
- * The valuation form and its result.
+ * The valuation form.
  *
- * Three decisions worth knowing before changing this.
+ * Four decisions worth knowing before changing this.
  *
  * **The lists come from `/catalog`, not from constants.** The served trees carry frozen
  * categorical levels, so a make they never saw is routed down their missing branch and
- * still yields a confident-looking number. A `<select>` built from the model's own
- * training rows cannot ask that question. It also means the first paint has no lists and
- * says so, instead of rendering empty dropdowns.
+ * still yields a confident-looking number. A list built from the model's own training rows
+ * cannot ask that question.
  *
- * **`/predict` and `/explain` are requested together.** They are two calls against the
- * same model and the same row, and after the consistency fix they agree on the estimate
- * exactly, so showing one without the other would be showing half an answer.
+ * **`/predict` and `/explain` are requested together.** They are two calls against the same
+ * model and the same row, and they agree on the estimate exactly, so showing one without
+ * the other would be showing half an answer.
  *
- * **The cold start is a product fact, not an error.** The free instance sleeps, so the
- * first request of the day takes about a minute. The notice is on screen before anyone
- * presses the button, and a failure says what probably happened rather than printing a
- * bare TypeError.
+ * **The cold start is a product fact, not an error.** Requesting the catalogue on mount
+ * wakes the sleeping instance while the form is being filled in. Until it answers, the only
+ * thing on screen is a line of state next to the button; the long explanation appears only
+ * once the wait has actually become one.
+ *
+ * **Validation happens when a field is left, never only on submit.** The browser's own
+ * constraint UI blocks submission with a tooltip that cannot be translated or styled, so
+ * every field here is a text input and the rules live in `validate` below, where they can
+ * say what is wrong in the reader's language.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useLang } from "./LanguageProvider";
 import { PriceResult } from "./PriceResult";
+import { WRAP } from "./SiteChrome";
+import { Combobox } from "./ui/Combobox";
+import type { ComboOption } from "./ui/Combobox";
+import { NumberField } from "./ui/NumberField";
 import {
   ApiError,
   fetchCatalog,
@@ -36,19 +44,34 @@ import {
   type VehicleType,
   type VerticalCatalog,
 } from "@/lib/api";
+import { integer } from "@/lib/format";
 import { copy, fill } from "@/lib/i18n";
 import type { Localized } from "@/lib/i18n";
-import { integer, modelDate } from "@/lib/format";
 
-/** Below this many training listings a model token goes under "show all". */
-const RARE_MODEL_LISTINGS = 3;
+/**
+ * Below this many training listings a department is offered in its own group at the end of
+ * the list, with a notice when it is chosen.
+ *
+ * Fifty rather than a rounder number because that is where the catalogue actually splits:
+ * three of ten car departments sit under it (Cauca 1, Meta 2, Quindío 12) and the next one
+ * up has an order of magnitude more. Hiding them would leave whoever lives there with no
+ * service at all, which costs more than telling them the estimate is thinner.
+ */
+const LOW_DATA_LISTINGS = 50;
 
-const FIELD =
-  "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-emerald-600 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900";
-const LABEL = "mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300";
-const HINT = "mt-1 text-xs text-slate-500 dark:text-slate-400";
+/**
+ * The lake's unresolved-make bucket, which must never be offered as a make.
+ *
+ * Catalogue cleaning pushed the remaining junk into this one level rather than removing it,
+ * so excluding it here drops every unusable model token with it. It is a safety net: the
+ * real fix lives in the data layer.
+ */
+const UNKNOWN_LEVEL = "Desconocida";
+
+const MAX_MILEAGE_KM = 2_000_000;
 
 type Status = "loading-catalog" | "ready" | "submitting" | "failed";
+type FieldName = "brand" | "year" | "mileage" | "department" | "engine" | "asking";
 
 /**
  * Turn a failure into something a person can act on.
@@ -72,6 +95,25 @@ function classify(error: string | null, firstLoad: boolean): { title: Localized;
     : { title: copy.result.errors.offlineTitle, body: copy.result.errors.offlineBody };
 }
 
+function Fieldset({
+  legend,
+  children,
+  disabled,
+}: {
+  legend: string;
+  children: React.ReactNode;
+  disabled: boolean;
+}) {
+  return (
+    <fieldset disabled={disabled} className="mb-7 min-w-0 border-0 p-0 last:mb-0">
+      <legend className="mb-3.5 p-0 font-mono text-xs uppercase tracking-[0.1em] text-accent-text">
+        {legend}
+      </legend>
+      <div className="grid gap-[18px] sm:grid-cols-2">{children}</div>
+    </fieldset>
+  );
+}
+
 export function ValuationForm() {
   const { lang, t } = useLang();
 
@@ -87,12 +129,14 @@ export function ValuationForm() {
   const [department, setDepartment] = useState("");
   const [engineCc, setEngineCc] = useState("");
   const [askingPrice, setAskingPrice] = useState("");
-  const [showRareModels, setShowRareModels] = useState(false);
+  const [touched, setTouched] = useState<Set<FieldName>>(new Set());
 
   const [prediction, setPrediction] = useState<PredictResponse | null>(null);
   const [explanation, setExplanation] = useState<ExplainResponse | null>(null);
+  const [predictedFor, setPredictedFor] = useState<string | null>(null);
   const [reloads, setReloads] = useState(0);
   const [slowStart, setSlowStart] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   // Five seconds is the line between "loading" and "the instance was asleep". Under it the
   // indicator next to the button is enough; over it the wait needs explaining.
@@ -129,37 +173,130 @@ export function ValuationForm() {
   );
 
   /**
-   * Switching vertical invalidates every level — motorcycle makes are not car makes — so
-   * the reset happens in the handler rather than in an effect watching `vehicleType`.
-   * An effect would render the stale form once before clearing it.
+   * Switching vertical invalidates the categorical levels but not the numbers: motorcycle
+   * makes are not car makes, while a year and an odometer reading mean the same thing on
+   * both. Keeping them is what makes "actually, price the bike instead" one click.
+   *
+   * It happens in the handler rather than in an effect watching `vehicleType`, because an
+   * effect would render the stale form once before clearing it.
    */
   function chooseVehicleType(next: VehicleType) {
+    if (next === vehicleType) return;
     setVehicleType(next);
     setBrand("");
     setModel("");
     setDepartment("");
     setEngineCc("");
-    setShowRareModels(false);
     setPrediction(null);
     setExplanation(null);
+    setTouched(new Set());
   }
 
-  const brands = catalog?.brands ?? [];
-  const selectedBrand = brands.find((entry) => entry.name === brand);
-  const models = selectedBrand?.models ?? [];
-  const commonModels = models.filter((entry) => entry.listings >= RARE_MODEL_LISTINGS);
-  const shownModels = showRareModels || commonModels.length === 0 ? models : commonModels;
-
-  const years = useMemo(() => {
-    if (!catalog) return [];
-    const { min, max } = catalog.model_year;
-    return Array.from({ length: Math.round(max - min) + 1 }, (_, index) => Math.round(max) - index);
+  const brandOptions = useMemo<ComboOption[]>(() => {
+    const listed = catalog?.brands ?? [];
+    return listed
+      .filter((entry) => entry.name !== UNKNOWN_LEVEL)
+      .map((entry) => ({
+        value: entry.name,
+        label: entry.display_name ?? entry.name,
+        count: entry.listings,
+      }));
   }, [catalog]);
 
-  const complete = brand !== "" && year !== "" && mileage !== "" && department !== "";
+  const modelOptions = useMemo<ComboOption[]>(() => {
+    const selected = catalog?.brands.find((entry) => entry.name === brand);
+    return (selected?.models ?? []).map((entry) => ({
+      value: entry.name,
+      label: entry.display_name ?? entry.name,
+      count: entry.listings,
+    }));
+  }, [catalog, brand]);
 
-  function payload(): PredictRequest {
-    return {
+  /**
+   * Departments, with the thin ones grouped at the end rather than hidden or dropped.
+   *
+   * Alphabetical inside each group: unlike makes, nobody scans departments by popularity —
+   * they look for the one they live in.
+   */
+  const departmentOptions = useMemo<ComboOption[]>(() => {
+    const entries = catalog?.departments ?? [];
+    const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, lang);
+    const toOption = (entry: (typeof entries)[number], group?: string): ComboOption => ({
+      value: entry.name,
+      label: entry.display_name ?? entry.name,
+      count: entry.listings,
+      group,
+    });
+    const common = entries.filter((entry) => entry.listings >= LOW_DATA_LISTINGS).sort(byName);
+    const thin = entries.filter((entry) => entry.listings < LOW_DATA_LISTINGS).sort(byName);
+    return [
+      ...common.map((entry) => toOption(entry)),
+      ...thin.map((entry) => toOption(entry, t(copy.form.departmentLowData))),
+    ];
+  }, [catalog, lang, t]);
+
+  const chosenDepartment = (catalog?.departments ?? []).find((entry) => entry.name === department);
+  const departmentIsThin =
+    chosenDepartment !== undefined && chosenDepartment.listings < LOW_DATA_LISTINGS;
+
+  const yearRange = catalog?.model_year;
+  const engineRange = catalog?.engine_cc ?? null;
+
+  /** Every rule, in one place, so a field and its message cannot disagree. */
+  const problems = useMemo(() => {
+    const found: Partial<Record<FieldName, string>> = {};
+    if (brand === "") found.brand = t(copy.form.errors.brand);
+    if (department === "") found.department = t(copy.form.errors.department);
+
+    if (yearRange) {
+      const min = Math.round(yearRange.min);
+      const max = Math.round(yearRange.max);
+      const value = Number(year);
+      if (year === "" || value < min || value > max) {
+        found.year = fill(copy.form.errors.year, lang, { min, max });
+      }
+    }
+
+    if (mileage === "") {
+      found.mileage = t(copy.form.errors.mileageMissing);
+    } else if (Number(mileage) > MAX_MILEAGE_KM) {
+      found.mileage = fill(copy.form.errors.mileageRange, lang, {
+        max: integer(MAX_MILEAGE_KM, lang),
+      });
+    }
+
+    if (engineCc !== "" && engineRange) {
+      const value = Number(engineCc);
+      const min = Math.round(engineRange.min);
+      const max = Math.round(engineRange.max);
+      if (value < min || value > max) {
+        found.engine = fill(copy.form.errors.engineRange, lang, { min, max });
+      }
+    }
+
+    if (askingPrice !== "" && Number(askingPrice) < 1) {
+      found.asking = t(copy.form.errors.price);
+    }
+    return found;
+  }, [brand, department, year, mileage, engineCc, askingPrice, yearRange, engineRange, lang, t]);
+
+  /** A rule only becomes a message once the person has left the field. */
+  const shown = (field: FieldName) => (touched.has(field) ? problems[field] : undefined);
+  const touch = (field: FieldName) => setTouched((current) => new Set(current).add(field));
+
+  const complete = Object.keys(problems).length === 0;
+  const busy = status === "submitting";
+  const loading = status === "loading-catalog";
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!complete) {
+      // Surface every rule at once rather than refusing silently.
+      setTouched(new Set(["brand", "year", "mileage", "department", "engine", "asking"]));
+      return;
+    }
+
+    const body: PredictRequest = {
       vehicle_type: vehicleType,
       brand,
       model: model === "" ? null : model,
@@ -169,21 +306,16 @@ export function ValuationForm() {
       engine_cc: engineCc === "" ? null : Number(engineCc),
       asking_price_cop: askingPrice === "" ? null : Number(askingPrice),
     };
-  }
 
-  function submit(event: React.FormEvent) {
-    event.preventDefault();
-    if (!complete) return;
-
-    const body = payload();
     setStatus("submitting");
     setError(null);
-    // Both at once: they describe the same estimate, and two round trips in sequence
-    // would double a cold start that already costs a minute.
+    // Both at once: they describe the same estimate, and two round trips in sequence would
+    // double a cold start that already costs a minute.
     Promise.all([fetchPrediction(body), fetchExplanation(body)])
       .then(([predicted, explained]) => {
         setPrediction(predicted);
         setExplanation(explained);
+        setPredictedFor(describe());
         setStatus("ready");
       })
       .catch((cause: unknown) => {
@@ -192,276 +324,266 @@ export function ValuationForm() {
       });
   }
 
-  const busy = status === "submitting";
+  /** The spec line above the result: what was actually priced, as a classified reads. */
+  function describe(): string {
+    const brandLabel = brandOptions.find((option) => option.value === brand)?.label ?? brand;
+    const modelLabel = modelOptions.find((option) => option.value === model)?.label;
+    const departmentLabel =
+      departmentOptions.find((option) => option.value === department)?.label ?? department;
+    return [
+      [brandLabel, modelLabel].filter(Boolean).join(" "),
+      year,
+      `${integer(Number(mileage), lang)} km`,
+      departmentLabel,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  function reset() {
+    setBrand("");
+    setModel("");
+    setYear("");
+    setMileage("");
+    setDepartment("");
+    setEngineCc("");
+    setAskingPrice("");
+    setPrediction(null);
+    setExplanation(null);
+    setPredictedFor(null);
+    setTouched(new Set());
+  }
+
   const failure = classify(error, catalogs.length === 0);
+  const listingCount = (count: number) =>
+    fill(copy.form.listingsCount, lang, { count: integer(count, lang) });
+  const noMatch = (query: string) => fill(copy.form.searchNoMatch, lang, { query });
 
   return (
-    <div className="space-y-8">
-      {/* The long notice only once the wait has actually become one. The quiet warm-up is
-          the `/catalog` request above, which wakes the service while the form is filled in;
-          saying "this may take a minute" before anyone has waited puts an apology where the
-          value proposition belongs. The threshold and the inline indicator arrive with the
-          page's own step. */}
-      {status === "loading-catalog" && slowStart && (
-        <section
-          aria-labelledby="waking"
-          className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-700/60 dark:bg-amber-950/30"
+    <div className={`${WRAP} grid items-start gap-8 pb-20 min-[960px]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]`}>
+      <form
+        onSubmit={submit}
+        noValidate
+        className="rounded-lg border border-line bg-surface p-5 sm:p-7"
+      >
+        {/* The first decision, and the largest control on the page: everything below it
+            depends on which vertical answers. */}
+        <div
+          role="group"
+          aria-label={t(copy.form.vehicleType)}
+          className="mb-7 grid grid-cols-2 rounded-lg border border-line p-[3px]"
         >
-          <h2 id="waking" className="font-semibold">
-            {t(copy.status.wakingTitle)}
-          </h2>
-          <p className="mt-1 text-slate-700 dark:text-slate-300">{t(copy.status.wakingBody)}</p>
-        </section>
-      )}
+          {(["car", "motorcycle"] as const).map((candidate) => (
+            <button
+              key={candidate}
+              type="button"
+              onClick={() => chooseVehicleType(candidate)}
+              aria-pressed={vehicleType === candidate}
+              className={`min-h-13 rounded-md font-display text-lg font-bold transition-colors duration-200 [font-stretch:112%] ${
+                vehicleType === candidate ? "bg-ink text-ground" : "text-muted hover:text-ink"
+              }`}
+            >
+              {t(candidate === "car" ? copy.form.car : copy.form.motorcycle)}
+            </button>
+          ))}
+        </div>
 
-      <form onSubmit={submit} className="space-y-6">
-        <fieldset disabled={status === "loading-catalog" || busy} className="space-y-6">
-          <div>
-            <span className={LABEL}>{t(copy.form.vehicleType)}</span>
-            <div className="inline-flex rounded-md border border-slate-300 p-0.5 dark:border-slate-700">
-              {(["car", "motorcycle"] as const).map((candidate) => (
-                <button
-                  key={candidate}
-                  type="button"
-                  onClick={() => chooseVehicleType(candidate)}
-                  aria-pressed={vehicleType === candidate}
-                  className={`rounded px-4 py-1.5 text-sm font-medium transition ${
-                    vehicleType === candidate
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  {t(candidate === "car" ? copy.form.car : copy.form.motorcycle)}
-                </button>
-              ))}
-            </div>
+        <Fieldset legend={t(copy.form.groupVehicle)} disabled={loading || busy}>
+          <Combobox
+            id="brand"
+            required
+            label={t(copy.form.brand)}
+            placeholder={t(copy.form.brandPlaceholder)}
+            options={brandOptions}
+            value={brand}
+            onChange={(next) => {
+              setBrand(next);
+              setModel("");
+              touch("brand");
+            }}
+            emptyText={noMatch}
+            countLabel={listingCount}
+            error={shown("brand")}
+          />
+
+          <Combobox
+            id="model"
+            label={t(copy.form.model)}
+            placeholder={t(copy.form.modelPlaceholder)}
+            optionalLabel={t(copy.form.optional)}
+            disabled={brand === ""}
+            disabledHint={t(copy.form.modelAfterBrand)}
+            options={modelOptions}
+            value={model}
+            onChange={setModel}
+            emptyText={noMatch}
+            countLabel={listingCount}
+          />
+
+          <NumberField
+            id="year"
+            lang={lang}
+            label={t(copy.form.year)}
+            value={year}
+            onChange={setYear}
+            onBlur={() => touch("year")}
+            placeholder={
+              yearRange
+                ? `${Math.round(yearRange.min)}–${Math.round(yearRange.max)}`
+                : undefined
+            }
+            error={shown("year")}
+          />
+
+          <NumberField
+            id="engine"
+            lang={lang}
+            label={t(copy.form.engine)}
+            optionalLabel={t(copy.form.optional)}
+            unit={t(copy.form.engineUnit)}
+            value={engineCc}
+            onChange={setEngineCc}
+            onBlur={() => touch("engine")}
+            placeholder={
+              engineRange
+                ? `${integer(engineRange.min, lang)}–${integer(engineRange.max, lang)}`
+                : undefined
+            }
+            hint={t(copy.form.engineHint)}
+            error={shown("engine")}
+          />
+        </Fieldset>
+
+        <Fieldset legend={t(copy.form.groupListing)} disabled={loading || busy}>
+          <NumberField
+            id="mileage"
+            lang={lang}
+            label={t(copy.form.mileage)}
+            unit={t(copy.form.mileageUnit)}
+            value={mileage}
+            onChange={setMileage}
+            onBlur={() => touch("mileage")}
+            error={shown("mileage")}
+          />
+
+          <Combobox
+            id="department"
+            required
+            label={t(copy.form.department)}
+            options={departmentOptions}
+            value={department}
+            onChange={(next) => {
+              setDepartment(next);
+              touch("department");
+            }}
+            emptyText={noMatch}
+            countLabel={listingCount}
+            // The thin-department notice replaces the generic hint, so the warning lands
+            // where someone is looking the moment they pick one.
+            hint={
+              departmentIsThin && chosenDepartment
+                ? fill(copy.form.departmentLowDataHint, lang, {
+                    count: integer(chosenDepartment.listings, lang),
+                  })
+                : undefined
+            }
+            error={shown("department")}
+          />
+
+          <div className="sm:col-span-2">
+            <NumberField
+              id="asking"
+              lang={lang}
+              label={t(copy.form.askingPrice)}
+              optionalLabel={t(copy.form.optional)}
+              prefix="$"
+              value={askingPrice}
+              onChange={setAskingPrice}
+              onBlur={() => touch("asking")}
+              hint={t(copy.form.askingPriceHint)}
+              error={shown("asking")}
+            />
           </div>
+        </Fieldset>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={LABEL} htmlFor="brand">
-                {t(copy.form.brand)} *
-              </label>
-              <select
-                id="brand"
-                required
-                className={FIELD}
-                value={brand}
-                onChange={(event) => {
-                  setBrand(event.target.value);
-                  setModel("");
-                }}
-              >
-                <option value="">—</option>
-                {brands.map((entry) => (
-                  <option key={entry.name} value={entry.name}>
-                    {entry.name} ({integer(entry.listings, lang)})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={LABEL} htmlFor="model">
-                {t(copy.form.model)}
-              </label>
-              {/* The combobox that replaces this select, and the safety net that keeps the
-                  unknown-make bucket out of it, arrive with the page's own step. */}
-              <select
-                id="model"
-                className={FIELD}
-                value={model}
-                onChange={(event) => setModel(event.target.value)}
-                disabled={brand === ""}
-              >
-                <option value="">{t(copy.form.modelUnknown)}</option>
-                {shownModels.map((entry) => (
-                  <option key={entry.name} value={entry.name}>
-                    {entry.name} ({integer(entry.listings, lang)})
-                  </option>
-                ))}
-              </select>
-              {brand !== "" && shownModels.length < models.length && (
-                <button
-                  type="button"
-                  className={`${HINT} underline`}
-                  onClick={() => setShowRareModels(true)}
-                >
-                  +{models.length - shownModels.length} · {t(copy.form.modelShowAll)}
-                </button>
-              )}
-            </div>
-
-            <div>
-              <label className={LABEL} htmlFor="year">
-                {t(copy.form.year)} *
-              </label>
-              <select
-                id="year"
-                required
-                className={FIELD}
-                value={year}
-                onChange={(event) => setYear(event.target.value)}
-              >
-                <option value="">—</option>
-                {years.map((candidate) => (
-                  <option key={candidate} value={candidate}>
-                    {candidate}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={LABEL} htmlFor="mileage">
-                {t(copy.form.mileage)} (km) *
-              </label>
-              <input
-                id="mileage"
-                required
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={2_000_000}
-                // step="any" on every numeric field here, deliberately. A step of 1000
-                // makes 60.500 km fail the browser's own constraint validation, which
-                // blocks submit before onSubmit ever runs — a refusal the user cannot
-                // explain. The ranges are still enforced, by min/max here and by the
-                // API's schema at the edge.
-                step="any"
-                className={FIELD}
-                value={mileage}
-                onChange={(event) => setMileage(event.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className={LABEL} htmlFor="department">
-                {t(copy.form.department)} *
-              </label>
-              <select
-                id="department"
-                required
-                className={FIELD}
-                value={department}
-                onChange={(event) => setDepartment(event.target.value)}
-              >
-                <option value="">—</option>
-                {(catalog?.departments ?? []).map((entry) => (
-                  <option key={entry.name} value={entry.name}>
-                    {entry.name} ({integer(entry.listings, lang)})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={LABEL} htmlFor="engine">
-                {t(copy.form.engine)}
-              </label>
-              <input
-                id="engine"
-                type="number"
-                inputMode="numeric"
-                min={catalog?.engine_cc?.min ?? 1}
-                max={catalog?.engine_cc?.max ?? 10_000}
-                step="any"
-                placeholder={
-                  catalog?.engine_cc
-                    ? `${integer(catalog.engine_cc.min, lang)}–${integer(catalog.engine_cc.max, lang)}`
-                    : ""
-                }
-                className={FIELD}
-                value={engineCc}
-                onChange={(event) => setEngineCc(event.target.value)}
-              />
-              <p className={HINT}>{t(copy.form.engineHint)}</p>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className={LABEL} htmlFor="asking">
-                {t(copy.form.askingPrice)}
-              </label>
-              <input
-                id="asking"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                step="any"
-                className={FIELD}
-                value={askingPrice}
-                onChange={(event) => setAskingPrice(event.target.value)}
-              />
-              <p className={HINT}>{t(copy.form.askingPriceHint)}</p>
-            </div>
-          </div>
-        </fieldset>
-
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-6">
           <button
             type="submit"
-            disabled={!complete || busy || status === "loading-catalog"}
-            className="rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={busy || loading}
+            className="inline-flex min-h-12 items-center justify-center rounded-md bg-accent px-5.5 font-semibold text-accent-ink transition-[filter,transform] duration-200 hover:brightness-105 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? t(copy.form.submitting) : t(copy.form.submit)}
           </button>
 
-          {/* The connection indicator, which is what replaces the notice that used to open
-              the page: a line of state next to the button while the service wakes up. */}
-          {status === "loading-catalog" && (
-            <span className="text-sm text-slate-600 dark:text-slate-400" role="status">
-              {t(copy.status.connecting)}
+          {/* State next to the action, which is where someone looks when nothing happens.
+              Silent when the request failed: the panel beside it is already saying so, and
+              a green "model ready" under a visible error is the indicator lying. */}
+          {status !== "failed" && (
+            <span
+              role="status"
+              className="inline-flex items-center gap-2 font-mono text-xs text-muted"
+            >
+              <i aria-hidden className={`size-2 rounded-full ${loading ? "bg-faint" : "bg-good"}`} />
+              {loading ? t(copy.status.connecting) : t(copy.status.ready)}
             </span>
           )}
-          {catalog && status !== "loading-catalog" && (
-            <span className="text-sm text-slate-500 dark:text-slate-400">
-              {t(copy.status.ready)} ·{" "}
-              {fill(copy.form.listingsCount, lang, {
-                count: integer(catalog.trained_on_rows, lang),
-              })}{" "}
-              · {fill(copy.result.modelVersion, lang, { date: modelDate(catalog.model_version, lang) })}
-            </span>
+
+          {prediction && (
+            <button
+              type="button"
+              onClick={reset}
+              className="ml-auto text-sm text-accent-text underline underline-offset-4 hover:opacity-80"
+            >
+              {t(copy.form.reset)}
+            </button>
           )}
         </div>
+
+        {loading && slowStart && (
+          <div className="mt-5 border-l-2 border-accent pl-4 text-sm">
+            <p className="font-semibold">{t(copy.status.wakingTitle)}</p>
+            <p className="mt-1 text-muted">{t(copy.status.wakingBody)}</p>
+          </div>
+        )}
       </form>
 
-      {status === "failed" && error !== null && (
-        <div
-          role="alert"
-          className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm dark:border-red-800 dark:bg-red-950/30"
-        >
-          <p className="font-semibold">{t(failure.title)}</p>
-          <p className="mt-1 text-slate-700 dark:text-slate-300">{t(failure.body)}</p>
-          <details className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            <summary className="cursor-pointer">{t(copy.result.errors.detail)}</summary>
-            <p className="mt-1 break-words">{error}</p>
-          </details>
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              if (catalogs.length === 0) {
-                // The lists never arrived, so retry means fetching them again.
-                setStatus("loading-catalog");
-                setReloads((count) => count + 1);
-              } else {
-                setStatus("ready");
-              }
-            }}
-            className="mt-3 rounded-md border border-red-400 px-3 py-1.5 font-medium"
-          >
-            {t(copy.result.errors.retry)}
-          </button>
-        </div>
-      )}
-
-      {prediction && explanation && (
-        <PriceResult
-          prediction={prediction}
-          explanation={explanation}
-          askingPrice={askingPrice === "" ? null : Number(askingPrice)}
-        />
-      )}
+      <div ref={resultRef} className="min-[960px]:sticky min-[960px]:top-21">
+        {status === "failed" && error !== null ? (
+          <div role="alert" className="rounded-lg border border-bad bg-bad-bg p-5 text-sm">
+            <p className="font-semibold">{t(failure.title)}</p>
+            <p className="mt-1 text-muted">{t(failure.body)}</p>
+            <details className="mt-3 text-xs text-muted">
+              <summary className="cursor-pointer">{t(copy.result.errors.detail)}</summary>
+              <p className="mt-1 break-words font-mono">{error}</p>
+            </details>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                if (catalogs.length === 0) {
+                  // The lists never arrived, so retry means fetching them again.
+                  setStatus("loading-catalog");
+                  setSlowStart(false);
+                  setReloads((count) => count + 1);
+                } else {
+                  setStatus("ready");
+                }
+              }}
+              className="mt-4 inline-flex min-h-10 items-center rounded-md border border-line-strong px-4 text-sm font-medium"
+            >
+              {t(copy.result.errors.retry)}
+            </button>
+          </div>
+        ) : (
+          <PriceResult
+            prediction={prediction}
+            explanation={explanation}
+            askingPrice={askingPrice === "" ? null : Number(askingPrice)}
+            spec={predictedFor}
+            busy={busy}
+          />
+        )}
+      </div>
     </div>
   );
 }
