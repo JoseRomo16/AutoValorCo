@@ -47,6 +47,8 @@ env:
 jobs:
   enrich:
     name: enrich from the detail pages
+    # Pinned rather than ubuntu-latest: that label is migrating to Ubuntu 26, and a
+    # scraper is the worst place to discover an image change by surprise.
     runs-on: ubuntu-24.04
     permissions:
       # Publishes the new detail rows to the data branch (ADR 0004).
@@ -58,6 +60,8 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Install uv
+        # Pinned to an exact version because astral-sh stopped publishing floating
+        # major tags after v7: there is no `v10` to follow.
         uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
@@ -77,14 +81,39 @@ jobs:
 
       # Logs how many listings are still missing a detail row, which is how you know
       # whether another run is needed.
+      #
+      # Exit code 3 is the verification wall, handled exactly as in capture.yml: the run
+      # does not go red, it records the state and stops. The enrichment reads TuCarro
+      # listing pages one by one, so it meets the same wall the capture does.
       - name: Enrich motorcycles from their detail pages
+        id: enrich
         run: |
+          set +e
           uv run python -m autovalor.ingest.detail_cli \
             --vehicle-type motorcycle \
             --budget "$ENRICH_BUDGET" \
             ${FIRST_SEEN_AFTER:+--since "$FIRST_SEEN_AFTER"}
+          code=$?
+          set -e
+          if [ "$code" -eq 3 ]; then
+            echo "blocked=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Enriquecimiento bloqueado por verificación"
+              echo
+              echo "TuCarro pidió verificación de cuenta. El run se detuvo en la primera"
+              echo "página bloqueada, sin reintentos. Las páginas que sí respondieron"
+              echo "antes se publican igual: ya se pidieron."
+              echo
+              echo "No se corrió la validación del layer de detalle."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning title=Enriquecimiento bloqueado::TuCarro pidió verificación; enriquecimiento detenido sin reintentos"
+            exit 0
+          fi
+          echo "blocked=false" >> "$GITHUB_OUTPUT"
+          exit "$code"
 
       - name: Validate the detail layer
+        if: ${{ steps.enrich.outputs.blocked != 'true' }}
         run: uv run python -m autovalor.quality.cli --stage detail
 
       - name: Publish the detail layer to the data branch
