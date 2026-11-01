@@ -228,8 +228,8 @@ export const copy = {
 
     emptyTitle: { es: "Qué vas a recibir", en: "What you will get" },
     emptyBody: {
-      es: "Un precio estimado, el rango de los anuncios parecidos, la comparación con el precio que pides y los cinco factores que más mueven el valor.",
-      en: "An estimated price, the range of comparable listings, how your asking price compares, and the five factors that move the value most.",
+      es: "Un precio estimado, el rango de los anuncios parecidos, la comparación con el precio que pides y los factores que más mueven el valor.",
+      en: "An estimated price, the range of comparable listings, how your asking price compares, and the factors that move the value most.",
     },
     exampleBadge: { es: "Ejemplo", en: "Example" },
 
