@@ -44,7 +44,7 @@ import {
   type VehicleType,
   type VerticalCatalog,
 } from "@/lib/api";
-import { integer } from "@/lib/format";
+import { integer, kilometres } from "@/lib/format";
 import { copy, fill } from "@/lib/i18n";
 import type { Localized } from "@/lib/i18n";
 
@@ -72,6 +72,31 @@ const MAX_MILEAGE_KM = 2_000_000;
 
 type Status = "loading-catalog" | "ready" | "submitting" | "failed";
 type FieldName = "brand" | "year" | "mileage" | "department" | "engine" | "asking";
+
+/**
+ * Reading order of the form, which is the order errors are reported in.
+ *
+ * Submitting an incomplete form used to leave focus on the button and the first unanswered
+ * field — make or year — off the top of the screen, so the form looked like it had simply
+ * refused. Focus follows this list to the first field with a problem.
+ */
+const FIELD_ORDER: FieldName[] = ["brand", "year", "engine", "mileage", "department", "asking"];
+
+/**
+ * What was priced, kept as values rather than as a finished sentence.
+ *
+ * It used to be formatted once at submit time and stored as a string, which froze the
+ * locale: switching to English left the mileage as "60.000 km" under English copy. The
+ * numbers are formatted on render now, so the line follows the language like everything
+ * else.
+ */
+type PricedSpec = {
+  brandLabel: string;
+  modelLabel?: string;
+  year: string;
+  mileageKm: number;
+  departmentLabel: string;
+};
 
 /**
  * Turn a failure into something a person can act on.
@@ -133,7 +158,7 @@ export function ValuationForm() {
 
   const [prediction, setPrediction] = useState<PredictResponse | null>(null);
   const [explanation, setExplanation] = useState<ExplainResponse | null>(null);
-  const [predictedFor, setPredictedFor] = useState<string | null>(null);
+  const [predictedFor, setPredictedFor] = useState<PricedSpec | null>(null);
   const [reloads, setReloads] = useState(0);
   const [slowStart, setSlowStart] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -292,7 +317,19 @@ export function ValuationForm() {
     event.preventDefault();
     if (!complete) {
       // Surface every rule at once rather than refusing silently.
-      setTouched(new Set(["brand", "year", "mileage", "department", "engine", "asking"]));
+      setTouched(new Set(FIELD_ORDER));
+      // And send the person to the first one. After `setTouched` the messages are not in
+      // the DOM yet, so the move waits for the paint that adds them; without that, the
+      // scroll lands at the field's old position.
+      const first = FIELD_ORDER.find((field) => problems[field] !== undefined);
+      if (first) {
+        window.requestAnimationFrame(() => {
+          const control = document.getElementById(first);
+          if (!control) return;
+          control.focus({ preventScroll: true });
+          control.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
       return;
     }
 
@@ -324,20 +361,16 @@ export function ValuationForm() {
       });
   }
 
-  /** The spec line above the result: what was actually priced, as a classified reads. */
-  function describe(): string {
-    const brandLabel = brandOptions.find((option) => option.value === brand)?.label ?? brand;
-    const modelLabel = modelOptions.find((option) => option.value === model)?.label;
-    const departmentLabel =
-      departmentOptions.find((option) => option.value === department)?.label ?? department;
-    return [
-      [brandLabel, modelLabel].filter(Boolean).join(" "),
+  /** What was priced, captured at submit time; the wording happens on render. */
+  function describe(): PricedSpec {
+    return {
+      brandLabel: brandOptions.find((option) => option.value === brand)?.label ?? brand,
+      modelLabel: modelOptions.find((option) => option.value === model)?.label,
       year,
-      `${integer(Number(mileage), lang)} km`,
-      departmentLabel,
-    ]
-      .filter(Boolean)
-      .join(" · ");
+      mileageKm: Number(mileage),
+      departmentLabel:
+        departmentOptions.find((option) => option.value === department)?.label ?? department,
+    };
   }
 
   function reset() {
@@ -358,6 +391,22 @@ export function ValuationForm() {
   const listingCount = (count: number) =>
     fill(copy.form.listingsCount, lang, { count: integer(count, lang) });
   const noMatch = (query: string) => fill(copy.form.searchNoMatch, lang, { query });
+  const discardedNotice = (characters: string) =>
+    fill(copy.form.discarded, lang, { chars: characters });
+
+  // Formatted here rather than at submit time, so the mileage separators follow the
+  // language the reader is in now.
+  const specLine =
+    predictedFor === null
+      ? null
+      : [
+          [predictedFor.brandLabel, predictedFor.modelLabel].filter(Boolean).join(" "),
+          predictedFor.year,
+          kilometres(predictedFor.mileageKm, lang),
+          predictedFor.departmentLabel,
+        ]
+          .filter(Boolean)
+          .join(" · ");
 
   return (
     <div className={`${WRAP} grid items-start gap-8 pb-20 min-[960px]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]`}>
@@ -427,6 +476,8 @@ export function ValuationForm() {
             value={year}
             onChange={setYear}
             onBlur={() => touch("year")}
+            grouping={false}
+            discardedLabel={discardedNotice}
             placeholder={
               yearRange
                 ? `${Math.round(yearRange.min)}–${Math.round(yearRange.max)}`
@@ -444,6 +495,7 @@ export function ValuationForm() {
             value={engineCc}
             onChange={setEngineCc}
             onBlur={() => touch("engine")}
+            discardedLabel={discardedNotice}
             placeholder={
               engineRange
                 ? `${integer(engineRange.min, lang)}–${integer(engineRange.max, lang)}`
@@ -463,6 +515,7 @@ export function ValuationForm() {
             value={mileage}
             onChange={setMileage}
             onBlur={() => touch("mileage")}
+            discardedLabel={discardedNotice}
             error={shown("mileage")}
           />
 
@@ -500,6 +553,7 @@ export function ValuationForm() {
               value={askingPrice}
               onChange={setAskingPrice}
               onBlur={() => touch("asking")}
+              discardedLabel={discardedNotice}
               hint={t(copy.form.askingPriceHint)}
               error={shown("asking")}
             />
@@ -579,7 +633,7 @@ export function ValuationForm() {
             prediction={prediction}
             explanation={explanation}
             askingPrice={askingPrice === "" ? null : Number(askingPrice)}
-            spec={predictedFor}
+            spec={specLine}
             busy={busy}
           />
         )}

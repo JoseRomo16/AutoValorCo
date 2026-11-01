@@ -56,6 +56,18 @@ export const copy = {
       es: "Precios de carros y motos usadas en Colombia",
       en: "Used car and motorcycle prices in Colombia",
     },
+    /**
+     * The browser tab, which a static export cannot vary by language on its own.
+     *
+     * `metadata` in `layout.tsx` is baked at build time, so the tab stayed Spanish for an
+     * English reader. `LanguageProvider` writes this one instead. It is a single site-wide
+     * title because that is what the site has today; per-page titles and descriptions are
+     * Block 3's job, and this is the hook they will use.
+     */
+    documentTitle: {
+      es: "AutoValor CO, precios de carros y motos usados",
+      en: "AutoValor CO, used car and motorcycle prices",
+    },
   },
   nav: {
     value: { es: "Valorar", en: "Value" },
@@ -168,6 +180,11 @@ export const copy = {
       en: "If you enter it, we compare it against the range.",
     },
 
+    discarded: {
+      es: "Quitamos {chars} porque este campo solo acepta números.",
+      en: "We removed {chars} because this field only takes numbers.",
+    },
+
     listingsCount: { es: "{count} anuncios", en: "{count} listings" },
     searchNoMatch: { es: "Nada coincide con «{query}»", en: "Nothing matches “{query}”" },
     modelShowAll: {
@@ -215,6 +232,30 @@ export const copy = {
       en: "An estimated price, the range of comparable listings, how your asking price compares, and the five factors that move the value most.",
     },
     exampleBadge: { es: "Ejemplo", en: "Example" },
+
+    /**
+     * What a screen reader hears when a result lands.
+     *
+     * One sentence, not the panel. The whole card used to be an `aria-live` region, so
+     * every figure, every bar label and all five factors were read out on arrival before
+     * the listener could reach the number they asked for.
+     */
+    announcement: {
+      es: "Precio estimado: {estimate}. Rango: {lower} a {upper}. {verdict}",
+      en: "Estimated price: {estimate}. Range: {lower} to {upper}. {verdict}",
+    },
+    announcementLabel: { es: "Etiqueta: {label}.", en: "Label: {label}." },
+    announcementNoLabel: { es: "Sin etiqueta.", en: "No label." },
+
+    /** The range bar is a picture; this is the same information as words. */
+    bandDescription: {
+      es: "Rango: P10 {lower}, estimado {estimate}, P90 {upper}.",
+      en: "Range: P10 {lower}, estimate {estimate}, P90 {upper}.",
+    },
+    bandDescriptionAsking: {
+      es: " Precio pedido: {asking}.",
+      en: " Asking price: {asking}.",
+    },
 
     asking: { es: "Precio pedido", en: "Asking price" },
     askingAbove: {

@@ -73,6 +73,55 @@ export function integer(value: number, lang: Lang): string {
   return new Intl.NumberFormat(LOCALE[lang], { maximumFractionDigits: 0 }).format(value);
 }
 
+/**
+ * The group and decimal marks this locale actually uses, read from `Intl` rather than
+ * typed here.
+ *
+ * Spanish groups with `.` and decimalises with `,`; English is the other way round. Typing
+ * that table out would make `parseGrouped` disagree with `integer` the day a locale
+ * changes, and they have to agree exactly: one formats what the other parses.
+ */
+export function separators(lang: Lang): { group: string; decimal: string } {
+  const parts = new Intl.NumberFormat(LOCALE[lang], {
+    minimumFractionDigits: 1,
+  }).formatToParts(12345.6);
+  const of = (type: Intl.NumberFormatPartTypes, fallback: string) =>
+    parts.find((part) => part.type === type)?.value ?? fallback;
+  return { group: of("group", ","), decimal: of("decimal", ".") };
+}
+
+/**
+ * Read a typed or pasted amount back into bare digits, and say what was thrown away.
+ *
+ * The old rule was `replace(/\D/g, "")`, which is right while someone types and wrong the
+ * moment they paste. `45.000.000,00` lost its comma and gained the cents as digits, so a
+ * pasted 45 million became **4.500.000.000** — a hundred times more, with nothing on
+ * screen to suggest it. And `-5e9` quietly became `59`: every character the mask could not
+ * use was simply deleted.
+ *
+ * So the fraction is dropped as a fraction rather than concatenated, and anything that is
+ * neither a digit nor a separator comes back in `discarded` for the caller to mention. A
+ * silent correction of someone's number is the one outcome worth ruling out.
+ *
+ * The separator a number carries at most once is its decimal mark; seeing it twice means
+ * it is grouping, which is what a value pasted from the other locale looks like. That
+ * makes `45,000,000` read as 45 million on the Spanish page instead of 45.
+ */
+export function parseGrouped(text: string, lang: Lang): { digits: string; discarded: string } {
+  const { group, decimal } = separators(lang);
+
+  const withoutGroups = text.split(group).join("");
+  const pieces = withoutGroups.split(decimal);
+  // One decimal mark is a decimal mark and the tail is a fraction; several mean it was
+  // grouping all along, so every piece is part of the integer.
+  const integerPart = (pieces.length === 2 ? pieces[0] : pieces.join("")) ?? "";
+
+  const discarded = [...integerPart].filter((character) => !/[\d\s]/.test(character)).join("");
+  // Leading zeros go so that "0" followed by "5" reads 5 rather than 05.
+  const digits = integerPart.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  return { digits, discarded };
+}
+
 /** A percentage already expressed in points: "4,8 %" / "4.8%". */
 export function percent(value: number, lang: Lang, digits = 1): string {
   const formatted = new Intl.NumberFormat(LOCALE[lang], {

@@ -10,3 +10,30 @@ import "@testing-library/jest-dom/vitest";
  * the theme assertions would read a stale attribute.
  */
 afterEach(cleanup);
+
+/**
+ * Two browser APIs jsdom does not implement, stubbed so a component that merely *uses*
+ * them can be rendered at all.
+ *
+ * Deliberately inert: both answer "no" or do nothing. Any test that actually cares what
+ * they report installs its own — `theme.test.tsx` builds a real fake `matchMedia`, because
+ * following the system after the first paint is the thing it is testing. These exist so
+ * every other test does not have to.
+ */
+if (!window.matchMedia) {
+  window.matchMedia = ((query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => true,
+    }) as unknown as MediaQueryList) as typeof window.matchMedia;
+}
+
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}
