@@ -9,7 +9,8 @@ PAGES ?= 10
 
 .DEFAULT_GOAL := help
 .PHONY: help setup scrape enrich pull-history push-history transform train export-model \
-	results readme serve test lint format docker-build docker-up clean
+	results readme serve web web-build web-lint web-test test lint format docker-build \
+	docker-up clean
 
 help: ## Show the available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -65,6 +66,9 @@ web-build: ## Build the static export Render publishes, into frontend/out
 
 web-lint: ## Lint and type-check the front end
 	cd frontend && npm run lint && npm run typecheck
+
+web-test: ## Run the front-end unit tests (vitest)
+	cd frontend && npm test
 
 test: ## Run the test suite with coverage
 	$(RUN) pytest
