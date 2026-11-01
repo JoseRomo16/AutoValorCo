@@ -17,6 +17,7 @@ import duckdb
 
 from autovalor.config import get_settings
 from autovalor.ingest.bronze import read_details, write_details
+from autovalor.ingest.cli import BLOCKED_EXIT_CODE, BLOCKED_MESSAGE
 from autovalor.ingest.detail import (
     DEFAULT_BUDGET,
     DEFAULT_SEED,
@@ -164,7 +165,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         argv: Command-line arguments; defaults to ``sys.argv[1:]``.
 
     Returns:
-        ``0`` on success, ``1`` when there is no lake to read or every page failed.
+        ``0`` on success, ``1`` when there is no lake to read or every page failed, and
+        :data:`~autovalor.ingest.cli.BLOCKED_EXIT_CODE` when the site asked for
+        verification. The wall gets its own code for the same reason the capture gives
+        it one: it is not a bug to fix, and the workflow has to tell the two apart.
     """
     args = build_parser().parse_args(argv)
     logging.basicConfig(
@@ -199,6 +203,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         candidates, vehicle_type=vehicle_type, budget=args.budget, seed=args.seed
     )
     if not result.details:
+        if result.blocked is not None:
+            logger.error("%s (%s)", BLOCKED_MESSAGE, result.blocked)
+            return BLOCKED_EXIT_CODE
         logger.error("%s: no page could be read", vehicle_type.value)
         return 1
 
@@ -212,6 +219,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         sys.stdout.write("labels seen but not stored (schema drift):\n")
         for label, count in sorted(result.unknown_labels.items(), key=lambda item: -item[1]):
             sys.stdout.write(f"  {label:32} {count}\n")
+    if result.blocked is not None:
+        # Reported last, and only after the rows are written and the coverage printed:
+        # the pages fetched before the wall are worth exactly as much as any others.
+        logger.error("%s (%s)", BLOCKED_MESSAGE, result.blocked)
+        return BLOCKED_EXIT_CODE
     return 0
 
 

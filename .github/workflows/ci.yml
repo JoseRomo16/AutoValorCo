@@ -1,6 +1,11 @@
 ---
 name: CI
 
+# Runner and actions are pinned deliberately. `ubuntu-latest` is migrating to Ubuntu 26,
+# and every action here runs on node24 — the node20 runtime is on its way out, so an
+# older major stops working rather than merely warning. `setup-uv` carries an exact
+# version because astral-sh stopped publishing floating major tags after v7.
+
 on:
   push:
     branches: ["**"]
@@ -16,13 +21,13 @@ env:
 jobs:
   quality:
     name: lint and tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -47,15 +52,15 @@ jobs:
 
   frontend:
     name: frontend builds and lints
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
@@ -92,10 +97,10 @@ jobs:
 
   docker:
     name: api image builds
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Plain docker build on the runner's pre-installed Docker: no third-party
       # actions, nothing to keep pinned, and the image is small enough that a layer
@@ -122,7 +127,7 @@ jobs:
 
       # setup-python rather than the runner's system interpreter: Ubuntu marks that one
       # externally managed, so `pip install` into it fails outright.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 

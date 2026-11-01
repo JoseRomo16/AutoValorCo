@@ -51,7 +51,7 @@ no pesa estado— y el hedónico de F3 lo confirmó por otra vía: una moto pier
 | Piloto para medir σ del error | 1.000 anuncios | 2.704, luego 10.972 |
 | Carros limpios | ≥ 6.000 | **7.207** |
 | Motos limpias | ≥ 2.600 | **3.765** |
-| Captura semanal activa | — | workflow activo en GitHub |
+| Captura semanal activa | — | workflow activo, **bloqueado desde 2026-10-26** ([registro](#registro-de-capturas-bloqueadas)) |
 
 Componentes:
 
@@ -1350,6 +1350,32 @@ Queda abierto solo si aparece **un export manual** que consigas por tu cuenta. M
 tanto los resultados de F3 se publican diciendo que no hay comparación externa, en vez de
 inventar una.
 
+### 3. De dónde salen los anuncios después del muro de verificación
+
+[ADR 0005](adr/0005-capture-source-after-verification-wall.md), escrito el 2026-11-01 y
+**esperando decisión**. Tres opciones, con lo que se pudo medir de cada una:
+
+- **A, la API oficial de Mercado Libre.** `/sites/MCO/search` responde **403** sin token
+  (medido), y `/sites/MCO/categories` lo dice sin ambigüedad: `PolicyAgent`,
+  `PA_UNAUTHORIZED_RESULT_FROM_POLICIES`. Hay reportes independientes de que también
+  responde 403 **con** token y aplicación registrada, así que lo único que falta por
+  medir es justo lo que decide la opción. Registrar la aplicación es gratis y sin tarjeta,
+  pero ata la captura a una cuenta personal.
+- **B, pausar la captura.** Cuesta el índice mensual de precios, que es lo último abierto
+  de F3.
+- **C, correr la captura desde la máquina de desarrollo.** ~120 peticiones, 10–15 minutos
+  a la semana, y es la única que conserva el índice en su fecha a costo cero. Lo que hay
+  que decidir no es el costo sino si cuenta como evadir el bloqueo: el ADR expone el
+  argumento de cada lado y **no** lo resuelve, porque es tu llamada.
+
+**Recomendación del ADR: C si juzgas que no es evasión, B si no.** A queda abierta y no
+se recomienda hoy.
+
+**Dependencia de texto:** Metodología dice hoy "Leemos los anuncios publicados de TuCarro
+una vez por semana", que deja de ser cierto bajo B. El texto **se deja como está a
+propósito** hasta que decidas: si sale B, se cambia en el Bloque 8 por una frase que diga
+la fecha de los datos y que la captura está en pausa.
+
 ---
 
 ## Deuda conocida
@@ -1433,6 +1459,37 @@ inventar una.
 
 ## Cómo retomar
 
+### Registro de capturas bloqueadas
+
+La última captura buena es la del **2026-10-19**. Desde entonces el lago sigue en
+**4 capturas, del 2026-09-30 al 2026-10-19**, y esta tabla es el registro del hueco, para
+que no haya que inferirlo de archivos que faltan.
+
+| Semana (lunes 07:00 UTC) | Qué pasó | Costo en peticiones |
+| --- | --- | --- |
+| 2026-10-19 | capturada: 576 carros, 426 motos | sweep completo |
+| 2026-10-26 | **bloqueada**: `302` a `/gz/account-verification` en las seis ubicaciones, 0 anuncios, bronze sin escribir. El run quedó rojo por "Upload capture" (`if-no-files-found: error`), que no era la causa | 72 páginas pedidas en vano |
+| 2026-11-02 | **omitida**: Jose deshabilitó "Weekly capture" y "enrich" a mano antes de esa fecha, justamente para no repetir las 72 peticiones | 0 |
+
+**Desde el 2026-11-01 el código ya no insiste.** `polite.py` detecta la verificación en
+toda la cadena de redirecciones y lanza `VerificationWallError`, que a propósito **no** es
+una de las excepciones de las que el scraper se recupera; `cli.py` y `detail_cli.py` paran
+en la primera, escriben lo que ya hubieran capturado y salen con código **3**; y
+`capture.yml` y `enrich.yml` traducen ese 3 en un resumen "Captura bloqueada por
+verificación", saltan validación, dbt y publicación, y **no ponen el run en rojo**. Una
+semana bloqueada cuesta ahora **una petición**.
+
+Por eso los dos workflows **se vuelven a habilitar** con este cambio: deshabilitarlos era
+la única forma de no gastar 72 peticiones, y ya no lo es. El run semanal pasa a ser además
+la sonda más barata posible: la primera semana que salga verde es la que dice que el muro
+se levantó.
+
+**La fuente de datos sigue abierta** en
+[ADR 0005](adr/0005-capture-source-after-verification-wall.md), con tres opciones medidas
+—API oficial de Mercado Libre (`/sites/MCO/search` responde `403` sin token, y hay
+reportes de que también con token), pausar la captura, o correrla desde la máquina de
+desarrollo— y esperando decisión.
+
 ### Dónde quedó esto el 2026-10-26
 
 El trabajo en curso es el **rediseño del sitio**, que tiene su propio documento de
@@ -1479,7 +1536,9 @@ el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el
    ubicaciones. Desde una IP residencial las mismas URL devuelven `200` (o un `301` a la
    forma nueva, `/carros-camionetas/bogota-dc` → `/bogota-dc`, que el cliente ya sigue) y
    parsean 48 tarjetas por página. Es un bloqueo por tipo de IP, no una plantilla de URL
-   vieja. Sin solución de costo cero: un proxy residencial se paga. **Pendiente de decisión.**
+   vieja. Sin solución de costo cero: un proxy residencial se paga.
+   **El código ya no insiste** (ver abajo); **la fuente de datos sigue pendiente de
+   decisión** en [ADR 0005](adr/0005-capture-source-after-verification-wall.md).
 4. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
    motos bajen de 22,0 %, que sigue siendo señal de estado y no más identidad.
 

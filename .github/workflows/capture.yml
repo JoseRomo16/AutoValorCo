@@ -32,7 +32,9 @@ env:
 jobs:
   capture:
     name: capture and transform
-    runs-on: ubuntu-latest
+    # Pinned rather than ubuntu-latest: that label is migrating to Ubuntu 26, and a
+    # scraper is the worst place to discover an image change by surprise.
+    runs-on: ubuntu-24.04
     permissions:
       # The capture publishes its bronze files to the data branch (ADR 0004).
       contents: write
@@ -40,10 +42,12 @@ jobs:
     # takes a while by design.
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        # Pinned to an exact version because astral-sh stopped publishing floating
+        # major tags after v7: there is no `v10` to follow.
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -54,27 +58,66 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      # Exit code 3 means TuCarro asked for verification (ingest.cli.BLOCKED_EXIT_CODE).
+      # That is not a failure to fix, so the job does not go red for it: it records the
+      # state, skips the rest of the pipeline and stops. Every other code behaves as
+      # before, including the 1 of a capture that lost one location but wrote bronze.
       - name: Capture listings into bronze
+        id: capture
         run: |
           args=()
           for slug in $LOCATIONS; do
             args+=(--location "$slug")
           done
+          set +e
           uv run python -m autovalor.ingest.cli \
             --vehicle-type all \
             --pages "$PAGES" \
             "${args[@]}"
+          code=$?
+          set -e
+
+          # data/ is gitignored, so a fresh checkout has no lake: anything under
+          # bronze/ now was written by this run.
+          if find data/bronze -name '*.parquet' -print -quit 2>/dev/null | grep -q .; then
+            echo "captured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "captured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ "$code" -eq 3 ]; then
+            echo "blocked=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Captura bloqueada por verificación"
+              echo
+              echo "TuCarro pidió verificación de cuenta, así que la captura se detuvo"
+              echo "sin reintentos y sin pedir más páginas. No hay nada que arreglar en"
+              echo "el código: el sitio dijo que no."
+              echo
+              echo "No se corrieron la validación, dbt ni la publicación."
+              echo "La fuente de datos se decide en el ADR"
+              echo "\`docs/adr/0005-capture-source-after-verification-wall.md\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning title=Captura bloqueada::TuCarro pidió verificación; captura detenida sin reintentos"
+            exit 0
+          fi
+          echo "blocked=false" >> "$GITHUB_OUTPUT"
+          exit "$code"
 
       - name: Validate bronze
+        if: ${{ steps.capture.outputs.blocked != 'true' }}
         run: uv run python -m autovalor.quality.cli --stage bronze
 
       - name: Build silver and gold
+        if: ${{ steps.capture.outputs.blocked != 'true' }}
         run: uv run dbt build --project-dir dbt --profiles-dir dbt
 
       - name: Validate silver and gold
+        if: ${{ steps.capture.outputs.blocked != 'true' }}
         run: uv run python -m autovalor.quality.cli --stage silver --stage gold
 
       - name: Report capture size
+        if: ${{ steps.capture.outputs.blocked != 'true' }}
         run: |
           uv run python - <<'PY'
           import duckdb
@@ -91,7 +134,12 @@ jobs:
         # Runs even after a failed validation, for the same reason the upload does: the
         # capture itself is the irreplaceable part. Only bronze is published; silver and
         # gold are rebuilt from it with dbt. See docs/adr/0004-capture-history-storage.md.
-        if: ${{ !cancelled() }}
+        #
+        # Conditioned on files existing rather than on the exit code: `history push`
+        # raises when there is no bronze layer at all, which is exactly the shape of a
+        # capture blocked on its first request. A capture blocked *after* some locations
+        # did write bronze, and that data is published like any other.
+        if: ${{ !cancelled() && steps.capture.outputs.captured == 'true' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -104,11 +152,14 @@ jobs:
         # upload in those cases threw away the only copy of the data, so this runs
         # whenever the job was not cancelled. Earlier failures still fail the job.
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: capture-${{ github.run_id }}
           path: |
             data/bronze
             data/autovalor.duckdb
           retention-days: 90
-          if-no-files-found: error
+          # `warn`, not `error`. A blocked capture legitimately has nothing to upload,
+          # and on 2026-10-26 this step is what turned that into a red run: the real
+          # event was buried under a failure about missing files.
+          if-no-files-found: warn
