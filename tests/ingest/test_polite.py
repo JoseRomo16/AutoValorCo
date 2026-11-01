@@ -184,6 +184,34 @@ def test_detects_the_verification_wall(settings: Settings) -> None:
     assert caught.value.final_url == wall
 
 
+def test_detects_the_wall_on_the_robots_fetch(settings: Settings) -> None:
+    """Measured on 2026-11-01: robots.txt is redirected to the wall like anything else.
+
+    The wall answered 200 with HTML, RobotFileParser found no rules in it and therefore
+    allowed everything, so "the site refused us" was read as "the site publishes no
+    rules" and the sweep only stopped one request later. Detecting it here is what makes
+    a blocked week cost exactly one request.
+    """
+    wall = "https://www.mercadolibre.com.co/gz/account-verification"
+    asked: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        asked.append(str(request.url))
+        if str(request.url) == wall:
+            return httpx.Response(200, text="<html>verifica tu cuenta</html>")
+        return httpx.Response(302, headers={"Location": wall})
+
+    with (
+        build_client(settings, handler) as client,
+        pytest.raises(VerificationWallError) as caught,
+    ):
+        client.get(PAGE)
+
+    assert caught.value.url.endswith("/robots.txt")
+    # Only robots.txt and the wall it was sent to: the search page is never asked for.
+    assert not any("/vehiculos" in url for url in asked)
+
+
 def test_the_wall_is_not_a_recoverable_error(settings: Settings) -> None:
     """Scrapers skip a location on these; the wall must not be mistaken for one."""
     wall = "https://www.mercadolibre.com.co/gz/account-verification"

@@ -117,6 +117,9 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["D100", "D103", "D104"]
+# Operator scripts run by hand, where the whole output is a person reading a terminal.
+# The library code keeps using logging; these are not imported by anything.
+"scripts/**" = ["T201"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -126,7 +129,7 @@ convention = "google"
 # --------------------------------------------------------------------------- #
 [tool.mypy]
 python_version = "3.12"
-files = ["src", "tests"]
+files = ["src", "tests", "scripts"]
 strict = true
 warn_unreachable = true
 plugins = ["pydantic.mypy"]
