@@ -34,7 +34,12 @@ from typing import Final
 import httpx
 from bs4 import BeautifulSoup
 
-from autovalor.ingest.polite import PoliteClient, RetryableStatusError, RobotsDisallowedError
+from autovalor.ingest.polite import (
+    PoliteClient,
+    RetryableStatusError,
+    RobotsDisallowedError,
+    VerificationWallError,
+)
 from autovalor.ingest.records import ListingDetail, VehicleType
 
 logger = logging.getLogger("autovalor.ingest.detail")
@@ -132,19 +137,24 @@ class EnrichmentResult:
         failed: Listings whose page could not be read.
         unknown_labels: Labels seen on the pages that are not on the allow-list, with
             how often — the schema-drift signal.
+        blocked: The verification screen the run was sent to, when the site put up its
+            wall. The rows collected before that are still here: they are fetched pages
+            and throwing them away would mean fetching them again.
     """
 
     details: tuple[ListingDetail, ...]
     requested: int
     failed: tuple[str, ...]
     unknown_labels: dict[str, int]
+    blocked: str | None = None
 
     def summary(self) -> str:
         """Return a one-line description for a log."""
         unknown = ", ".join(sorted(self.unknown_labels)) or "none"
+        wall = "" if self.blocked is None else f", stopped at {self.blocked}"
         return (
             f"{len(self.details)}/{self.requested} listings enriched, "
-            f"{len(self.failed)} failed, unknown labels: {unknown}"
+            f"{len(self.failed)} failed, unknown labels: {unknown}{wall}"
         )
 
 
@@ -259,6 +269,10 @@ def enrich_listings(
     A listing whose page fails is logged and skipped rather than aborting the run, for the
     same reason a failed location does not abort a capture: losing one page is much better
     than losing the batch.
+
+    The verification wall is the exception. It is a statement about the session, not about
+    one page, so the loop stops at the first one — the rows already fetched are returned
+    and written, and ``blocked`` tells the caller why there are not more.
     """
     chosen = select_listings(candidates, budget=budget, seed=seed)
     moment = fetched_at if fetched_at is not None else datetime.now(UTC)
@@ -268,10 +282,15 @@ def enrich_listings(
     details: list[ListingDetail] = []
     failed: list[str] = []
     unknown_total: dict[str, int] = {}
+    blocked: str | None = None
     try:
         for listing_id, url in chosen:
             try:
                 html = http.get(url).text
+            except VerificationWallError as exc:
+                logger.error("%s: %s", listing_id, exc)
+                blocked = exc.final_url
+                break
             except (httpx.HTTPError, RetryableStatusError, RobotsDisallowedError) as exc:
                 logger.warning("%s: skipped after %s: %s", listing_id, type(exc).__name__, exc)
                 failed.append(listing_id)
@@ -290,7 +309,7 @@ def enrich_listings(
         if owned:
             http.close()
 
-    result = EnrichmentResult(tuple(details), len(chosen), tuple(failed), unknown_total)
+    result = EnrichmentResult(tuple(details), len(chosen), tuple(failed), unknown_total, blocked)
     logger.info("%s", result.summary())
     return result
 

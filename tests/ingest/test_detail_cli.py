@@ -10,11 +10,13 @@ import pytest
 
 from autovalor.ingest import detail_cli
 from autovalor.ingest.bronze import write_details
+from autovalor.ingest.cli import BLOCKED_EXIT_CODE
 from autovalor.ingest.detail import DEFAULT_BUDGET, DEFAULT_SEED, EnrichmentResult
 from autovalor.ingest.detail_cli import build_parser, load_candidates, main
 from autovalor.ingest.records import ListingDetail, VehicleType
 
 FETCHED_AT = datetime(2026, 10, 6, 1, 30, tzinfo=UTC)
+WALL = "https://www.mercadolibre.com.co/gz/account-verification"
 
 
 def make_gold(path: Path, *, motorcycles: int = 20, cars: int = 5) -> Path:
@@ -135,6 +137,39 @@ def test_a_run_where_every_page_failed_is_an_error(
     )
 
     assert main(["--duckdb-path", str(database), "--data-dir", str(tmp_path)]) == 1
+
+
+def test_a_blocked_run_writes_its_rows_and_exits_three(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The wall is not "every page failed": the pages that answered are still written."""
+    database = make_gold(tmp_path / "autovalor.duckdb")
+    details = (make_detail("MCO-000000"),)
+    monkeypatch.setattr(
+        detail_cli,
+        "enrich_listings",
+        lambda *_, **__: EnrichmentResult(details, 2, (), {}, WALL),
+    )
+
+    code = main(["--budget", "2", "--duckdb-path", str(database), "--data-dir", str(tmp_path)])
+
+    assert code == BLOCKED_EXIT_CODE
+    assert len(list((tmp_path / "detail").glob("**/*.parquet"))) == 1
+
+
+def test_a_run_blocked_before_any_page_is_not_reported_as_a_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    database = make_gold(tmp_path / "autovalor.duckdb")
+    monkeypatch.setattr(
+        detail_cli,
+        "enrich_listings",
+        lambda *_, **__: EnrichmentResult((), 2, (), {}, WALL),
+    )
+
+    assert main(["--duckdb-path", str(database), "--data-dir", str(tmp_path)]) == (
+        BLOCKED_EXIT_CODE
+    )
 
 
 def test_nothing_left_to_enrich_is_a_success(tmp_path: Path) -> None:

@@ -262,6 +262,42 @@ def test_a_failing_page_is_skipped_rather_than_aborting_the_run(page: str) -> No
     assert result.failed == (broken,)
 
 
+def test_the_wall_stops_the_run_and_keeps_what_was_fetched(page: str) -> None:
+    """The pages read before the wall were paid for; the run keeps them and stops."""
+    wall = "https://www.mercadolibre.com.co/gz/account-verification"
+    candidates = _candidates(6)
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /")
+        if str(request.url) == wall:
+            return httpx.Response(200, text="<html>verifica</html>")
+        seen.append(request.url.path)
+        if len(seen) > 2:
+            return httpx.Response(302, headers={"Location": wall})
+        return httpx.Response(200, text=page)
+
+    result = enrich_listings(
+        candidates, budget=6, client=build_client(handler), fetched_at=FETCHED_AT
+    )
+
+    assert result.blocked == wall
+    assert len(result.details) == 2
+    # Three pages asked for in total: two that answered and the one that hit the wall.
+    assert len(seen) == 3
+    # The wall is not a page that "failed": the listing can be enriched another day.
+    assert result.failed == ()
+
+
+def test_a_run_that_was_not_blocked_says_so(page: str) -> None:
+    result = enrich_listings(
+        _candidates(2), budget=2, client=build_client(page_handler(page)), fetched_at=FETCHED_AT
+    )
+
+    assert result.blocked is None
+
+
 def test_unknown_labels_are_aggregated_across_the_run(page: str) -> None:
     client = build_client(page_handler(page))
 
