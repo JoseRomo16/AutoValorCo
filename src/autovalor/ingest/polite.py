@@ -31,6 +31,12 @@ RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
 _ALLOW_ALL = ("User-agent: *", "Allow: /")
 _DISALLOW_ALL = ("User-agent: *", "Disallow: /")
 
+VERIFICATION_MARKERS = ("account-verification", "/gz/")
+"""Path fragments that mean the site is asking a human to prove they are one."""
+
+VERIFICATION_HOSTS = ("mercadolibre.com.co",)
+"""Hosts a TuCarro request is sent to when the wall goes up."""
+
 
 class RobotsDisallowedError(RuntimeError):
     """Raised when ``robots.txt`` forbids fetching a URL."""
@@ -39,6 +45,26 @@ class RobotsDisallowedError(RuntimeError):
         """Record the URL that was refused."""
         super().__init__(f"robots.txt disallows fetching {url}")
         self.url = url
+
+
+class VerificationWallError(RuntimeError):
+    """Raised when the site answers with its account-verification screen.
+
+    Deliberately **not** a subclass of the errors a scraper recovers from: a location
+    that 404s is a location to skip, but a verification wall is the site telling the
+    whole run to stop. Every caller that catches the recoverable errors therefore lets
+    this one through, and the capture ends without asking for one more page.
+
+    There is no retry and no workaround here, and that is a project rule rather than a
+    missing feature: no proxies, no rotating user-agents, no headless browser to get
+    past the check, no cookies and no captcha solving.
+    """
+
+    def __init__(self, url: str, final_url: str) -> None:
+        """Record the URL that was asked for and the one that answered."""
+        super().__init__(f"{url} was redirected to the verification wall at {final_url}")
+        self.url = url
+        self.final_url = final_url
 
 
 class RetryableStatusError(RuntimeError):
@@ -55,6 +81,46 @@ def origin_of(url: str) -> str:
     """Return the ``scheme://host`` prefix of ``url``."""
     parts = urlsplit(url)
     return f"{parts.scheme}://{parts.netloc}"
+
+
+def _is_verification_host(host: str) -> bool:
+    """Return whether ``host`` is one the wall sends requests to."""
+    return any(host == known or host.endswith(f".{known}") for known in VERIFICATION_HOSTS)
+
+
+def verification_url(requested: str, response: httpx.Response) -> str | None:
+    """Return the verification screen this response passed through, or ``None``.
+
+    The whole redirect chain is inspected, not just where it ended. On 2026-10-26 every
+    request answered ``302`` towards ``/gz/account-verification`` and the page that
+    finally answered returned **200**, so a check on the status code alone sees nothing
+    wrong and the parser reads the verification screen as a search page with no results:
+    a capture that silently collects zero listings instead of failing.
+
+    Three signals, any of which is enough. A path that names the verification screen, a
+    ``/gz/`` gateway segment — Mercado Libre's prefix for its interstitials — and a hop
+    onto a Mercado Libre host from a request that did not start there.
+
+    That last one is the broad one, and it is broad on purpose: a false positive costs
+    one aborted run, while a false negative costs seventy-two requests to a site that
+    already said no. If a legitimate TuCarro redirect onto that host ever shows up, the
+    fix is to narrow this rule, not to retry past it.
+    """
+    origin = httpx.URL(requested)
+    chain = [*(step.url for step in response.history), response.url]
+    for candidate in chain:
+        path_and_query = candidate.raw_path.decode("ascii", "ignore")
+        if any(marker in path_and_query for marker in VERIFICATION_MARKERS):
+            return str(candidate)
+        host = candidate.host
+        if (
+            host
+            and host != origin.host
+            and _is_verification_host(host)
+            and not _is_verification_host(origin.host)
+        ):
+            return str(candidate)
+    return None
 
 
 def tls_verification(settings: Settings | None = None) -> ssl.SSLContext | bool:
@@ -193,6 +259,7 @@ class PoliteClient:
 
         Raises:
             RobotsDisallowedError: If ``robots.txt`` forbids the URL.
+            VerificationWallError: If the site answered with its verification screen.
             httpx.HTTPStatusError: For non-retryable error responses.
             RetryableStatusError: If every retry of a 429/5xx was exhausted.
         """
@@ -227,6 +294,10 @@ class PoliteClient:
                 if attempt == MAX_ATTEMPTS:
                     raise
             else:
+                # Before anything else, including the status check: the wall answers 200.
+                wall = verification_url(url, response)
+                if wall is not None:
+                    raise VerificationWallError(url, wall)
                 if response.status_code not in RETRYABLE_STATUS:
                     response.raise_for_status()
                     return response

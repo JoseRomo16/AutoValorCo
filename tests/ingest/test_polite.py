@@ -11,6 +11,7 @@ from autovalor.ingest.polite import (
     RetryableStatusError,
     RobotsDisallowedError,
     RobotsPolicy,
+    VerificationWallError,
 )
 
 ORIGIN = "https://carros.tucarro.com.co"
@@ -154,6 +155,114 @@ def test_does_not_retry_client_errors(settings: Settings) -> None:
 
     with build_client(settings, handler) as client, pytest.raises(httpx.HTTPStatusError):
         client.get(PAGE)
+
+
+def wall_handler(location: str, *, status_code: int = 302) -> Handler:
+    """Answer robots.txt normally and redirect every page to ``location``."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /")
+        if str(request.url) == location:
+            # What the wall actually serves: a 200 with a page asking for verification.
+            return httpx.Response(200, text="<html>verifica tu cuenta</html>")
+        return httpx.Response(status_code, headers={"Location": location})
+
+    return handler
+
+
+def test_detects_the_verification_wall(settings: Settings) -> None:
+    """The 2026-10-26 shape: 302 to /gz/account-verification, which then answers 200."""
+    wall = "https://www.mercadolibre.com.co/gz/account-verification"
+    with (
+        build_client(settings, wall_handler(wall)) as client,
+        pytest.raises(VerificationWallError) as caught,
+    ):
+        client.get(PAGE)
+
+    assert caught.value.url == PAGE
+    assert caught.value.final_url == wall
+
+
+def test_the_wall_is_not_a_recoverable_error(settings: Settings) -> None:
+    """Scrapers skip a location on these; the wall must not be mistaken for one."""
+    wall = "https://www.mercadolibre.com.co/gz/account-verification"
+    with build_client(settings, wall_handler(wall)) as client:
+        try:
+            client.get(PAGE)
+        except VerificationWallError as error:
+            assert not isinstance(error, httpx.HTTPError | RetryableStatusError)
+            assert not isinstance(error, RobotsDisallowedError)
+        else:
+            pytest.fail("the wall was not reported")
+
+
+def test_detects_the_wall_without_a_redirect(settings: Settings) -> None:
+    """Asking for the verification URL directly is still the wall, with no history."""
+    wall = f"{ORIGIN}/gz/account-verification"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /")
+        return httpx.Response(200, text="<html>verifica</html>")
+
+    with build_client(settings, handler) as client, pytest.raises(VerificationWallError):
+        client.get(wall)
+
+
+def test_detects_a_hop_onto_mercadolibre_without_a_marker(settings: Settings) -> None:
+    """The host change alone is enough: the wall may move off these two paths."""
+    elsewhere = "https://www.mercadolibre.com.co/alguna-pantalla"
+    with (
+        build_client(settings, wall_handler(elsewhere)) as client,
+        pytest.raises(VerificationWallError),
+    ):
+        client.get(PAGE)
+
+
+def test_the_wall_is_not_retried(settings: Settings) -> None:
+    """A wall that is retried four times is four requests to a site that said no."""
+    attempts = {"count": 0}
+    wall = "https://www.mercadolibre.com.co/gz/account-verification"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /")
+        if str(request.url) == wall:
+            return httpx.Response(200, text="verifica")
+        attempts["count"] += 1
+        return httpx.Response(302, headers={"Location": wall})
+
+    with build_client(settings, handler) as client, pytest.raises(VerificationWallError):
+        client.get(PAGE)
+    assert attempts["count"] == 1
+
+
+def test_a_normal_page_is_not_a_wall(settings: Settings) -> None:
+    """A redirect inside tucarro.com.co is ordinary and must keep working."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /")
+        if request.url.path == "/vehiculos":
+            return httpx.Response(301, headers={"Location": f"{ORIGIN}/vehiculos/"})
+        return httpx.Response(200, text="<html>listing</html>")
+
+    with build_client(settings, handler) as client:
+        assert client.get(PAGE).text == "<html>listing</html>"
+
+
+def test_a_request_that_starts_on_mercadolibre_is_not_a_wall(settings: Settings) -> None:
+    """The host rule is about being *sent* there, not about the host itself."""
+    page = "https://articulo.mercadolibre.com.co/MCO-123"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /")
+        return httpx.Response(200, text="<html>listing</html>")
+
+    with build_client(settings, handler) as client:
+        assert client.get(page).status_code == 200
 
 
 def test_honours_crawl_delay() -> None:
