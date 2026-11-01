@@ -45,7 +45,8 @@ from fastapi.responses import RedirectResponse
 from autovalor import __version__
 from autovalor.api.features import to_frame
 from autovalor.api.labels import Localized, feature_label, format_value
-from autovalor.api.rules import resolve, year_range
+from autovalor.api.regions import AVERAGE_REGION, average_band, average_contributions, weights
+from autovalor.api.rules import DEPARTMENT_NOT_COVERED, resolve, year_range
 from autovalor.api.schemas import (
     CatalogBrand,
     CatalogEntry,
@@ -126,6 +127,17 @@ def _require(models: dict[VehicleType, ServedModel], vehicle_type: VehicleType) 
     if model is None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=NOT_READY)
     return model
+
+
+def _average_over(model: ServedModel, warnings: list[str]) -> tuple[tuple[str, float], ...]:
+    """Departments to average over, or empty when the request names a covered one.
+
+    The decision is read off the warning the rules layer already produced, so "which
+    departments does this model know" is answered in exactly one place.
+    """
+    if DEPARTMENT_NOT_COVERED not in warnings or model.catalog is None:
+        return ()
+    return weights(model.catalog)
 
 
 def _precision_codes(model: ServedModel) -> list[PrecisionCode]:
@@ -339,15 +351,17 @@ def predict(request: PredictRequest, models: ModelsDep) -> PredictResponse:
     # The published band: calibrated P10 and P90 around the *point* model's estimate, which
     # is the number /explain attributes and the one whose MAPE is published. See
     # ServedModel.predict_published_band.
-    bounds = model.predict_published_band(frame)
-    lower, estimate, upper = (float(np.exp(value)) for value in bounds[0])
+    # With an uncovered department there is no level to score: the request would take
+    # LightGBM's default branch, which is an arbitrary effect rather than an answer about
+    # an unknown region. See autovalor.api.regions.
+    pairs = _average_over(model, checked.warnings)
+    row = average_band(model, frame, pairs) if pairs else model.predict_published_band(frame)[0]
+    lower, estimate, upper = (float(np.exp(value)) for value in row)
 
     label = None
     if request.asking_price_cop is not None:
         # Classified against the band the caller is shown, not a different one.
-        labels = model.classify(
-            [float(np.log(request.asking_price_cop))], [bounds[0, 0]], [bounds[0, 2]]
-        )
+        labels = model.classify([float(np.log(request.asking_price_cop))], [row[0]], [row[2]])
         label = None if labels is None else labels[0]
 
     return PredictResponse(
@@ -377,11 +391,20 @@ def explain(request: PredictRequest, models: ModelsDep) -> ExplainResponse:
     checked = resolve(request, model.catalog)
     request = checked.request
     frame = to_frame(request, departments=_known_departments(model))
-    phi, base = shap_contributions(model.point, frame)
 
-    row = phi.iloc[0]
-    ordered = row.reindex(row.abs().sort_values(ascending=False).index)
-    ranked = _with_supplied(ordered, request)
+    pairs = _average_over(model, checked.warnings)
+    if pairs:
+        # The averaged prediction, attributed exactly: phi is additive in log space and the
+        # base does not depend on the row, so averaging the contributions explains the
+        # averaged estimate and base x factors = estimate still holds.
+        contributions, base, predicted = average_contributions(model, frame, pairs)
+    else:
+        phi, base = shap_contributions(model.point, frame)
+        contributions = phi.iloc[0]
+        predicted = float(model.predict_log_price(frame)[0])
+
+    ordered = contributions.reindex(contributions.abs().sort_values(ascending=False).index)
+    ranked = _with_supplied(ordered, request, averaged=bool(pairs))
     factors = [
         Factor(
             feature=str(feature),
@@ -393,19 +416,30 @@ def explain(request: PredictRequest, models: ModelsDep) -> ExplainResponse:
         )
         for feature, contribution in ranked.items()
     ]
+    if pairs:
+        # Said plainly rather than echoing back the department the caller typed: the
+        # estimate is not about that department, it is the average over the ones we have.
+        factors = [
+            factor.model_copy(update={"value": None, "value_display": _localized(AVERAGE_REGION)})
+            if factor.feature == DEPARTMENT_FEATURE
+            else factor
+            for factor in factors
+        ]
     return ExplainResponse(
         vehicle_type=request.vehicle_type,
         # The same number /predict publishes, from the same model. These were two different
         # models until this block: /predict centred its band on the P50 quantile model while
         # /explain reported the point model, so the product showed two prices for one
         # vehicle and the SHAP reconciliation only held for one of them.
-        estimate_cop=float(np.exp(model.predict_log_price(frame)[0])),
+        estimate_cop=float(np.exp(predicted)),
         base_price_cop=float(np.exp(base)),
         factors=factors,
         warnings=checked.warnings,
         model_version=model.version,
     )
 
+
+DEPARTMENT_FEATURE = "department"
 
 SUPPLIED_ALWAYS_SHOWN = ("engine_cc",)
 """Optional fields that appear in an explanation whenever the caller filled them in.
@@ -417,20 +451,32 @@ the explanation has no way to tell whether it was used at all.
 """
 
 
-def _with_supplied(ordered: Any, request: PredictRequest) -> Any:
-    """Return the strongest factors, keeping any supplied field that would be cut.
+def _with_supplied(ordered: Any, request: PredictRequest, *, averaged: bool) -> Any:
+    """Return the strongest factors, keeping any field that has to stay visible.
 
     The ranking is untouched and nothing is dropped to make room: an appended factor is a
     weaker one by construction, so promoting it over a stronger one would misrepresent the
-    order. The list is therefore the top five *plus* what the caller asked about.
+    order. The list is therefore the top five *plus* what has to be said.
+
+    Two kinds of addition. A field the caller filled in and would otherwise not appear --
+    see :data:`SUPPLIED_ALWAYS_SHOWN`. And the region, whenever the estimate is an average
+    over departments: that is the one factor whose displayed value is not the input, so
+    hiding it would leave the reader with an averaged price and no sign that it was one.
     """
     top = ordered.head(TOP_FACTORS)
+    wanted = list(SUPPLIED_ALWAYS_SHOWN)
+    if averaged:
+        wanted.append(DEPARTMENT_FEATURE)
+
+    def has_to_show(feature: str) -> bool:
+        if averaged and feature == DEPARTMENT_FEATURE:
+            return True
+        return getattr(request, feature, None) is not None
+
     extra = [
         feature
-        for feature in SUPPLIED_ALWAYS_SHOWN
-        if getattr(request, feature, None) is not None
-        and feature in ordered.index
-        and feature not in top.index
+        for feature in wanted
+        if has_to_show(feature) and feature in ordered.index and feature not in top.index
     ]
     if not extra:
         return top

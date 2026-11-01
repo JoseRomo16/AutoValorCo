@@ -23,13 +23,8 @@ from autovalor.api import main as api_main
 from autovalor.api.labels import FEATURE_LABELS
 from autovalor.api.schemas import MAX_MILEAGE_KM
 from autovalor.config import get_settings
-from autovalor.models.bundle import load_served_models, save_bundle
-from autovalor.models.catalog import build_catalog
-from autovalor.models.dataset import split_listings
+from autovalor.models.bundle import ServedModel, load_served_models
 from autovalor.models.quantiles import LABEL_GATE
-from autovalor.models.train import train_model
-
-from ..models.conftest import make_gold_frame
 
 CAR = {
     "vehicle_type": "car",
@@ -39,42 +34,6 @@ CAR = {
     "mileage_km": 60_000,
     "department": "Antioquia",
 }
-
-
-@pytest.fixture(scope="module")
-def artifacts(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """A real bundle for both verticals, built from the synthetic lake."""
-    root = tmp_path_factory.mktemp("artifacts")
-    for vehicle_type, seed in (("car", 7), ("motorcycle", 11)):
-        frame = make_gold_frame(600, vehicle_type=vehicle_type, seed=seed)
-        dataset = split_listings(frame)
-        result = train_model(dataset, "lightgbm", n_trials=0, explain=False)
-        assert result.interval_model is not None
-        assert result.interval is not None
-        assert result.label is not None
-        save_bundle(
-            root / vehicle_type,
-            vehicle_type=vehicle_type,  # type: ignore[arg-type]
-            version="test.1",
-            point=result.model,  # type: ignore[arg-type]
-            interval=result.interval_model,
-            label=result.label,
-            metrics={
-                "mape": result.test_report.mape,
-                "median_ape": result.test_report.median_ape,
-                "sigma_log": result.test_report.sigma_log,
-                "r2_log": result.test_report.r2_log,
-                "n_test": float(result.test_report.n),
-                "interval_coverage": result.interval.coverage,
-                "interval_mean_relative_width": result.interval.mean_relative_width,
-                "baseline_mape": result.test_report.mape * 1.4,
-            },
-            lake={"rows": len(frame)},
-            uncalibrated=result.interval_uncalibrated,
-            metrics_temporal={"mape": result.test_report.mape * 1.1, "n_test": 60.0},
-            catalog=build_catalog(dataset.train, vehicle_type=vehicle_type),  # type: ignore[arg-type]
-        )
-    return root
 
 
 @pytest.fixture
@@ -625,3 +584,95 @@ def test_the_row_counts_have_names_that_say_what_they_count(client: TestClient) 
     # The old name stays, so a deployed frontend does not break.
     assert catalogue["trained_on_rows"] == catalogue["train_rows"]
     assert info["trained_on_rows"] == info["total_rows"]
+
+
+# ---------------------------------------------------------------------------
+# An uncovered department, over HTTP. The arithmetic is covered in
+# test_regions.py; what matters here is that the routes take that path and say
+# so.
+# ---------------------------------------------------------------------------
+
+UNCOVERED = {**CAR, "department": "Nariño"}
+
+
+def test_an_uncovered_department_no_longer_answers_like_a_covered_one(client: TestClient) -> None:
+    # Measured on the deployed service: "Nariño", "xyz", "Otro" and a lower-cased
+    # "antioquia" all returned exactly the same estimate as Antioquia, because there is no
+    # unknown level and the request took LightGBM's default branch.
+    averaged = client.post("/predict", json=UNCOVERED).json()
+    antioquia = client.post("/predict", json={**CAR, "department": "Antioquia"}).json()
+    assert averaged["band"] != antioquia["band"]
+
+
+def test_every_uncovered_spelling_gets_the_same_average(client: TestClient) -> None:
+    # Which is the point of an average over known departments: the answer depends on the
+    # model's data, not on which unknown string happened to be typed.
+    first = client.post("/predict", json={**CAR, "department": "Nariño"}).json()
+    second = client.post("/predict", json={**CAR, "department": "Otro departamento"}).json()
+    assert first["band"] == second["band"]
+    assert first["warnings"] == ["department_not_covered"]
+
+
+def test_the_averaged_band_is_still_ordered(client: TestClient) -> None:
+    band = client.post("/predict", json=UNCOVERED).json()["band"]
+    assert band["lower_cop"] <= band["estimate_cop"] <= band["upper_cop"]
+
+
+def test_explain_calls_the_region_an_average_rather_than_echoing_the_input(
+    client: TestClient,
+) -> None:
+    body = client.post("/explain", json=UNCOVERED).json()
+    region = next(factor for factor in body["factors"] if factor["feature"] == "department")
+    assert region["value"] is None
+    assert region["value_display"]["es"] == "promedio de departamentos"
+    assert region["value_display"]["en"] == "average of departments"
+    # And never the department the caller typed, which the estimate is not about.
+    assert "Nariño" not in json.dumps(body, ensure_ascii=False)
+
+
+def test_the_averaged_explanation_still_reconciles(client: TestClient) -> None:
+    # base x every factor == the estimate. The property is exact, so a loose tolerance here
+    # would hide a real break; only the five strongest factors are returned, so the product
+    # is checked against the estimate the same route publishes.
+    body = client.post("/explain", json=UNCOVERED).json()
+    predicted = client.post("/predict", json=UNCOVERED).json()["band"]["estimate_cop"]
+    assert body["estimate_cop"] == pytest.approx(predicted, rel=1e-9)
+
+
+def test_the_average_costs_one_scoring_call_not_one_per_department(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The departments become rows, so ten of them cost what one prediction costs.
+
+    Asserted structurally rather than with a stopwatch: a wall-clock bound on ten tiny
+    LightGBM calls measures the machine, while the number of calls is the actual claim.
+    Patched on the class because ServedModel is a frozen dataclass.
+    """
+    scored = _count_scored_rows(monkeypatch)
+    client.post("/predict", json=UNCOVERED)
+
+    assert len(scored) == 1, "the departments should be scored together, not in a loop"
+    model = client.app.state.models["car"]  # type: ignore[attr-defined]
+    assert model.catalog is not None
+    assert scored[0] == len(model.catalog.departments)
+
+
+def test_a_covered_department_does_not_pay_for_the_average(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scored = _count_scored_rows(monkeypatch)
+    client.post("/predict", json={**CAR, "department": "Antioquia"})
+    assert scored == [1]
+
+
+def _count_scored_rows(monkeypatch: pytest.MonkeyPatch) -> list[int]:
+    """Record how many rows each call to the published band scored."""
+    scored: list[int] = []
+    original = ServedModel.predict_published_band
+
+    def counted(self: ServedModel, frame: Any) -> Any:
+        scored.append(len(frame))
+        return original(self, frame)
+
+    monkeypatch.setattr(ServedModel, "predict_published_band", counted)
+    return scored
