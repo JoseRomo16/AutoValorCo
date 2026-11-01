@@ -15,9 +15,9 @@
  * constraint UI cannot.
  */
 
-import { useId } from "react";
+import { useId, useState } from "react";
 
-import { integer } from "@/lib/format";
+import { integer, parseGrouped } from "@/lib/format";
 import type { Lang } from "@/lib/i18n";
 
 export function NumberField({
@@ -34,6 +34,8 @@ export function NumberField({
   error,
   disabled = false,
   optionalLabel,
+  grouping = true,
+  discardedLabel,
 }: {
   id: string;
   label: string;
@@ -51,9 +53,35 @@ export function NumberField({
   error?: string;
   disabled?: boolean;
   optionalLabel?: string;
+  /**
+   * Group thousands while typing. True for amounts, false for a year.
+   *
+   * A price needs the separators to be readable at eight digits. A year is four digits
+   * that are never grouped in either language, and grouping them rendered 2024 as
+   * "2.024", which reads as a different kind of number entirely.
+   */
+  grouping?: boolean;
+  /**
+   * Name the characters the mask could not use, in the reader's language.
+   *
+   * Passed in rather than built here so this stays a presentational component, the same
+   * way `Combobox` takes its `emptyText`.
+   */
+  discardedLabel?: (characters: string) => string;
 }) {
   const hintId = useId();
-  const shown = value === "" ? "" : integer(Number(value), lang);
+  /**
+   * What the last keystroke threw away, if anything.
+   *
+   * A notice, deliberately not an error: the value that landed is usable and submission is
+   * not blocked. It only answers "where did the rest of what I typed go?", which the field
+   * used to leave unanswered.
+   */
+  const [discarded, setDiscarded] = useState("");
+
+  const present = (digits: string) =>
+    digits === "" ? "" : grouping ? integer(Number(digits), lang) : digits;
+  const shown = present(value);
 
   function handle(event: React.ChangeEvent<HTMLInputElement>) {
     const input = event.target;
@@ -61,11 +89,11 @@ export function NumberField({
     const digitsAfterCaret = input.value.slice(input.value.length - caretFromEnd).replace(/\D/g, "")
       .length;
 
-    // Strip separators, then leading zeros, so "0" followed by "5" reads 5 and not 05.
-    const digits = input.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+    const { digits, discarded: dropped } = parseGrouped(input.value, lang);
+    setDiscarded(dropped);
     onChange(digits);
 
-    const formatted = digits === "" ? "" : integer(Number(digits), lang);
+    const formatted = present(digits);
     let position = formatted.length;
     let seen = 0;
     while (position > 0 && seen < digitsAfterCaret) {
@@ -77,7 +105,15 @@ export function NumberField({
     window.requestAnimationFrame(() => input.setSelectionRange(position, position));
   }
 
-  const describedBy = [error ? `${hintId}-error` : null, hint ? `${hintId}-hint` : null]
+  // An error outranks the notice: a value that breaks a rule is the more useful thing to
+  // say, and two messages under one field is noise.
+  const notice = error || discarded === "" || !discardedLabel ? null : discardedLabel(discarded);
+
+  const describedBy = [
+    error ? `${hintId}-error` : null,
+    notice ? `${hintId}-notice` : null,
+    hint ? `${hintId}-hint` : null,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -130,6 +166,12 @@ export function NumberField({
       {error ? (
         <p id={`${hintId}-error`} className="mt-1.5 text-xs text-bad">
           {error}
+        </p>
+      ) : notice ? (
+        // `role="status"` so it is announced when it appears: the whole point is that the
+        // field no longer changes what was typed without saying so.
+        <p id={`${hintId}-notice`} role="status" className="mt-1.5 text-xs text-muted">
+          {notice}
         </p>
       ) : (
         hint && (
