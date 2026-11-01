@@ -80,18 +80,26 @@ function precisionReason(prediction: PredictResponse, lang: Lang): string {
 function Panel({
   title,
   badge,
+  announce = "",
   children,
 }: {
   title: string;
   badge?: React.ReactNode;
+  /** One sentence with the answer, for the live region. Empty announces nothing. */
+  announce?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section
-      aria-labelledby="result-title"
-      aria-live="polite"
-      className="rounded-lg border border-line bg-surface p-5 sm:p-7"
-    >
+    // No `aria-live` on the section itself. It used to be here, which made the entire card
+    // a live region: every figure, both bar labels and all five factors were read out on
+    // arrival, and the listener had to sit through the lot to reach the price. The live
+    // region below carries the answer in one sentence instead.
+    <section aria-labelledby="result-title" className="rounded-lg border border-line bg-surface p-5 sm:p-7">
+      {/* Mounted in every state, including empty, because a region announces changes to
+          itself — one created at the same moment as its text is often missed. */}
+      <p aria-live="polite" className="sr-only">
+        {announce}
+      </p>
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2
           id="result-title"
@@ -212,8 +220,31 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
 
   const verdict = prediction.label === null ? null : VERDICT[prediction.label];
 
+  // The sentence a screen reader hears, built from the same figures on screen.
+  const announcement = fill(copy.result.announcement, lang, {
+    estimate: copMillions(band.estimate_cop, lang),
+    lower: copMillions(band.lower_cop, lang),
+    upper: copMillions(band.upper_cop, lang),
+    verdict: verdict
+      ? fill(copy.result.announcementLabel, lang, { label: t(verdict.title) })
+      : t(copy.result.announcementNoLabel),
+  });
+
+  // The bar is a picture, so it carries the same information as words. Without this the
+  // only readable parts were the P10 and P90 captions: where the estimate sat inside the
+  // range, and where the asking price sat against it, were visual only.
+  const bandDescription =
+    fill(copy.result.bandDescription, lang, {
+      lower: copMillions(band.lower_cop, lang),
+      estimate: copMillions(band.estimate_cop, lang),
+      upper: copMillions(band.upper_cop, lang),
+    }) +
+    (askingPrice === null
+      ? ""
+      : fill(copy.result.bandDescriptionAsking, lang, { asking: cop(askingPrice, lang) }));
+
   return (
-    <Panel title={t(copy.result.heading)}>
+    <Panel title={t(copy.result.heading)} announce={announcement}>
       {spec && <p className="-mt-1 mb-5 text-sm text-muted">{spec}</p>}
 
       {/* Price and range, same size, one object. */}
@@ -239,7 +270,7 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
       </dl>
 
       <div className="mt-5">
-        <div aria-hidden className="relative h-8 rounded bg-grid">
+        <div role="img" aria-label={bandDescription} className="relative h-8 rounded bg-grid">
           <span className="absolute inset-x-0 inset-y-2 rounded-sm bg-bar-muted ring-1 ring-bar-edge" />
           <span
             className="absolute inset-y-1 w-0.5 bg-ink"
