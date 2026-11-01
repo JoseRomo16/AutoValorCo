@@ -1350,31 +1350,16 @@ Queda abierto solo si aparece **un export manual** que consigas por tu cuenta. M
 tanto los resultados de F3 se publican diciendo que no hay comparación externa, en vez de
 inventar una.
 
-### 3. De dónde salen los anuncios después del muro de verificación
+### 3. De dónde salen los anuncios después del muro — decidido, pausa
 
-[ADR 0005](adr/0005-capture-source-after-verification-wall.md), escrito el 2026-11-01 y
-**esperando decisión**. Tres opciones, con lo que se pudo medir de cada una:
+Cerrada el **2026-11-01** en
+[ADR 0005](adr/0005-capture-source-after-verification-wall.md): **la captura queda en
+pausa** (opción B), **C descartada por evasión**, y **A abierta y en medición** con
+`scripts/probe_mercadolibre.py`. El detalle, y qué cuesta la pausa, está en
+[Fuente de datos](#fuente-de-datos-decidido-la-captura-queda-en-pausa).
 
-- **A, la API oficial de Mercado Libre.** `/sites/MCO/search` responde **403** sin token
-  (medido), y `/sites/MCO/categories` lo dice sin ambigüedad: `PolicyAgent`,
-  `PA_UNAUTHORIZED_RESULT_FROM_POLICIES`. Hay reportes independientes de que también
-  responde 403 **con** token y aplicación registrada, así que lo único que falta por
-  medir es justo lo que decide la opción. Registrar la aplicación es gratis y sin tarjeta,
-  pero ata la captura a una cuenta personal.
-- **B, pausar la captura.** Cuesta el índice mensual de precios, que es lo último abierto
-  de F3.
-- **C, correr la captura desde la máquina de desarrollo.** ~120 peticiones, 10–15 minutos
-  a la semana, y es la única que conserva el índice en su fecha a costo cero. Lo que hay
-  que decidir no es el costo sino si cuenta como evadir el bloqueo: el ADR expone el
-  argumento de cada lado y **no** lo resuelve, porque es tu llamada.
-
-**Recomendación del ADR: C si juzgas que no es evasión, B si no.** A queda abierta y no
-se recomienda hoy.
-
-**Dependencia de texto:** Metodología dice hoy "Leemos los anuncios publicados de TuCarro
-una vez por semana", que deja de ser cierto bajo B. El texto **se deja como está a
-propósito** hasta que decidas: si sale B, se cambia en el Bloque 8 por una frase que diga
-la fecha de los datos y que la captura está en pausa.
+**Lo único que sigue abierto aquí es A**, y depende de un dato que todavía no existe: qué
+responde `/sites/MCO/search` con un token válido.
 
 ---
 
@@ -1484,11 +1469,55 @@ la única forma de no gastar 72 peticiones, y ya no lo es. El run semanal pasa a
 la sonda más barata posible: la primera semana que salga verde es la que dice que el muro
 se levantó.
 
-**La fuente de datos sigue abierta** en
-[ADR 0005](adr/0005-capture-source-after-verification-wall.md), con tres opciones medidas
-—API oficial de Mercado Libre (`/sites/MCO/search` responde `403` sin token, y hay
-reportes de que también con token), pausar la captura, o correrla desde la máquina de
-desarrollo— y esperando decisión.
+**Una semana bloqueada tampoco es silenciosa.** El job queda verde, así que `capture.yml`
+abre un issue con la etiqueta `capture-blocked` la primera semana bloqueada, comenta en
+cada semana siguiente y **lo cierra solo** cuando una captura vuelva a traer anuncios. Uno
+por episodio, no uno por semana. Sin eso, "en pausa" y "roto en silencio" se ven igual
+desde afuera.
+
+**Verificado con una corrida real** el 2026-11-01 (run `41334037312`, `pages=1`, una
+ubicación, `dry_run=true`): el job terminó **verde en 32 segundos** por el camino de
+bloqueo, con el resumen, la anotación y el issue. Esa corrida también destapó el último
+agujero: `robots.txt` **también** es redirigido al muro, responde 200, y su HTML se
+parseaba como "no hay reglas publicadas" —es decir, el muro se leía como un robots.txt
+permisivo y la parada ocurría una petición más tarde. La detección ahora corre también en
+el fetch de robots, que es lo que vuelve cierto el "una sola petición".
+
+### Fuente de datos: decidido, la captura queda en pausa
+
+[ADR 0005](adr/0005-capture-source-after-verification-wall.md), decidido el **2026-11-01**:
+
+- **Opción B adoptada: la captura queda en pausa.**
+- **Opción C descartada**: mover la captura a una IP residencial después de un bloqueo por
+  IP **cuenta como evadirlo** y choca con la regla del proyecto. Queda registrada como
+  descartada por principio, no por no explorada: funciona, es barata, y no se hace.
+- **Opción A abierta y en medición.** Jose registra una aplicación en
+  developers.mercadolibre.com.co y pasa el token por variable de entorno local, **nunca en
+  el repo**. `scripts/probe_mercadolibre.py` hace **una** búsqueda autenticada en la
+  categoría de vehículos de MCO y anota el código, el mensaje y qué campos vienen. Si da
+  200 con lo que el modelo necesita, se abre un bloque para integrarla; si da 403, A queda
+  cerrada en el ADR.
+
+El script comprueba primero el token contra `/users/me`, y la razón es una ambigüedad
+medida: **un token inválido devuelve el mismo `403 forbidden` que no mandar token**, así
+que un 403 en la búsqueda sola no distingue "el endpoint está cerrado para todos" de "este
+token está mal", y esas dos llevan a conclusiones opuestas.
+
+**Qué cuesta la pausa:**
+
+- **El índice mensual de precios pierde su fecha.** Necesita ~6 meses de histórico
+  semanal, y el lago tiene 4 capturas que abarcan 3 semanas. La proyección de
+  ~2027-03-29 deja de ser una fecha y pasa a ser "seis meses después de que la captura se
+  reanude". Es el precio real de la pausa, y está aceptado.
+- **El split temporal sigue diferido** indefinidamente: esperaba 3–4 capturas más y no van
+  a llegar mientras la pausa siga.
+- **El reentrenamiento del Bloque 4 no se afecta**: ya estaba planeado sobre las mismas 4
+  capturas.
+- **Ampliar la cobertura de departamentos** (hoy 6 ubicaciones) queda en espera: dependía
+  de la fuente, y la fuente está en pausa.
+- Metodología dice hoy "Leemos los anuncios publicados de TuCarro una vez por semana", que
+  bajo la pausa ya no es cierto. **Se corrige en el Bloque 8** por una frase que diga la
+  fecha de los datos y que la captura está en pausa.
 
 ### Dónde quedó esto el 2026-10-26
 
@@ -1537,8 +1566,10 @@ el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el
    forma nueva, `/carros-camionetas/bogota-dc` → `/bogota-dc`, que el cliente ya sigue) y
    parsean 48 tarjetas por página. Es un bloqueo por tipo de IP, no una plantilla de URL
    vieja. Sin solución de costo cero: un proxy residencial se paga.
-   **El código ya no insiste** (ver abajo); **la fuente de datos sigue pendiente de
-   decisión** en [ADR 0005](adr/0005-capture-source-after-verification-wall.md).
+   **El código ya no insiste** (ver abajo), y **la captura queda en pausa** por decisión
+   del 2026-11-01: [ADR 0005](adr/0005-capture-source-after-verification-wall.md). Correrla
+   desde una IP residencial se descartó por contar como evadir el bloqueo. Lo único abierto
+   es la API oficial, y está en medición.
 4. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
    motos bajen de 22,0 %, que sigue siendo señal de estado y no más identidad.
 

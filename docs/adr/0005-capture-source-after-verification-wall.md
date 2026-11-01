@@ -1,7 +1,8 @@
 # ADR 0005 - Where the listings come from after the verification wall
 
-- Status: **proposed** — the owner decides between A, B and C below
+- Status: **accepted** — B, pause the capture. C rejected as evasion, A still open.
 - Date: 2026-11-01
+- Decided: 2026-11-01 by the owner
 
 ## Context
 
@@ -31,8 +32,9 @@ Already diagnosed and recorded in `docs/STATUS.md`: the same URLs that answer `3
 verification screen from GitHub Actions answer **`200` from a residential IP** (or a `301`
 to the newer `/bogota-dc` shape, which the client already follows), and parse 48 cards per
 page. So this is a block on datacenter address ranges, not a URL template that went stale
-and not a ban on this project. That single fact is what makes option C below exist, and it
-is also why a residential proxy — which would be the obvious technical fix — is doubly
+and not a ban on this project. That single fact is what made option C below conceivable —
+and C was rejected for the same reason the proxy is: it is routing around the block.
+It is also why a residential proxy — which would be the obvious technical fix — is doubly
 excluded: it is paid, and it is exactly the evasion the rule above forbids.
 
 ### What depends on the answer
@@ -47,7 +49,7 @@ excluded: it is paid, and it is exactly the evasion the rule above forbids.
   departments, some with almost nothing (Cauca 1 listing, Meta 2). Widening that is only
   worth planning once the source is settled.
 
-## The two candidates
+## The three candidates
 
 ### A. The official Mercado Libre API
 
@@ -119,7 +121,7 @@ What it costs, honestly:
   A weekly blocked run is also a free probe: the first green week tells us the wall is
   gone.
 
-### C. Run the weekly capture from the development machine
+### C. Run the weekly capture from the development machine — rejected
 
 The scraper already works from a residential IP — that is how the F1 pilot was collected,
 before the capture moved to Actions. `make scrape` followed by `make push-history`
@@ -140,38 +142,46 @@ never asked to verify anything. The honest case that it does: the site blocked d
 ranges, and running from an address it did not block is, in effect, routing around that
 block — the intent test, not the mechanism test.
 
-That judgment is the owner's, and it is the only part of this ADR that is not a
-measurement. It also has an ongoing cost B does not: a weekly manual chore that, if
-skipped, silently reintroduces the gap this option exists to prevent.
+That judgment was the owner's, and it is the only part of this ADR that is not a
+measurement. **It came back as evasion**, so C is rejected — see the decision below. It
+also carried an ongoing cost B does not: a weekly manual chore that, if skipped, silently
+reintroduces the gap this option existed to prevent.
 
 ## Decision
 
-**Pending.** Recommendation: **C if the owner judges it is not evasion, otherwise B.**
-A stays open either way, and is not recommended now.
+**B — the capture is paused as of 2026-11-01.** C is **rejected**, A stays **open** and is
+being measured.
 
-On **A**: the point is not that it is bad, it is that it is **unverified**. The one claim
-it rests on — that a token restores the search — is exactly the claim the evidence puts in
-doubt, and the only way to test it is to register an application against a personal
-account. Spending that on a maybe, while nothing in production is broken, is the wrong
-order.
+**C is rejected, and the reason is the one the ADR could not settle on its own.** Moving
+the capture to a residential IP *after* a block on datacenter addresses counts as routing
+around that block, whatever is true of the individual request. The intent test is the one
+that applies, not the mechanism test, and it collides with the project rule against
+evading the site's checks. The implementer had weighed C as best on consequences — it was
+the only option that kept the price index on its date at zero cost — and that is exactly
+why the call was not the implementer's to make. **Recorded here as rejected on principle,
+not as unexplored:** it works technically, it is cheap, and it is still not done.
 
-Between **C** and **B**: C is the only option that keeps the price index on its date at
-zero cost, and that deliverable is the last thing open in F3 — B's real price is losing it
-indefinitely. So C wins on consequences, and the only thing that can rule it out is the
-intent question above, which is why this is not a recommendation the implementer gets to
-make alone. If the answer is B, that is a legitimate outcome and not a failure: the index
-slips, everything else keeps working, and a weekly blocked run tells us the moment the
-wall lifts.
+**B is adopted with its cost accepted.** The monthly price index loses its date and the
+temporal split stays deferred. Nothing in production breaks: the model, the API and the
+site keep running on the four captures of 2026-09-30 to 2026-10-19, and the weekly run is
+now the cheapest possible probe — one request, and the first green week is the one that
+says the wall came down.
 
-**What would change the recommendation on A.** A single measurement, not a migration:
-register the free application, obtain a token, call `/sites/MCO/search` for category
-MCO1744, and record the status and body here. 200 with the fields the model needs makes A
-the better option — more departments, no HTML parsing, no wall — and this ADR is revised.
-A 403 like the anonymous call closes A for good.
+**A is open and the measurement is prepared.** The owner registers a free application at
+developers.mercadolibre.com.co and supplies the token through a local environment
+variable, never the repository. `scripts/probe_mercadolibre.py` then makes **one**
+authenticated search in the MCO vehicle category and records the HTTP status, the message
+and which of the model's fields actually come back — price, year, mileage, location,
+brand, model, engine displacement. The point is that this ADR stops resting on a claim
+nobody tested:
 
-Two things stay true under every option: the one-request-and-stop behaviour is correct
-regardless of the source, and nothing here authorises getting around the verification
-screen.
+- **200 with the fields the model needs** → A becomes the better option (more departments,
+  no HTML parsing, no wall) and gets its own implementation block.
+- **403, like the anonymous call** → A is closed here for good, and B stops being a
+  holding pattern and becomes the answer.
+
+Two things stay true regardless: the one-request-and-stop behaviour is correct under any
+source, and nothing here authorises getting around the verification screen.
 
 ## Consequences
 
@@ -189,18 +199,25 @@ Under **B**:
 - Re-measuring the band after a future capture is on the deferred list in
   `docs/STATUS.md`, not forgotten.
 
-Under **C**, additionally:
+- **A blocked week is not silent.** The job stays green, so `capture.yml` opens an issue
+  labelled `capture-blocked` the first blocked week, comments on each week after, and
+  closes it automatically when a capture brings listings again. One issue per episode.
+  Without it, "paused" and "quietly broken" look identical from the outside.
+- **A blocked week costs one request.** Verified by a real dispatch on 2026-11-01 (run
+  41334037312, `pages=1`, one location, `dry_run=true`): the job finished green in 32
+  seconds on the blocked path, with the summary, the warning annotation and the issue.
+  That run is also what found the last hole — `robots.txt` is redirected to the wall like
+  anything else, answered 200, and its HTML parsed as "no rules published", so the wall
+  was being read as a permissive robots.txt and the stop happened one request later. The
+  detection now runs on the robots fetch too, which is what makes "one request" true.
 
-- `capture.yml` keeps its schedule as the probe — one request a week that reports whether
-  the wall is still up — and the real capture is `make scrape` plus `make push-history` on
-  the development machine. The two do not collide: bronze filenames carry their UTC
-  instant and `history push` never overwrites.
-- The weekly chore belongs in `docs/STATUS.md` with the date of the last manual capture,
-  because a chore that is only in someone's head is a gap waiting to happen.
-- Nothing in the code changes. That is the argument for C and also its weakness: there is
-  no mechanism making it happen.
+**C is not implemented, by decision.** Keeping the note of what it would have cost, since
+rejected-on-principle is worth recording as precisely as adopted: `make scrape` plus
+`make push-history` on the development machine, ~120 requests and 10–15 minutes a week,
+no code change at all. It is not revisited if the capture stays blocked, because the
+objection was never about cost.
 
-Under **A**, additionally:
+Under **A**, if the probe succeeds:
 
 - A client id and secret become repository secrets, with a documented rotation step, and
   the capture stops being anonymous.
