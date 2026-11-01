@@ -5,13 +5,20 @@
  *
  * Built on the same `useSyncExternalStore` pattern as `LanguageProvider`, for the same
  * reasons — `localStorage` is an external store, and reading it in an effect would paint
- * once in the wrong theme before correcting itself.
+ * once in the wrong theme before correcting itself. The system's colour scheme is a second
+ * external store, read the same way.
  *
- * **"Auto" is a stored choice, not the absence of one.** It writes `auto` rather than
- * clearing the key, so a visitor who deliberately returns to following their system is
- * remembered as having chosen that. The three states then map onto two mechanisms: `light`
- * and `dark` stamp `data-theme` on `<html>`, and `auto` removes the attribute so the
- * `prefers-color-scheme` block in globals.css takes over.
+ * **Two values, not one.** The *preference* is what the visitor chose (`light`, `auto` or
+ * `dark`) and it is what the toggle shows; the *resolved* theme is the one the page is
+ * actually painted in, and it is only ever `light` or `dark`. `auto` resolves against
+ * `prefers-color-scheme` here rather than being handed to CSS, because `data-theme` is what
+ * the `dark` variant in globals.css keys off: leaving the attribute off under `auto` set the
+ * tokens from the media query but activated no `dark:` utility, so the older components
+ * painted their light-mode classes onto a dark page — white cards on near-black. The
+ * attribute is the single switch, so it always carries a real value.
+ *
+ * `data-theme-pref` carries the preference alongside it, so what the visitor chose is
+ * readable from the document and not only from React state.
  *
  * The first paint is handled by an inline script in `<head>`, not here: React runs after
  * the document is parsed, so any React-based fix is a flash by construction.
@@ -22,19 +29,27 @@ import type { ReactNode } from "react";
 
 export const THEMES = ["light", "auto", "dark"] as const;
 export type Theme = (typeof THEMES)[number];
+/** What the page is painted in: `auto` has already been resolved away. */
+export type ResolvedTheme = "light" | "dark";
 
 const STORAGE_KEY = "autovalor.theme";
 const DEFAULT_THEME: Theme = "auto";
+const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 /**
  * The script that runs before the first paint.
  *
  * Exported as a string so `layout.tsx` can inline it in `<head>` and this module stays the
- * one place that knows the storage key and the attribute. It stays deliberately tiny: it
+ * one place that knows the storage key and the attributes. It stays deliberately tiny: it
  * blocks parsing, and anything slower than reading one key would cost more than the flash
- * it prevents. A `try` because Safari in private mode throws on `localStorage`.
+ * it prevents. It has to resolve `auto` itself — the whole point is that the attribute is
+ * correct before anything is painted, and `auto` is the default, so this is the common path
+ * and not an edge case. A `try` because Safari in private mode throws on `localStorage`.
+ *
+ * Only `tests/theme.test.tsx` ever checks this: a string is invisible to both tsc and
+ * ESLint, and it has to agree with the provider or the page flashes on every load.
  */
-export const THEME_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(STORAGE_KEY)});if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+export const THEME_SCRIPT = `try{var d=document.documentElement,p=localStorage.getItem(${JSON.stringify(STORAGE_KEY)});if(p!=="light"&&p!=="dark"&&p!=="auto")p=${JSON.stringify(DEFAULT_THEME)};d.dataset.themePref=p;d.dataset.theme=p==="auto"?(matchMedia(${JSON.stringify(DARK_QUERY)}).matches?"dark":"light"):p}catch(e){}`;
 
 const listeners = new Set<() => void>();
 
@@ -67,23 +82,42 @@ function store(theme: Theme): void {
   listeners.forEach((listener) => listener());
 }
 
-type ThemeState = { theme: Theme; setTheme: (theme: Theme) => void };
+/**
+ * The system's colour scheme as an external store, so a visitor on `auto` who flips their
+ * operating system over sees the page follow without reloading.
+ */
+function subscribeToSystem(onChange: () => void): () => void {
+  const query = window.matchMedia(DARK_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function getSystemScheme(): ResolvedTheme {
+  return window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
+}
+
+function getServerSystemScheme(): ResolvedTheme {
+  // Dark is the reference theme, so it is the server's guess; the inline script corrects
+  // it before the first paint either way.
+  return "dark";
+}
+
+type ThemeState = { theme: Theme; resolved: ResolvedTheme; setTheme: (theme: Theme) => void };
 
 const ThemeContext = createContext<ThemeState | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const system = useSyncExternalStore(subscribeToSystem, getSystemScheme, getServerSystemScheme);
+  const resolved: ResolvedTheme = theme === "auto" ? system : theme;
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === "auto") {
-      delete root.dataset.theme;
-    } else {
-      root.dataset.theme = theme;
-    }
-  }, [theme]);
+    root.dataset.theme = resolved;
+    root.dataset.themePref = theme;
+  }, [resolved, theme]);
 
-  const value = useMemo<ThemeState>(() => ({ theme, setTheme: store }), [theme]);
+  const value = useMemo<ThemeState>(() => ({ theme, resolved, setTheme: store }), [theme, resolved]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

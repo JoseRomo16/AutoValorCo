@@ -11,7 +11,7 @@ param(
     [Parameter(Position = 0)]
     [ValidateSet('help', 'setup', 'scrape', 'enrich', 'pull-history', 'push-history',
         'transform', 'train', 'export-model', 'results', 'readme', 'serve', 'web', 'web-build', 'web-lint',
-        'test', 'lint', 'format', 'docker-build',
+        'web-test', 'test', 'lint', 'format', 'docker-build',
         'docker-up', 'clean')]
     [string]$Target = 'help',
 
@@ -76,6 +76,7 @@ switch ($Target) {
         Write-Host '  web            Run the front end in development'
         Write-Host '  web-build      Build the static export into frontend/out'
         Write-Host '  web-lint       Lint and type-check the front end'
+        Write-Host '  web-test       Run the front-end unit tests (vitest)'
         Write-Host '  test           Run the test suite with coverage'
         Write-Host '  lint           Run ruff (lint + format check) and mypy'
         Write-Host '  format         Apply ruff formatting and autofixes'
@@ -137,6 +138,7 @@ switch ($Target) {
         Invoke-NpmStep 'run lint'
         Invoke-NpmStep 'run typecheck'
     }
+    'web-test' { Invoke-NpmStep 'test' }
     'test' { Invoke-Step 'uv', 'run', 'pytest' }
     'lint' {
         Invoke-Step 'uv', 'run', 'ruff', 'check', '.'

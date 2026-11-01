@@ -70,6 +70,12 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
 
+      # Browser behaviour that neither ESLint nor tsc can see: the theme provider writes
+      # an attribute, and a wrong value there breaks every `dark:` utility on the page
+      # without breaking the build.
+      - name: Unit tests
+        run: npm test
+
       # The static export is what Render publishes, so building it here is the same
       # command the platform runs. It also reads docs/results and artifacts/models from
       # the repository, which means a missing or malformed result table fails the build
