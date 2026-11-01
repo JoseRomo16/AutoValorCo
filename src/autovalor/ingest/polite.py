@@ -194,11 +194,22 @@ class RobotsPolicy:
 
     def _load(self, origin: str) -> RobotFileParser:
         parser = RobotFileParser()
+        robots_url = f"{origin}/robots.txt"
         try:
-            response = self._fetch(f"{origin}/robots.txt")
+            response = self._fetch(robots_url)
         except httpx.HTTPError:
             parser.parse(_DISALLOW_ALL)
             return parser
+
+        # robots.txt is the first request of any sweep, and the wall redirects it like
+        # anything else. Measured on 2026-11-01: it answered 302 to the verification
+        # screen, which then answered 200, and the HTML was handed to RobotFileParser —
+        # which finds no rules in it and therefore allows everything. So the wall was
+        # silently turning "the site refused us" into "the site publishes no rules",
+        # and the stop only happened one request later, on the first search page.
+        wall = verification_url(robots_url, response)
+        if wall is not None:
+            raise VerificationWallError(robots_url, wall)
 
         if response.status_code == httpx.codes.OK:
             parser.parse(response.text.splitlines())
