@@ -17,6 +17,12 @@
  * `@theme` would freeze the dark values into every utility.
  */
 
+/*
+ * `data-theme` is the only switch. `ThemeProvider` and its inline head script always write
+ * a resolved `light` or `dark` into it — "follow the system" is resolved in JavaScript, not
+ * here — so the tokens below and this variant can never disagree. They did while `auto`
+ * left the attribute off: the media query set dark tokens and no `dark:` utility matched.
+ */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
@@ -58,6 +64,12 @@
  * Dark first: it is the theme the design was drawn in, so it is the one that needs no
  * override. Every value below was measured for WCAG AA; see the notes on the ones that
  * moved away from the original reference.
+ *
+ * Bare `:root` is also the answer with JavaScript off, since nothing stamps the attribute
+ * then. That is a complete, legible theme rather than a fallback worth duplicating: the
+ * light tokens used to be repeated inside a `prefers-color-scheme` block for that case,
+ * two copies that could drift apart, for a page the script repaints before it is painted
+ * once.
  */
 :root {
   color-scheme: dark;
@@ -118,34 +130,6 @@
   --bar-edge: #7a7464;
   --grid: #e3ded1;
   --veil: rgba(246, 243, 234, 0.82);
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]):not([data-theme="light"]) {
-    color-scheme: light;
-    --ground: #f6f3ea;
-    --band: #eeeadf;
-    --surface: #fbf9f3;
-    --surface-2: #f2eee4;
-    --line: #ddd7c8;
-    --line-strong: #8d8671;
-    --ink: #1d1b16;
-    --muted: #5f5a4d;
-    --faint: #6f695a;
-    --accent: #f6c800;
-    --accent-ink: #1d1b16;
-    --accent-text: #7a5c00;
-    --good: #2d7448;
-    --good-bg: rgba(45, 116, 72, 0.1);
-    --neutral: #57534a;
-    --bad: #a3452a;
-    --bad-bg: rgba(163, 69, 42, 0.1);
-    --bar: #847e6e;
-    --bar-muted: #d6d0c0;
-    --bar-edge: #7a7464;
-    --grid: #e3ded1;
-    --veil: rgba(246, 243, 234, 0.82);
-  }
 }
 
 html {
