@@ -32,7 +32,7 @@ env:
 jobs:
   capture:
     name: capture and transform
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       # The capture publishes its bronze files to the data branch (ADR 0004).
       contents: write
@@ -40,10 +40,10 @@ jobs:
     # takes a while by design.
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -104,7 +104,7 @@ jobs:
         # upload in those cases threw away the only copy of the data, so this runs
         # whenever the job was not cancelled. Earlier failures still fail the job.
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: capture-${{ github.run_id }}
           path: |

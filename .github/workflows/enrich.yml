@@ -47,7 +47,7 @@ env:
 jobs:
   enrich:
     name: enrich from the detail pages
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       # Publishes the new detail rows to the data branch (ADR 0004).
       contents: write
@@ -55,10 +55,10 @@ jobs:
     # losing every page it fetched.
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
