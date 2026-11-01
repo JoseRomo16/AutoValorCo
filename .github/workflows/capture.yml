@@ -16,6 +16,14 @@ on:
         required: false
         default: >-
           bogota-dc antioquia valle-del-cauca atlantico santander cundinamarca
+      dry_run:
+        description: >-
+          Capture but write nothing: no bronze, no publish to the data branch. For
+          exercising the workflow itself — the wall detection, the summary, the issue —
+          without putting a partial sweep into an append-only history.
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   # Never let two captures hit the site at the same time.
@@ -28,6 +36,11 @@ env:
   LOCATIONS: >-
     ${{ inputs.locations ||
     'bogota-dc antioquia valle-del-cauca atlantico santander cundinamarca' }}
+  DRY_RUN: ${{ inputs.dry_run || false }}
+  # Marks the single issue that tracks the wall, so a blocked week finds the one from
+  # last week instead of opening another.
+  BLOCKED_LABEL: capture-blocked
+  BLOCKED_TITLE: Captura bloqueada por verificación
 
 jobs:
   capture:
@@ -38,6 +51,9 @@ jobs:
     permissions:
       # The capture publishes its bronze files to the data branch (ADR 0004).
       contents: write
+      # A blocked capture is a green run by design, so something has to raise a hand:
+      # the job opens, updates and closes an issue tracking the wall.
+      issues: write
     # Polite scraping means randomized pauses between requests, so a full sweep
     # takes a while by design.
     timeout-minutes: 120
@@ -69,6 +85,9 @@ jobs:
           for slug in $LOCATIONS; do
             args+=(--location "$slug")
           done
+          if [ "$DRY_RUN" = "true" ]; then
+            args+=(--dry-run)
+          fi
           set +e
           uv run python -m autovalor.ingest.cli \
             --vehicle-type all \
@@ -97,6 +116,8 @@ jobs:
               echo "No se corrieron la validación, dbt ni la publicación."
               echo "La fuente de datos se decide en el ADR"
               echo "\`docs/adr/0005-capture-source-after-verification-wall.md\`."
+              echo
+              echo "Queda un issue abierto con el detalle, porque un run verde no avisa."
             } >> "$GITHUB_STEP_SUMMARY"
             echo "::warning title=Captura bloqueada::TuCarro pidió verificación; captura detenida sin reintentos"
             exit 0
@@ -104,20 +125,96 @@ jobs:
           echo "blocked=false" >> "$GITHUB_OUTPUT"
           exit "$code"
 
+      # The job stays green when the wall is up, which is correct — nothing is broken —
+      # but a green run notifies nobody. One issue carries the whole episode: opened the
+      # first blocked week, commented on every week after, closed when the capture works
+      # again. Not one issue per week, which would be noise rather than a signal.
+      - name: Open or update the blocked-capture issue
+        if: ${{ steps.capture.outputs.blocked == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          # Created on first use; it already existing is the normal case, not an error.
+          gh label create "$BLOCKED_LABEL" \
+            --description "La captura semanal choca con la verificación de TuCarro" \
+            --color D93F0B 2>/dev/null || true
+
+          existing=$(gh issue list --label "$BLOCKED_LABEL" --state open \
+            --limit 1 --json number --jq '.[0].number // empty')
+
+          # Bodies go through a file: a here-document is the only way to keep Markdown
+          # out of YAML's and the shell's quoting rules at the same time.
+          if [ -n "$existing" ]; then
+            cat > comment.md <<EOF
+          Sigue bloqueada el **$today**.
+
+          - Run: $RUN_URL
+          - Costo de esta semana: **una petición**.
+          EOF
+            gh issue comment "$existing" --body-file comment.md
+            echo "::notice title=Issue actualizado::#$existing"
+          else
+            cat > issue.md <<EOF
+          TuCarro responde \`302\` hacia \`/gz/account-verification\`, así que la captura
+          semanal se detiene en la primera petición, sin reintentos, y no escribe bronze.
+
+          - Primera semana bloqueada de este episodio: **$today**
+          - Run: $RUN_URL
+          - El job queda **verde** a propósito: no hay nada roto en el código, el sitio
+            dijo que no. Este issue es el aviso que un run verde no da.
+          - Fuente de datos: \`docs/adr/0005-capture-source-after-verification-wall.md\`
+
+          Se comenta cada semana que siga bloqueada, y **se cierra solo** en cuanto una
+          captura vuelva a traer anuncios.
+          EOF
+            gh issue create --title "$BLOCKED_TITLE" \
+              --label "$BLOCKED_LABEL" --body-file issue.md
+          fi
+
+      # The other half: the wall coming down has to close the issue, or it stays open
+      # forever and stops meaning anything. Conditioned on the capture step rather than
+      # on the job, so a later dbt or Pandera failure — which says nothing about the
+      # wall — neither keeps a stale issue open nor closes one wrongly.
+      - name: Close the blocked-capture issue if the capture worked
+        if: ${{ !cancelled() && steps.capture.outputs.blocked != 'true' && steps.capture.outputs.captured == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          existing=$(gh issue list --label "$BLOCKED_LABEL" --state open \
+            --limit 1 --json number --jq '.[0].number // empty')
+          if [ -z "$existing" ]; then
+            echo "No hay issue de bloqueo abierto; nada que cerrar."
+            exit 0
+          fi
+          cat > resolved.md <<EOF
+          La captura **volvió a funcionar** el $(date -u +%Y-%m-%d): TuCarro sirvió
+          páginas de búsqueda y el run escribió bronze.
+
+          - Run: $RUN_URL
+
+          Se cierra solo. Si el muro vuelve, la próxima captura bloqueada abre un issue
+          nuevo para ese episodio.
+          EOF
+          gh issue close "$existing" --comment "$(cat resolved.md)"
+          echo "::notice title=Issue cerrado::#$existing"
+
       - name: Validate bronze
-        if: ${{ steps.capture.outputs.blocked != 'true' }}
+        if: ${{ steps.capture.outputs.blocked != 'true' && steps.capture.outputs.captured == 'true' }}
         run: uv run python -m autovalor.quality.cli --stage bronze
 
       - name: Build silver and gold
-        if: ${{ steps.capture.outputs.blocked != 'true' }}
+        if: ${{ steps.capture.outputs.blocked != 'true' && steps.capture.outputs.captured == 'true' }}
         run: uv run dbt build --project-dir dbt --profiles-dir dbt
 
       - name: Validate silver and gold
-        if: ${{ steps.capture.outputs.blocked != 'true' }}
+        if: ${{ steps.capture.outputs.blocked != 'true' && steps.capture.outputs.captured == 'true' }}
         run: uv run python -m autovalor.quality.cli --stage silver --stage gold
 
       - name: Report capture size
-        if: ${{ steps.capture.outputs.blocked != 'true' }}
+        if: ${{ steps.capture.outputs.blocked != 'true' && steps.capture.outputs.captured == 'true' }}
         run: |
           uv run python - <<'PY'
           import duckdb
