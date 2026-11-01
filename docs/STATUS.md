@@ -1,6 +1,6 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-25** · Fase actual: **F4**, con la API y el sitio
+Última actualización: **2026-10-31** · Fase actual: **F4**, con la API y el sitio
 desplegados en Render, y el rediseño del frontend en curso sobre el modelo reentrenado. F2 y F3 cerradas salvo el índice de precios, que espera histórico;
 la comparación con Fasecolda quedó **fuera de alcance**. (Carros cumplen la meta de
 MAPE ≤ 15 % y publican etiqueta; motos publican precio y rango sin etiqueta, por la regla
@@ -1094,6 +1094,52 @@ código: un `step` en los campos numéricos hacía que el navegador rechazara en
 precios como 78.000.000 —la validación nativa bloquea el submit antes de que corra el
 `onSubmit`—, y el `min-width` de un gráfico estiraba su columna del grid y hacía scrollear
 la página entera en móvil.
+
+#### El tema «Auto» no pintaba el modo oscuro (2026-10-31)
+
+`Auto` es el tema por defecto, así que esto le pasaba a casi todo el que entraba con el
+sistema en oscuro: Mercado salía con las pistas de las barras **blancas** sobre fondo casi
+negro y Metodología con los párrafos en gris oscuro, ilegibles. La auditoría de QA no lo
+vio porque probó con «Oscuro» explícito, que es justo el caso que funcionaba.
+
+La causa no era de color sino de un atributo. `@custom-variant dark` en `globals.css` se
+activa con `[data-theme="dark"]`, y `ThemeProvider` **borraba** el atributo en `auto` para
+que se encargara el bloque `prefers-color-scheme`. Los tokens sí quedaban oscuros —oscuro
+es el `:root` por defecto—, pero no se activaba **ninguna** de las 53 utilidades `dark:`
+que todavía quedan en seis archivos (`Methodology.tsx` 28, `charts/*` 19, `MarketDashboard`
+5), así que esos componentes pintaban sus clases de modo claro sobre una página oscura.
+
+El arreglo separa la **preferencia** (`light`/`auto`/`dark`, que es lo que muestra el
+interruptor y ahora viaja también en `data-theme-pref`) del **tema resuelto**, y
+`data-theme` lleva siempre un valor real. `auto` se resuelve en JavaScript, tanto en el
+script en línea del `<head>` —antes del primer pintado, para que no parpadee— como en el
+proveedor, que además escucha `matchMedia` y sigue al sistema en vivo. Con el atributo
+siempre puesto, el bloque `prefers-color-scheme` no podía aplicar nunca y se borró: eran
+24 tokens claros duplicados, libres de divergir de su copia.
+
+Medido con Playwright sobre el export estático, con `auto` y el sistema en oscuro.
+«Superficies claras» cuenta los elementos visibles cuya luminancia relativa pasa de 0,5,
+descontando los rellenos que son claros a propósito —el amarillo de placa y el botón
+principal—; el color se lee pasándolo por `color-mix(in srgb, …)`, que es la única forma
+fiable de leer los `lab()` y `oklab()` que devuelve `getComputedStyle` con Tailwind v4:
+
+| Página | Superficies claras (antes → después) | Texto bajo AA (antes → después) |
+| --- | --- | --- |
+| Mercado | 50 → 0 | 133 (peor 1,80:1) → 4 (peor 2,71:1) |
+| Metodología | 0 → 0 | 131 (peor 1,04:1) → 0 |
+| Valorar | 0 → 0 | 0 → 0 |
+
+Con el sistema en claro las cifras no se mueven, que es lo que se quería: el arreglo no
+toca el tema claro. Los 4 que quedan en Mercado son las barras Identidad/Estado con texto
+blanco sobre relleno claro, que ya están anotadas para el rediseño de esa página, y las 50
+superficies de **claro** (slate-100 sobre papel) siguen ahí porque son el otro problema, el
+de la paleta vieja. Capturas antes/después en [`design/screens/`](design/screens/).
+
+Este bloque es un parche: el rediseño de Mercado y Metodología elimina las clases `dark:`
+y deja esos componentes solo con tokens, y entonces el atributo deja de ser un punto único
+de falla. Desde aquí `frontend/` tiene pruebas unitarias —vitest con jsdom, `npm test` y
+`make web-test`, en CI—, que es lo que faltaba: ni ESLint ni `tsc` pueden ver a un
+proveedor escribiendo el atributo equivocado.
 
 #### Los tres arreglos que salieron de probar el servicio desplegado
 
