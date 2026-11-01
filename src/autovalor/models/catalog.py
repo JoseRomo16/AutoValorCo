@@ -19,6 +19,7 @@ model knows, and dropping it would make a legitimate vehicle unaskable.
 
 import json
 import logging
+import math
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -34,22 +35,35 @@ logger = logging.getLogger("autovalor.models")
 CATALOG_NAME = "catalog.json"
 """File written next to the manifest, one per vertical."""
 
-CATALOG_FORMAT = 2
+CATALOG_FORMAT = 3
 """What :func:`build_catalog` writes. Read separately from the bundle format: a bundle
 exported before catalogues existed is still a loadable bundle, it just cannot answer
 ``/catalog``, and that is better than refusing to serve predictions over a missing list."""
 
-READABLE_FORMATS = frozenset({1, 2})
+READABLE_FORMATS = frozenset({1, 2, 3})
 """What :func:`load_catalog` accepts. Format 2 added a display name per level; a format-1
-file is read with each level displaying as itself, which is what it meant. The service and
-the bundle it serves are deployed separately, so a build that refused the previous format
-would turn an ordinary deploy order into an outage."""
+file is read with each level displaying as itself, which is what it meant. Format 3 added
+the asking-price range, and a format-2 file is read with that range absent, which is what
+it meant. The service and the bundle it serves are deployed separately, so a build that
+refused the previous format would turn an ordinary deploy order into an outage."""
 
 BRAND_COLUMN = "brand"
 MODEL_COLUMN = "model"
 DEPARTMENT_COLUMN = "department"
 YEAR_COLUMN = "model_year"
 ENGINE_COLUMN = "engine_cc"
+PRICE_COLUMN = "price_cop"
+
+ASKING_PRICE_PERCENTILES = (0.005, 0.995)
+"""Where the publishable asking-price range is cut, as quantiles of the training prices.
+
+Not the observed minimum and maximum, which a single mistyped listing moves: the lake keeps
+rows that passed its plausibility rules, and those rules are wider than "a price a person
+would actually ask". The half-percentile tail is what a validation bound can stand on.
+
+Not a fixed floor either. A million pesos would be a reasonable-looking minimum for a car
+and would reject motorcycles that are genuinely in the training data, which is the whole
+reason this is per vertical and derived."""
 
 
 class CatalogError(RuntimeError):
@@ -127,6 +141,9 @@ class VehicleCatalog:
         departments: Departments the model has levels for.
         model_year: Range of model years in the training rows.
         engine_cc: Range of displacements, or ``None`` when the vertical records none.
+        asking_price_cop: Range an asking price may fall in, cut at
+            :data:`ASKING_PRICE_PERCENTILES` of the training prices. ``None`` on a
+            catalogue read back from format 2, which did not carry it.
     """
 
     vehicle_type: VehicleType
@@ -135,6 +152,7 @@ class VehicleCatalog:
     departments: tuple[NamedCount, ...]
     model_year: NumericRange
     engine_cc: NumericRange | None
+    asking_price_cop: NumericRange | None = None
 
     def to_json(self) -> dict[str, Any]:
         """Return the JSON form written into the bundle."""
@@ -146,6 +164,9 @@ class VehicleCatalog:
             "departments": [department.to_json() for department in self.departments],
             "model_year": self.model_year.to_json(),
             "engine_cc": None if self.engine_cc is None else self.engine_cc.to_json(),
+            "asking_price_cop": (
+                None if self.asking_price_cop is None else self.asking_price_cop.to_json()
+            ),
         }
 
 
@@ -184,6 +205,27 @@ def _range(frame: pd.DataFrame, column: str) -> NumericRange | None:
     if values.empty:
         return None
     return NumericRange(min=float(values.min()), max=float(values.max()))
+
+
+def _price_range(frame: pd.DataFrame) -> NumericRange | None:
+    """Return the asking price a caller may claim, as a range, or ``None``.
+
+    Cut at :data:`ASKING_PRICE_PERCENTILES` and rounded outwards to whole millions of a
+    peso at the bottom and whole pesos at the top, so the published bound is a round number
+    a form can print and never narrower than the quantile it came from.
+
+    This is what lets ``/predict`` reject the 59 pesos that used to come back labelled
+    "Ganga · Pides 100 % menos": a price three orders of magnitude under anything in the
+    training data is not a bargain, it is a typo.
+    """
+    if PRICE_COLUMN not in frame.columns:
+        return None
+    values = pd.to_numeric(frame[PRICE_COLUMN], errors="coerce").dropna()
+    if values.empty:
+        return None
+    low, high = (float(values.quantile(q)) for q in ASKING_PRICE_PERCENTILES)
+    # Outwards, so the bound never excludes the quantile it was derived from.
+    return NumericRange(min=float(math.floor(low)), max=float(math.ceil(high)))
 
 
 def build_catalog(frame: pd.DataFrame, *, vehicle_type: VehicleType) -> VehicleCatalog:
@@ -233,6 +275,7 @@ def build_catalog(frame: pd.DataFrame, *, vehicle_type: VehicleType) -> VehicleC
         departments=_counts(frame, DEPARTMENT_COLUMN),
         model_year=NumericRange(min=float(int(years.min)), max=float(int(years.max))),
         engine_cc=_range(frame, ENGINE_COLUMN) if ENGINE_COLUMN in frame.columns else None,
+        asking_price_cop=_price_range(frame),
     )
     logger.info(
         "%s catalogue — %d makes, %d model tokens, %d departments over %d rows",
@@ -289,6 +332,9 @@ def load_catalog(directory: Path) -> VehicleCatalog | None:
         raise CatalogError(msg + ", ".join(str(known) for known in sorted(READABLE_FORMATS)))
 
     engine = payload.get("engine_cc")
+    # Absent on a format-2 file, which is read as "this catalogue states no price range" —
+    # and the API falls back to its own floor rather than refusing to validate at all.
+    asking = payload.get("asking_price_cop")
     return VehicleCatalog(
         vehicle_type=payload["vehicle_type"],
         n_rows=int(payload["n_rows"]),
@@ -308,4 +354,7 @@ def load_catalog(directory: Path) -> VehicleCatalog | None:
         engine_cc=None
         if engine is None
         else NumericRange(min=float(engine["min"]), max=float(engine["max"])),
+        asking_price_cop=None
+        if asking is None
+        else NumericRange(min=float(asking["min"]), max=float(asking["max"])),
     )
