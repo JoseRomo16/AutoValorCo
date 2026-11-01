@@ -14,6 +14,7 @@ import json
 import os
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -508,3 +509,119 @@ def _strip_accents(text: str) -> str:
     import unicodedata
 
     return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+
+
+# ---------------------------------------------------------------------------
+# The shared-rules layer, over HTTP. The unit cases live in test_rules.py; what
+# is checked here is that /predict and /explain actually apply them and that the
+# catalogue publishes the same bounds.
+# ---------------------------------------------------------------------------
+
+
+def car_catalog(client: TestClient) -> dict[str, Any]:
+    return dict(client.get("/catalog", params={"vehicle_type": "car"}).json()["verticals"][0])
+
+
+def test_the_catalogue_publishes_an_asking_price_range(client: TestClient) -> None:
+    for vertical in client.get("/catalog").json()["verticals"]:
+        price = vertical["asking_price_cop"]
+        assert price is not None, f"{vertical['vehicle_type']} publishes no price range"
+        assert 0 < price["min"] < price["max"]
+
+
+def test_predict_refuses_a_year_outside_the_published_range(client: TestClient) -> None:
+    bounds = car_catalog(client)["model_year"]
+    for year in (int(bounds["min"]) - 1, int(bounds["max"]) + 1):
+        response = client.post("/predict", json={**CAR, "model_year": year})
+        assert response.status_code == 422, year
+
+
+def test_predict_refuses_a_displacement_outside_the_published_range(client: TestClient) -> None:
+    bounds = car_catalog(client)["engine_cc"]
+    response = client.post("/predict", json={**CAR, "engine_cc": int(bounds["min"]) - 1})
+    assert response.status_code == 422
+
+
+def test_predict_refuses_an_asking_price_under_the_floor(client: TestClient) -> None:
+    # 59 pesos used to come back as a bargain.
+    response = client.post("/predict", json={**CAR, "asking_price_cop": 59})
+    assert response.status_code == 422
+
+
+def test_predict_refuses_a_make_the_model_does_not_know(client: TestClient) -> None:
+    for brand in ("<script>", "Bajaj"):
+        assert client.post("/predict", json={**CAR, "brand": brand}).status_code == 422, brand
+
+
+def test_the_make_is_not_case_sensitive(client: TestClient) -> None:
+    # Observed: "toyota" came back 20 % under "Toyota".
+    lower = client.post("/predict", json={**CAR, "brand": "toyota"}).json()
+    exact = client.post("/predict", json={**CAR, "brand": "Toyota"}).json()
+    assert lower["band"] == exact["band"]
+
+
+def test_the_department_is_not_case_sensitive(client: TestClient) -> None:
+    lower = client.post("/predict", json={**CAR, "department": "antioquia"}).json()
+    exact = client.post("/predict", json={**CAR, "department": "Antioquia"}).json()
+    assert lower["band"] == exact["band"]
+
+
+def test_an_unknown_model_token_is_valued_without_it_and_flagged(client: TestClient) -> None:
+    unknown = client.post("/predict", json={**CAR, "model": "zzz"})
+    assert unknown.status_code == 200
+    assert unknown.json()["warnings"] == ["model_not_covered"]
+    # And the answer is the one that omitting the field would have given.
+    without = client.post(
+        "/predict", json={key: value for key, value in CAR.items() if key != "model"}
+    )
+    assert unknown.json()["band"] == without.json()["band"]
+
+
+def test_an_uncovered_department_is_answered_and_flagged(client: TestClient) -> None:
+    response = client.post("/predict", json={**CAR, "department": "Nariño"})
+    assert response.status_code == 200
+    assert response.json()["warnings"] == ["department_not_covered"]
+
+
+def test_a_clean_request_carries_no_warnings(client: TestClient) -> None:
+    assert client.post("/predict", json=CAR).json()["warnings"] == []
+
+
+def test_explain_reports_the_same_warnings(client: TestClient) -> None:
+    body = client.post("/explain", json={**CAR, "model": "zzz"}).json()
+    assert body["warnings"] == ["model_not_covered"]
+
+
+def test_explain_always_shows_a_displacement_that_was_supplied(client: TestClient) -> None:
+    # Observed: 2.000 cc moved a Mazda 3 by 11,5 % and "Cilindrada" was still not listed,
+    # so someone who typed a number could not tell whether it had been used.
+    bounds = car_catalog(client)["engine_cc"]
+    inside = int((bounds["min"] + bounds["max"]) / 2)
+    body = client.post("/explain", json={**CAR, "engine_cc": inside}).json()
+    assert "engine_cc" in {factor["feature"] for factor in body["factors"]}
+
+
+def test_explain_does_not_invent_a_displacement_that_was_not_supplied(client: TestClient) -> None:
+    body = client.post("/explain", json=CAR).json()
+    shown = {factor["feature"]: factor for factor in body["factors"]}
+    # It may still rank into the top five on its own; what must not happen is it being
+    # listed with a value the caller never gave.
+    if "engine_cc" in shown:
+        assert shown["engine_cc"]["value"] is None
+
+
+def test_the_row_counts_have_names_that_say_what_they_count(client: TestClient) -> None:
+    # /catalog said trained_on_rows 6.754 and /model-info said 8.443 for the same cars:
+    # one counted the training rows and the other the lake.
+    catalogue = car_catalog(client)
+    info = next(
+        vertical
+        for vertical in client.get("/model-info").json()["verticals"]
+        if vertical["vehicle_type"] == "car"
+    )
+    assert catalogue["train_rows"] == info["train_rows"]
+    assert catalogue["total_rows"] == info["total_rows"]
+    assert info["total_rows"] >= info["train_rows"]
+    # The old name stays, so a deployed frontend does not break.
+    assert catalogue["trained_on_rows"] == catalogue["train_rows"]
+    assert info["trained_on_rows"] == info["total_rows"]

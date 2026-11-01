@@ -45,6 +45,7 @@ from fastapi.responses import RedirectResponse
 from autovalor import __version__
 from autovalor.api.features import to_frame
 from autovalor.api.labels import Localized, feature_label, format_value
+from autovalor.api.rules import resolve, year_range
 from autovalor.api.schemas import (
     CatalogBrand,
     CatalogEntry,
@@ -66,7 +67,7 @@ from autovalor.api.schemas import (
 )
 from autovalor.config import Settings, get_settings
 from autovalor.models.bundle import ARTIFACTS_DIR, ServedModel, load_served_models
-from autovalor.models.catalog import NamedCount
+from autovalor.models.catalog import NamedCount, VehicleCatalog
 from autovalor.models.dataset import VehicleType
 from autovalor.models.explain import shap_contributions
 
@@ -147,6 +148,12 @@ def _known_departments(model: ServedModel) -> tuple[str, ...]:
     return tuple(entry.name for entry in model.catalog.departments)
 
 
+def _year_range(catalog: VehicleCatalog) -> CatalogRange:
+    """The model years ``/predict`` accepts, as ``/catalog`` publishes them."""
+    lowest, highest = year_range(catalog)
+    return CatalogRange(min=float(lowest), max=float(highest))
+
+
 def _catalog_entry(level: NamedCount) -> CatalogEntry:
     """Return one catalogue level as the API publishes it."""
     return CatalogEntry(name=level.name, listings=level.listings, display_name=level.display_name)
@@ -196,6 +203,8 @@ def model_info(models: ModelsDep) -> ModelInfoResponse:
             baseline_mape=model.metrics.get("baseline_mape"),
             interval_uncalibrated_coverage=model.interval_uncalibrated_coverage,
             metrics_temporal=model.metrics_temporal,
+            total_rows=int(model.lake["rows"]),
+            train_rows=None if model.catalog is None else model.catalog.n_rows,
             trained_on_rows=int(model.lake["rows"]),
         )
         for model in (models[key] for key in sorted(models))
@@ -270,6 +279,8 @@ def catalog(models: ModelsDep, vehicle_type: VehicleType | None = None) -> Catal
             VerticalCatalog(
                 vehicle_type=model.vehicle_type,
                 model_version=model.version,
+                train_rows=model.catalog.n_rows,
+                total_rows=int(model.lake["rows"]),
                 trained_on_rows=model.catalog.n_rows,
                 brands=[
                     CatalogBrand(
@@ -281,12 +292,19 @@ def catalog(models: ModelsDep, vehicle_type: VehicleType | None = None) -> Catal
                     for brand in model.catalog.brands
                 ],
                 departments=[_catalog_entry(entry) for entry in model.catalog.departments],
-                model_year=CatalogRange(
-                    min=model.catalog.model_year.min, max=model.catalog.model_year.max
-                ),
+                # The range `/predict` actually enforces, not the raw training span: the
+                # two used to differ, which is how a form could offer a year the service
+                # then rejected -- or worse, accept one it should not have.
+                model_year=_year_range(model.catalog),
                 engine_cc=None
                 if model.catalog.engine_cc is None
                 else CatalogRange(min=model.catalog.engine_cc.min, max=model.catalog.engine_cc.max),
+                asking_price_cop=None
+                if model.catalog.asking_price_cop is None
+                else CatalogRange(
+                    min=model.catalog.asking_price_cop.min,
+                    max=model.catalog.asking_price_cop.max,
+                ),
             )
         )
 
@@ -313,6 +331,10 @@ def predict(request: PredictRequest, models: ModelsDep) -> PredictResponse:
     passed the quality gate *and* an asking price was supplied to compare against.
     """
     model = _require(models, request.vehicle_type)
+    # Checked against the catalogue the bundle carries, which is the same list /catalog
+    # publishes. See autovalor.api.rules for why this is not in the schema.
+    checked = resolve(request, model.catalog)
+    request = checked.request
     frame = to_frame(request, departments=_known_departments(model))
     # The published band: calibrated P10 and P90 around the *point* model's estimate, which
     # is the number /explain attributes and the one whose MAPE is published. See
@@ -339,6 +361,7 @@ def predict(request: PredictRequest, models: ModelsDep) -> PredictResponse:
         label=label,
         precision_notice=model.label.precision_notice,
         precision_codes=_precision_codes(model),
+        warnings=checked.warnings,
         model_version=model.version,
     )
 
@@ -351,11 +374,14 @@ def predict(request: PredictRequest, models: ModelsDep) -> PredictResponse:
 def explain(request: PredictRequest, models: ModelsDep) -> ExplainResponse:
     """Attribute one estimate to its features, as exact multiplicative factors."""
     model = _require(models, request.vehicle_type)
+    checked = resolve(request, model.catalog)
+    request = checked.request
     frame = to_frame(request, departments=_known_departments(model))
     phi, base = shap_contributions(model.point, frame)
 
     row = phi.iloc[0]
-    ranked = row.reindex(row.abs().sort_values(ascending=False).index).head(TOP_FACTORS)
+    ordered = row.reindex(row.abs().sort_values(ascending=False).index)
+    ranked = _with_supplied(ordered, request)
     factors = [
         Factor(
             feature=str(feature),
@@ -376,8 +402,39 @@ def explain(request: PredictRequest, models: ModelsDep) -> ExplainResponse:
         estimate_cop=float(np.exp(model.predict_log_price(frame)[0])),
         base_price_cop=float(np.exp(base)),
         factors=factors,
+        warnings=checked.warnings,
         model_version=model.version,
     )
+
+
+SUPPLIED_ALWAYS_SHOWN = ("engine_cc",)
+"""Optional fields that appear in an explanation whenever the caller filled them in.
+
+Measured on the deployed service: a Mazda 3 2018 valued 60,8 M at 1.600 cc and 67,8 M at
+2.000 cc, an 11,5 % move, and "Cilindrada" was still absent from the five factors because
+five other features moved it more. Someone who typed a number and then cannot find it in
+the explanation has no way to tell whether it was used at all.
+"""
+
+
+def _with_supplied(ordered: Any, request: PredictRequest) -> Any:
+    """Return the strongest factors, keeping any supplied field that would be cut.
+
+    The ranking is untouched and nothing is dropped to make room: an appended factor is a
+    weaker one by construction, so promoting it over a stronger one would misrepresent the
+    order. The list is therefore the top five *plus* what the caller asked about.
+    """
+    top = ordered.head(TOP_FACTORS)
+    extra = [
+        feature
+        for feature in SUPPLIED_ALWAYS_SHOWN
+        if getattr(request, feature, None) is not None
+        and feature in ordered.index
+        and feature not in top.index
+    ]
+    if not extra:
+        return top
+    return ordered.reindex([*top.index, *extra])
 
 
 def _localized(text: Localized) -> LocalizedText:

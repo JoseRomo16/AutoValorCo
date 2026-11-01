@@ -28,9 +28,12 @@ Label = Literal["bargain", "fair", "expensive"]
 
 MIN_MODEL_YEAR = 1950
 MAX_MODEL_YEAR = 2100
-"""Deliberately wider than the plausibility bounds the lake enforces. This is input
-validation, not a quality contract: a 2035 model year is a typo to reject at the edge, and
-the narrower year checks belong to the data layer that already owns them."""
+"""Outer sanity bounds for the wire format, not the rule a caller is judged against.
+
+The real range is the served model's own, read from its catalogue and enforced in
+:mod:`autovalor.api.rules`. These stay only to keep an absurd integer out of the parsing
+layer; they used to be the *only* year check, which is how a 1954 car and a 2028 one both
+came back with a confident estimate."""
 
 MAX_MILEAGE_KM = 2_000_000
 MAX_ENGINE_CC = 10_000
@@ -131,6 +134,16 @@ class PredictResponse(BaseModel):
             "on a bundle exported before the codes existed."
         ),
     )
+    warnings: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Codes for things the caller should know about an answer that is still real: "
+            "`model_not_covered` when the model token was not one this make was trained "
+            "with and the estimate was made without it, `department_not_covered` when the "
+            "department is not in the training data. Deliberately not `precision_codes`, "
+            "which explains a withheld label and carries a measured value and limit."
+        ),
+    )
     model_version: str = Field(description="Served model version; matches /model-info.")
 
 
@@ -180,6 +193,9 @@ class ExplainResponse(BaseModel):
         description="Where every explanation starts, before any feature moves it."
     )
     factors: list[Factor] = Field(description="The strongest contributions, largest first.")
+    warnings: list[str] = Field(
+        default_factory=list, description="The same codes `/predict` returns, for the same row."
+    )
     model_version: str
 
 
@@ -222,7 +238,23 @@ class VerticalInfo(BaseModel):
             "when the lake does not span enough days for that partition."
         ),
     )
-    trained_on_rows: int
+    total_rows: int = Field(description="Listings in the lake for this vertical, before any split.")
+    train_rows: int | None = Field(
+        default=None,
+        description=(
+            "Listings the served model was actually fitted on. Null on a bundle with no "
+            "catalogue, which is where the count comes from."
+        ),
+    )
+    trained_on_rows: int = Field(
+        deprecated=True,
+        description=(
+            "Deprecated, equals `total_rows`. The name said 'trained on' while holding "
+            "the lake total, and `/catalog` used the same name for the training rows, so "
+            "the two routes reported 8.443 and 6.754 for the same cars. Use `total_rows` "
+            "and `train_rows`."
+        ),
+    )
 
 
 class LabelGate(BaseModel):
@@ -311,12 +343,38 @@ class VerticalCatalog(BaseModel):
 
     vehicle_type: VehicleType
     model_version: str = Field(description="Served model these lists came from; matches /predict.")
-    trained_on_rows: int = Field(description="Training rows the lists were derived from.")
+    train_rows: int = Field(description="Listings the lists and the model were derived from.")
+    total_rows: int | None = Field(
+        default=None,
+        description=(
+            "Listings in the lake for this vertical, before any split. The same number "
+            "`/model-info` reports as `total_rows`, so the two routes can be compared."
+        ),
+    )
+    trained_on_rows: int = Field(
+        deprecated=True, description="Deprecated, equals `train_rows`. Use that instead."
+    )
     brands: list[CatalogBrand] = Field(description="Makes, alphabetically, each with its models.")
     departments: list[CatalogEntry] = Field(description="Departments, alphabetically.")
-    model_year: CatalogRange
+    model_year: CatalogRange = Field(
+        description=(
+            "What `/predict` accepts: the training range, with the top capped at the "
+            "current year plus one. Dealers list next year's model, but a bundle does not "
+            "get to keep calling its newest training year 'the future' forever."
+        )
+    )
     engine_cc: CatalogRange | None = Field(
         default=None, description="Null when the vertical records no displacement."
+    )
+    asking_price_cop: CatalogRange | None = Field(
+        default=None,
+        description=(
+            "Where an asking price may plausibly fall, cut at the half-percentiles of the "
+            "training prices. Only the floor is enforced by `/predict`: under it a price "
+            "is a typo, while over the ceiling it is a listing that really is asking too "
+            "much, which is what the expensive label exists to say. Null on a bundle "
+            "exported before this range existed."
+        ),
     )
 
 
