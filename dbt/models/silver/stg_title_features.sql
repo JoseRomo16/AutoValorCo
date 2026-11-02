@@ -276,8 +276,9 @@ mined as (
             -- A motorcycle family prefix written apart from its number is not a model:
             -- "BMW R 1250 GS" came out as "r" for 101 listings that run from a R 18 to a
             -- R 1300, and "Yamaha MT 15" as "mt" for 43. Glued back together they land on
-            -- the level the same bike already has when the title writes it as one word
-            -- ("r1250", "mt15" -> "mt-15" through the alias seed). A single letter always
+            -- the family-and-displacement level ("r1250", "mt15" -> "mt-15" through the
+            -- alias seed). A variant written apart ("R 1250 GS") stays at that level; one
+            -- glued to the number ("R1250GS") keeps its own, as it already did. A single letter always
             -- takes the next token ("X Max" -> "xmax"); two letters only take a number,
             -- because "Gn Nova" or "Tt Ds" are names, not a prefix and its displacement.
             -- Motorcycles only: in cars a single letter is a class or a whole name

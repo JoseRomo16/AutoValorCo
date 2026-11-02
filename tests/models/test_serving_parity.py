@@ -162,3 +162,46 @@ def test_the_published_error_is_measured_on_what_the_api_sends() -> None:
     expected = result.model.predict_log_price(as_served(dataset.test))
     actual = np.exp(expected - dataset.test["log_price"].to_numpy()) - 1
     assert result.test_report.mape == pytest.approx(float(np.mean(np.abs(actual))))
+
+
+def test_the_published_segment_error_is_measured_on_what_the_api_sends() -> None:
+    # /market serves segment_error beside the headline MAPE; both must describe the
+    # model as served, or an official-store-heavy brand gets a flattering figure.
+    from types import SimpleNamespace
+
+    from autovalor.analysis.segments import segment_errors
+
+    seen: list[pd.DataFrame] = []
+
+    class _Recorder:
+        def predict_log_price(self, frame: pd.DataFrame) -> Any:
+            seen.append(frame)
+            return frame["log_price"].to_numpy()
+
+    dataset = split_listings(make_gold_frame(600, seed=9))
+    result = SimpleNamespace(model=_Recorder(), vehicle_type="car", model_kind="lightgbm")
+    segment_errors(result, dataset, min_rows=1)  # type: ignore[arg-type]
+
+    assert seen
+    for frame in seen:
+        assert not frame["is_official_store"].any()
+
+
+def test_the_published_importance_is_measured_on_what_the_api_sends(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from autovalor.models import train as train_module
+
+    seen: list[pd.DataFrame] = []
+    original = train_module.global_importance  # type: ignore[attr-defined]
+
+    def spy(model: Any, frame: pd.DataFrame) -> Any:
+        seen.append(frame)
+        return original(model, frame)
+
+    monkeypatch.setattr(train_module, "global_importance", spy)
+    frame = make_gold_frame(600, seed=11)
+    train_model(split_listings(frame), "lightgbm", n_trials=0, intervals=False)
+
+    assert seen
+    assert all(not scored["is_official_store"].any() for scored in seen)

@@ -330,7 +330,7 @@ def train_model(
         if explain and tree_kind == EXPLAINED_KIND:
             # Measured on the holdout, not on train: an importance ranking read off the
             # rows the trees already memorised would overstate whatever they overfitted.
-            importance = global_importance(tree, dataset.test)
+            importance = global_importance(tree, served_test)
 
     train_report = regression_report(dataset.train[TARGET], model.predict_log_price(dataset.train))
     test_report = regression_report(dataset.test[TARGET], model.predict_log_price(served_test))
