@@ -44,7 +44,7 @@ import {
   type VehicleType,
   type VerticalCatalog,
 } from "@/lib/api";
-import { integer, kilometres } from "@/lib/format";
+import { cop, integer, kilometres } from "@/lib/format";
 import { copy, fill } from "@/lib/i18n";
 import type { Localized } from "@/lib/i18n";
 
@@ -67,6 +67,16 @@ const LOW_DATA_LISTINGS = 50;
  * real fix lives in the data layer.
  */
 const UNKNOWN_LEVEL = "Desconocida";
+
+/**
+ * What "Otro departamento" sends.
+ *
+ * Any department the catalogue does not carry takes the service's weighted-average path,
+ * so this is a plain string rather than a special protocol: the API resolves it to "not
+ * covered", averages over the departments it does know, and returns
+ * `department_not_covered`. Deliberately not a department name anyone lives in.
+ */
+const OTHER_DEPARTMENT = "Otro departamento";
 
 const MAX_MILEAGE_KM = 2_000_000;
 
@@ -257,6 +267,13 @@ export function ValuationForm() {
     return [
       ...common.map((entry) => toOption(entry)),
       ...thin.map((entry) => toOption(entry, t(copy.form.departmentLowData))),
+      // Last, and always offered: without it, somebody in a department the capture never
+      // swept has no way to use the form at all.
+      {
+        value: OTHER_DEPARTMENT,
+        label: t(copy.form.departmentOther),
+        group: t(copy.form.departmentLowData),
+      },
     ];
   }, [catalog, lang, t]);
 
@@ -266,6 +283,9 @@ export function ValuationForm() {
 
   const yearRange = catalog?.model_year;
   const engineRange = catalog?.engine_cc ?? null;
+  // Null against a service older than this range, which is what the deployed one serves
+  // until the next export: no floor published means no floor to enforce.
+  const priceRange = catalog?.asking_price_cop ?? null;
 
   /** Every rule, in one place, so a field and its message cannot disagree. */
   const problems = useMemo(() => {
@@ -295,15 +315,40 @@ export function ValuationForm() {
       const min = Math.round(engineRange.min);
       const max = Math.round(engineRange.max);
       if (value < min || value > max) {
-        found.engine = fill(copy.form.errors.engineRange, lang, { min, max });
+        // Grouped, so the message and the placeholder read the same: "800-6.400".
+        found.engine = fill(copy.form.errors.engineRange, lang, {
+          min: integer(min, lang),
+          max: integer(max, lang),
+        });
       }
     }
 
-    if (askingPrice !== "" && Number(askingPrice) < 1) {
-      found.asking = t(copy.form.errors.price);
+    if (askingPrice !== "") {
+      const value = Number(askingPrice);
+      if (value < 1) {
+        found.asking = t(copy.form.errors.price);
+      } else if (priceRange && value < Math.floor(priceRange.min)) {
+        // The floor the service enforces, so the form rejects what the API would reject --
+        // inline, rather than letting the request come back as an unexplained error.
+        found.asking = fill(copy.form.errors.priceBelowMin, lang, {
+          min: cop(Math.floor(priceRange.min), lang),
+        });
+      }
     }
     return found;
-  }, [brand, department, year, mileage, engineCc, askingPrice, yearRange, engineRange, lang, t]);
+  }, [
+    brand,
+    department,
+    year,
+    mileage,
+    engineCc,
+    askingPrice,
+    yearRange,
+    engineRange,
+    priceRange,
+    lang,
+    t,
+  ]);
 
   /** A rule only becomes a message once the person has left the field. */
   const shown = (field: FieldName) => (touched.has(field) ? problems[field] : undefined);
@@ -393,6 +438,15 @@ export function ValuationForm() {
   const noMatch = (query: string) => fill(copy.form.searchNoMatch, lang, { query });
   const discardedNotice = (characters: string) =>
     fill(copy.form.discarded, lang, { chars: characters });
+
+  const departmentHint =
+    department === OTHER_DEPARTMENT
+      ? t(copy.form.departmentOtherHint)
+      : departmentIsThin && chosenDepartment
+        ? fill(copy.form.departmentLowDataHint, lang, {
+            count: integer(chosenDepartment.listings, lang),
+          })
+        : undefined;
 
   // Formatted here rather than at submit time, so the mileage separators follow the
   // language the reader is in now.
@@ -529,17 +583,17 @@ export function ValuationForm() {
               setDepartment(next);
               touch("department");
             }}
-            emptyText={noMatch}
+            // Not the generic "nothing matches": the useful thing to say is why, which is
+            // that the capture has not reached that department yet.
+            emptyText={() => t(copy.form.departmentNoMatch)}
+            fallbackOption={{
+              value: OTHER_DEPARTMENT,
+              label: t(copy.form.departmentOther),
+            }}
             countLabel={listingCount}
             // The thin-department notice replaces the generic hint, so the warning lands
             // where someone is looking the moment they pick one.
-            hint={
-              departmentIsThin && chosenDepartment
-                ? fill(copy.form.departmentLowDataHint, lang, {
-                    count: integer(chosenDepartment.listings, lang),
-                  })
-                : undefined
-            }
+            hint={departmentHint}
             error={shown("department")}
           />
 

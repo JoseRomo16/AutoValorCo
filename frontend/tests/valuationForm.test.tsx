@@ -10,6 +10,8 @@ const catalog: CatalogResponse = {
     {
       vehicle_type: "car",
       model_version: "2026-10-25.12948",
+      train_rows: 6754,
+      total_rows: 8443,
       trained_on_rows: 6754,
       brands: [
         {
@@ -22,15 +24,19 @@ const catalog: CatalogResponse = {
       departments: [{ name: "Bogotá D.C.", listings: 3000 }],
       model_year: { min: 1955, max: 2027 },
       engine_cc: { min: 800, max: 6400 },
+      asking_price_cop: { min: 5_000_000, max: 400_000_000 },
     },
     {
       vehicle_type: "motorcycle",
       model_version: "2026-10-25.12948",
+      train_rows: 2590,
+      total_rows: 4505,
       trained_on_rows: 2590,
       brands: [{ name: "Bajaj", listings: 400, models: [] }],
       departments: [{ name: "Bogotá D.C.", listings: 1200 }],
       model_year: { min: 1958, max: 2027 },
       engine_cc: { min: 50, max: 2491 },
+      asking_price_cop: { min: 900_000, max: 90_000_000 },
     },
   ],
 };
@@ -227,5 +233,100 @@ describe("the priced-vehicle line", () => {
 
     await waitFor(() => expect(screen.getByText(mileageLine("60,000 km"))).toBeInTheDocument());
     expect(screen.queryByText(mileageLine("60.000 km"))).toBeNull();
+  });
+});
+
+describe("a department the capture has not reached", () => {
+  it("explains why nothing matched instead of quoting the query back", async () => {
+    show();
+    await ready();
+
+    const input = screen.getByLabelText(/Departamento/);
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "nari" } });
+
+    expect(
+      await screen.findByText("Todavía no tenemos anuncios suficientes de ese departamento."),
+    ).toBeInTheDocument();
+  });
+
+  it("still offers another department when the filter matched nothing", async () => {
+    // The escape hatch used to be filtered out along with everything else, so the one
+    // person the message was written for had no way to act on it.
+    show();
+    await ready();
+
+    const input = screen.getByLabelText(/Departamento/);
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "nari" } });
+
+    expect(await screen.findByRole("option", { name: /Otro departamento/ })).toBeInTheDocument();
+  });
+
+  it("says what it will do once that is chosen", async () => {
+    show();
+    await ready();
+    await choose(/Departamento/, "nari", /Otro departamento/);
+
+    expect(
+      await screen.findByText("Usaremos el promedio de los departamentos que sí tenemos."),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("the asking price floor", () => {
+  it("rejects a price under the floor the service enforces", async () => {
+    // 59 pesos used to be sent and come back labelled a bargain.
+    show();
+    await ready();
+
+    const field = screen.getByLabelText(/Precio pedido/);
+    fireEvent.change(field, { target: { value: "59" } });
+    fireEvent.blur(field);
+
+    expect(await screen.findByText(/El precio más bajo que el modelo vio es/)).toBeInTheDocument();
+  });
+
+  it("accepts a price inside the published range", async () => {
+    show();
+    await ready();
+
+    const field = screen.getByLabelText(/Precio pedido/);
+    fireEvent.change(field, { target: { value: "60000000" } });
+    fireEvent.blur(field);
+
+    expect(screen.queryByText(/El precio más bajo que el modelo vio es/)).toBeNull();
+  });
+
+  it("does not submit while the price is under the floor", async () => {
+    show();
+    await ready();
+
+    await choose(/Marca/, "Toyota", /Toyota/);
+    fireEvent.change(screen.getByLabelText(/Año del modelo/), { target: { value: "2018" } });
+    fireEvent.change(screen.getByLabelText(/Kilometraje/), { target: { value: "60000" } });
+    await choose(/Departamento/, "Bogot", /Bogot/);
+    fireEvent.change(screen.getByLabelText(/Precio pedido/), { target: { value: "59" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Calcular el precio" }));
+
+    await waitFor(() => expect(document.activeElement?.id).toBe("asking"));
+    expect(
+      vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith("/predict")),
+    ).toHaveLength(0);
+  });
+});
+
+describe("the displacement error", () => {
+  it("groups its bounds the way the placeholder does", async () => {
+    show();
+    await ready();
+
+    const field = screen.getByLabelText(/Cilindrada/);
+    fireEvent.change(field, { target: { value: "50" } });
+    fireEvent.blur(field);
+
+    // "800-6.400" in both places, rather than a grouped placeholder and a bare 6400.
+    expect(await screen.findByText(/6\.400 cc/)).toBeInTheDocument();
   });
 });

@@ -39,11 +39,23 @@ export type CatalogRange = { min: number; max: number };
 export type VerticalCatalog = {
   vehicle_type: VehicleType;
   model_version: string;
+  /** Listings the lists and the model were derived from. */
+  train_rows: number;
+  /** Listings in the lake before any split. Null on a service older than these names. */
+  total_rows: number | null;
+  /** @deprecated Equals `train_rows`; the service keeps sending it. Use `train_rows`. */
   trained_on_rows: number;
   brands: CatalogBrand[];
   departments: CatalogEntry[];
+  /** What `/predict` accepts: the training span, capped at the current year plus one. */
   model_year: CatalogRange;
   engine_cc: CatalogRange | null;
+  /**
+   * Where an asking price may plausibly fall. Null on a bundle exported before the range
+   * existed, which is what the deployed service serves until the next `make export-model`
+   * -- so the form has to treat a missing range as "no floor to enforce".
+   */
+  asking_price_cop: CatalogRange | null;
 };
 
 export type CatalogResponse = { verticals: VerticalCatalog[] };
@@ -76,6 +88,14 @@ export type PrecisionCode = {
   message: string;
 };
 
+/**
+ * Something worth telling the reader about an answer that is still real.
+ *
+ * Not `precision_codes`, which explains a withheld label and carries a measured value and
+ * limit. These say the model had less to go on than the caller supplied.
+ */
+export type Warning = "model_not_covered" | "department_not_covered";
+
 export type PredictResponse = {
   vehicle_type: VehicleType;
   band: {
@@ -87,6 +107,8 @@ export type PredictResponse = {
   label: PriceLabel | null;
   precision_notice: string | null;
   precision_codes?: PrecisionCode[];
+  /** Optional because a service older than this field sends none. */
+  warnings?: Warning[];
   model_version: string;
 };
 
@@ -106,6 +128,7 @@ export type ExplainResponse = {
   estimate_cop: number;
   base_price_cop: number;
   factors: Factor[];
+  warnings?: Warning[];
   model_version: string;
 };
 

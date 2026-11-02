@@ -174,6 +174,15 @@ export const copy = {
       es: "Tenemos {count} anuncios de este departamento, así que el estimado es menos preciso.",
       en: "We have {count} listings from this department, so the estimate is less precise.",
     },
+    departmentNoMatch: {
+      es: "Todavía no tenemos anuncios suficientes de ese departamento.",
+      en: "We do not have enough listings from that department yet.",
+    },
+    departmentOther: { es: "Otro departamento", en: "Another department" },
+    departmentOtherHint: {
+      es: "Usaremos el promedio de los departamentos que sí tenemos.",
+      en: "We will use the average of the departments we do have.",
+    },
     askingPrice: { es: "Precio pedido", en: "Asking price" },
     askingPriceHint: {
       es: "Si lo escribes, lo comparamos contra el rango.",
@@ -210,6 +219,10 @@ export const copy = {
       price: {
         es: "Escribe el precio en pesos, sin centavos.",
         en: "Enter the price in pesos, with no cents.",
+      },
+      priceBelowMin: {
+        es: "El precio más bajo que el modelo vio es {min}. Por debajo de eso no podemos comparar.",
+        en: "The lowest price the model saw is {min}. Below that we cannot compare.",
       },
       engineRange: {
         es: "La cilindrada tiene que estar entre {min} y {max} cc.",
@@ -255,6 +268,22 @@ export const copy = {
     bandDescriptionAsking: {
       es: " Precio pedido: {asking}.",
       en: " Asking price: {asking}.",
+    },
+
+    /**
+     * The `warnings` codes, as sentences. Separate from `precision` on purpose: that one
+     * explains a withheld label, these say the model had less to go on than was supplied.
+     */
+    warningsTitle: { es: "Avisos sobre este estimado", en: "Notes on this estimate" },
+    warnings: {
+      departmentNotCovered: {
+        es: "Tu departamento no está en los datos, así que el estimado usa el promedio de los departamentos que sí tenemos.",
+        en: "Your department is not in the data, so the estimate uses the average of the departments we do have.",
+      },
+      modelNotCovered: {
+        es: "No tenemos anuncios de ese modelo, así que lo valoramos solo con la marca.",
+        en: "We have no listings for that model, so we valued it using the make alone.",
+      },
     },
 
     asking: { es: "Precio pedido", en: "Asking price" },

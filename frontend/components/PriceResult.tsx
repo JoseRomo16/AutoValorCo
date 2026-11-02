@@ -46,6 +46,18 @@ const VERDICT: Record<PriceLabel, { title: Localized; why: Localized; tone: stri
   },
 };
 
+/**
+ * The `warnings` codes, as sentences.
+ *
+ * A code this build does not know renders as nothing rather than as its raw string: the
+ * service can add one before the site is rebuilt, and an untranslated identifier on the
+ * page is worse than silence.
+ */
+const WARNING_COPY: Record<string, Localized> = {
+  department_not_covered: copy.result.warnings.departmentNotCovered,
+  model_not_covered: copy.result.warnings.modelNotCovered,
+};
+
 /** The gate's failure codes, as the exported model publishes them. */
 const PRECISION_COPY: Record<string, Localized> = {
   width_above_max: copy.result.precision.widthAboveMax,
@@ -220,6 +232,10 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
 
   const verdict = prediction.label === null ? null : VERDICT[prediction.label];
 
+  const notices = (prediction.warnings ?? [])
+    .map((code) => WARNING_COPY[code])
+    .filter((text): text is Localized => text !== undefined);
+
   // The sentence a screen reader hears, built from the same figures on screen.
   const announcement = fill(copy.result.announcement, lang, {
     estimate: copMillions(band.estimate_cop, lang),
@@ -295,6 +311,23 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
           </span>
         </div>
       </div>
+
+      {notices.length > 0 && (
+        // Above the verdict, because they change what the number means rather than
+        // qualifying it: an estimate made without the model token, or averaged over
+        // departments, is answering a slightly different question than the one asked.
+        <ul
+          aria-label={t(copy.result.warningsTitle)}
+          className="mt-5 space-y-2 border-t border-line pt-4"
+        >
+          {notices.map((text) => (
+            <li key={text.es} className="flex gap-2.5 text-sm text-muted">
+              <i aria-hidden className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
+              {t(text)}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {(verdict || prediction.precision_notice !== null) && (
         <div className="mt-5 grid grid-cols-[auto_1fr] items-baseline gap-x-3.5 gap-y-1 border-y border-line py-4">
