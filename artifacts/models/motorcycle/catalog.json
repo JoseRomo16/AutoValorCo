@@ -1,5 +1,5 @@
 {
-  "format": 2,
+  "format": 3,
   "vehicle_type": "motorcycle",
   "n_rows": 3604,
   "brands": [
@@ -44,9 +44,14 @@
           "display_name": "Adventour"
         },
         {
-          "name": "ak",
-          "listings": 7,
-          "display_name": "AK"
+          "name": "ak100",
+          "listings": 1,
+          "display_name": "AK100"
+        },
+        {
+          "name": "ak125",
+          "listings": 2,
+          "display_name": "AK125"
         },
         {
           "name": "ak125rl",
@@ -60,8 +65,13 @@
         },
         {
           "name": "ak200",
-          "listings": 1,
+          "listings": 4,
           "display_name": "AK200"
+        },
+        {
+          "name": "ak250",
+          "listings": 1,
+          "display_name": "AK250"
         },
         {
           "name": "aventura",
@@ -89,9 +99,9 @@
           "display_name": "CR5"
         },
         {
-          "name": "ds",
+          "name": "ds200",
           "listings": 1,
-          "display_name": "DS"
+          "display_name": "DS200"
         },
         {
           "name": "dynamic",
@@ -155,12 +165,12 @@
         },
         {
           "name": "tt",
-          "listings": 8,
+          "listings": 7,
           "display_name": "TT"
         },
         {
           "name": "tt200",
-          "listings": 1,
+          "listings": 2,
           "display_name": "TT200"
         },
         {
@@ -192,8 +202,18 @@
         },
         {
           "name": "sr",
-          "listings": 3,
+          "listings": 1,
           "display_name": "SR"
+        },
+        {
+          "name": "sr160",
+          "listings": 1,
+          "display_name": "SR160"
+        },
+        {
+          "name": "sr200",
+          "listings": 1,
+          "display_name": "SR200"
         },
         {
           "name": "tuono",
@@ -255,24 +275,29 @@
           "display_name": "850"
         },
         {
-          "name": "c",
+          "name": "c 400",
           "listings": 5,
-          "display_name": "C"
+          "display_name": "C 400"
         },
         {
-          "name": "c400",
+          "name": "c 400 gt",
           "listings": 2,
-          "display_name": "C400"
+          "display_name": "C 400 GT"
         },
         {
-          "name": "c400gt",
+          "name": "c 650",
           "listings": 1,
-          "display_name": "C400GT"
+          "display_name": "C 650"
         },
         {
-          "name": "ce",
-          "listings": 12,
-          "display_name": "CE"
+          "name": "ce 02",
+          "listings": 2,
+          "display_name": "CE 02"
+        },
+        {
+          "name": "ce 04",
+          "listings": 10,
+          "display_name": "CE 04"
         },
         {
           "name": "edicion",
@@ -280,9 +305,74 @@
           "display_name": "Edicion"
         },
         {
-          "name": "f",
-          "listings": 50,
-          "display_name": "F"
+          "name": "f 650",
+          "listings": 4,
+          "display_name": "F 650"
+        },
+        {
+          "name": "f 700",
+          "listings": 8,
+          "display_name": "F 700"
+        },
+        {
+          "name": "f 700 gs",
+          "listings": 3,
+          "display_name": "F 700 GS"
+        },
+        {
+          "name": "f 750",
+          "listings": 27,
+          "display_name": "F 750"
+        },
+        {
+          "name": "f 750 gs",
+          "listings": 7,
+          "display_name": "F 750 GS"
+        },
+        {
+          "name": "f 800",
+          "listings": 7,
+          "display_name": "F 800"
+        },
+        {
+          "name": "f 800 gs",
+          "listings": 4,
+          "display_name": "F 800 GS"
+        },
+        {
+          "name": "f 800 r",
+          "listings": 1,
+          "display_name": "F 800 R"
+        },
+        {
+          "name": "f 850",
+          "listings": 21,
+          "display_name": "F 850"
+        },
+        {
+          "name": "f 850 gs",
+          "listings": 12,
+          "display_name": "F 850 GS"
+        },
+        {
+          "name": "f 900",
+          "listings": 21,
+          "display_name": "F 900"
+        },
+        {
+          "name": "f 900 gs",
+          "listings": 1,
+          "display_name": "F 900 GS"
+        },
+        {
+          "name": "f 900 r",
+          "listings": 6,
+          "display_name": "F 900 R"
+        },
+        {
+          "name": "f 900 xr",
+          "listings": 2,
+          "display_name": "F 900 XR"
         },
         {
           "name": "f-850",
@@ -290,199 +380,149 @@
           "display_name": "F-850"
         },
         {
-          "name": "f650",
-          "listings": 2,
-          "display_name": "F650"
+          "name": "g 30",
+          "listings": 1,
+          "display_name": "G 30"
         },
         {
-          "name": "f700",
-          "listings": 5,
-          "display_name": "F700"
+          "name": "g 310",
+          "listings": 35,
+          "display_name": "G 310"
         },
         {
-          "name": "f700gs",
-          "listings": 3,
-          "display_name": "F700GS"
+          "name": "g 310 gs",
+          "listings": 16,
+          "display_name": "G 310 GS"
         },
         {
-          "name": "f750",
-          "listings": 10,
-          "display_name": "F750"
+          "name": "g 310 r",
+          "listings": 9,
+          "display_name": "G 310 R"
         },
         {
-          "name": "f750gs",
-          "listings": 7,
-          "display_name": "F750GS"
-        },
-        {
-          "name": "f800",
-          "listings": 3,
-          "display_name": "F800"
-        },
-        {
-          "name": "f800gs",
+          "name": "g 650",
           "listings": 4,
-          "display_name": "F800GS"
+          "display_name": "G 650"
         },
         {
-          "name": "f800r",
-          "listings": 1,
-          "display_name": "F800R"
-        },
-        {
-          "name": "f850",
-          "listings": 11,
-          "display_name": "F850"
-        },
-        {
-          "name": "f850gs",
-          "listings": 12,
-          "display_name": "F850GS"
-        },
-        {
-          "name": "f900",
-          "listings": 8,
-          "display_name": "F900"
-        },
-        {
-          "name": "f900gs",
-          "listings": 1,
-          "display_name": "F900GS"
-        },
-        {
-          "name": "f900r",
-          "listings": 5,
-          "display_name": "F900R"
-        },
-        {
-          "name": "f900xr",
+          "name": "g 650 gs",
           "listings": 2,
-          "display_name": "F900XR"
-        },
-        {
-          "name": "g",
-          "listings": 36,
-          "display_name": "G"
-        },
-        {
-          "name": "g310",
-          "listings": 6,
-          "display_name": "G310"
-        },
-        {
-          "name": "g310gs",
-          "listings": 14,
-          "display_name": "G310GS"
-        },
-        {
-          "name": "g310r",
-          "listings": 6,
-          "display_name": "G310R"
-        },
-        {
-          "name": "g650",
-          "listings": 1,
-          "display_name": "G650"
-        },
-        {
-          "name": "g650gs",
-          "listings": 2,
-          "display_name": "G650GS"
+          "display_name": "G 650 GS"
         },
         {
           "name": "gs",
-          "listings": 13,
+          "listings": 6,
           "display_name": "GS"
         },
         {
-          "name": "gs1250",
+          "name": "gs 1200",
           "listings": 1,
-          "display_name": "GS1250"
+          "display_name": "GS 1200"
         },
         {
-          "name": "m",
-          "listings": 1,
-          "display_name": "M"
-        },
-        {
-          "name": "r",
-          "listings": 82,
-          "display_name": "R"
-        },
-        {
-          "name": "r12",
+          "name": "gs 1250",
           "listings": 2,
-          "display_name": "R12"
+          "display_name": "GS 1250"
         },
         {
-          "name": "r1200",
+          "name": "gs 1300",
+          "listings": 1,
+          "display_name": "GS 1300"
+        },
+        {
+          "name": "gs 650",
+          "listings": 1,
+          "display_name": "GS 650"
+        },
+        {
+          "name": "gs 800",
+          "listings": 1,
+          "display_name": "GS 800"
+        },
+        {
+          "name": "m 1000",
+          "listings": 1,
+          "display_name": "M 1000"
+        },
+        {
+          "name": "r 100",
+          "listings": 1,
+          "display_name": "R 100"
+        },
+        {
+          "name": "r 12",
+          "listings": 3,
+          "display_name": "R 12"
+        },
+        {
+          "name": "r 1200",
+          "listings": 28,
+          "display_name": "R 1200"
+        },
+        {
+          "name": "r 1200 gs",
           "listings": 7,
-          "display_name": "R1200"
+          "display_name": "R 1200 GS"
         },
         {
-          "name": "r1200gs",
-          "listings": 7,
-          "display_name": "R1200GS"
+          "name": "r 1250",
+          "listings": 35,
+          "display_name": "R 1250"
         },
         {
-          "name": "r1250",
-          "listings": 11,
-          "display_name": "R1250"
-        },
-        {
-          "name": "r1250gs",
+          "name": "r 1250 gs",
           "listings": 9,
-          "display_name": "R1250GS"
+          "display_name": "R 1250 GS"
         },
         {
-          "name": "r1300",
-          "listings": 4,
-          "display_name": "R1300"
+          "name": "r 1300",
+          "listings": 30,
+          "display_name": "R 1300"
         },
         {
-          "name": "r1300gs",
-          "listings": 10,
-          "display_name": "R1300GS"
+          "name": "r 1300 gs",
+          "listings": 12,
+          "display_name": "R 1300 GS"
         },
         {
-          "name": "r18",
-          "listings": 1,
-          "display_name": "R18"
+          "name": "r 18",
+          "listings": 3,
+          "display_name": "R 18"
         },
         {
-          "name": "r26",
+          "name": "r 26",
           "listings": 2,
-          "display_name": "R26"
+          "display_name": "R 26"
+        },
+        {
+          "name": "rnine",
+          "listings": 2,
+          "display_name": "Rnine"
         },
         {
           "name": "rninet",
-          "listings": 4,
+          "listings": 7,
           "display_name": "R nineT"
         },
         {
-          "name": "s",
-          "listings": 2,
-          "display_name": "S"
+          "name": "s 1000",
+          "listings": 5,
+          "display_name": "S 1000"
         },
         {
-          "name": "s1000",
-          "listings": 3,
-          "display_name": "S1000"
-        },
-        {
-          "name": "s1000r",
+          "name": "s 1000 r",
           "listings": 4,
-          "display_name": "S1000R"
+          "display_name": "S 1000 R"
         },
         {
-          "name": "s1000rr",
+          "name": "s 1000 rr",
           "listings": 3,
-          "display_name": "S1000RR"
+          "display_name": "S 1000 RR"
         },
         {
-          "name": "s1000xr",
+          "name": "s 1000 xr",
           "listings": 4,
-          "display_name": "S1000XR"
+          "display_name": "S 1000 XR"
         }
       ]
     },
@@ -606,9 +646,9 @@
       "display_name": "Bera",
       "models": [
         {
-          "name": "rr",
+          "name": "rr250",
           "listings": 1,
-          "display_name": "RR"
+          "display_name": "RR250"
         }
       ]
     },
@@ -750,19 +790,24 @@
           "display_name": "CLX"
         },
         {
-          "name": "nk",
-          "listings": 4,
-          "display_name": "NK"
+          "name": "nk250",
+          "listings": 2,
+          "display_name": "NK250"
+        },
+        {
+          "name": "nk450",
+          "listings": 1,
+          "display_name": "NK450"
         },
         {
           "name": "nk800",
-          "listings": 1,
+          "listings": 2,
           "display_name": "NK800"
         },
         {
-          "name": "z",
+          "name": "zforcé",
           "listings": 1,
-          "display_name": "Z"
+          "display_name": "Zforcé"
         }
       ]
     },
@@ -1186,9 +1231,9 @@
           "display_name": "Cryton"
         },
         {
-          "name": "ct",
+          "name": "ct125",
           "listings": 1,
-          "display_name": "CT"
+          "display_name": "CT125"
         },
         {
           "name": "cuenta",
@@ -1221,9 +1266,9 @@
           "display_name": "Dinamic"
         },
         {
-          "name": "dt",
+          "name": "dt125",
           "listings": 1,
-          "display_name": "DT"
+          "display_name": "DT125"
         },
         {
           "name": "dyn",
@@ -1451,9 +1496,29 @@
           "display_name": "Motosiclera"
         },
         {
-          "name": "mt",
-          "listings": 12,
-          "display_name": "MT"
+          "name": "mt03",
+          "listings": 2,
+          "display_name": "MT03"
+        },
+        {
+          "name": "mt07",
+          "listings": 2,
+          "display_name": "MT07"
+        },
+        {
+          "name": "mt09",
+          "listings": 4,
+          "display_name": "MT09"
+        },
+        {
+          "name": "mt10",
+          "listings": 1,
+          "display_name": "MT10"
+        },
+        {
+          "name": "mt15",
+          "listings": 3,
+          "display_name": "MT15"
         },
         {
           "name": "muchos",
@@ -1504,11 +1569,6 @@
           "name": "ofero",
           "listings": 2,
           "display_name": "Ofero"
-        },
-        {
-          "name": "p",
-          "listings": 1,
-          "display_name": "P"
         },
         {
           "name": "papales",
@@ -1596,13 +1656,8 @@
           "display_name": "Revo"
         },
         {
-          "name": "s",
-          "listings": 1,
-          "display_name": "S"
-        },
-        {
           "name": "s1000",
-          "listings": 1,
+          "listings": 2,
           "display_name": "S1000"
         },
         {
@@ -1726,14 +1781,24 @@
           "display_name": "Vigentes"
         },
         {
-          "name": "x",
+          "name": "xpulser",
           "listings": 1,
-          "display_name": "X"
+          "display_name": "Xpulser"
         },
         {
-          "name": "xr",
-          "listings": 3,
-          "display_name": "XR"
+          "name": "xr150l",
+          "listings": 1,
+          "display_name": "XR150L"
+        },
+        {
+          "name": "xr190",
+          "listings": 1,
+          "display_name": "XR190"
+        },
+        {
+          "name": "xr190l",
+          "listings": 1,
+          "display_name": "XR190L"
         },
         {
           "name": "yadea",
@@ -1751,9 +1816,9 @@
           "display_name": "YZX"
         },
         {
-          "name": "z",
+          "name": "z400",
           "listings": 1,
-          "display_name": "Z"
+          "display_name": "Z400"
         },
         {
           "name": "zforce",
@@ -1828,13 +1893,8 @@
           "display_name": "V4"
         },
         {
-          "name": "x",
-          "listings": 1,
-          "display_name": "X"
-        },
-        {
           "name": "xdiavel",
-          "listings": 1,
+          "listings": 2,
           "display_name": "Xdiavel"
         }
       ]
@@ -2069,7 +2129,7 @@
         },
         {
           "name": "cb",
-          "listings": 46,
+          "listings": 9,
           "display_name": "CB"
         },
         {
@@ -2079,12 +2139,12 @@
         },
         {
           "name": "cb100",
-          "listings": 2,
+          "listings": 3,
           "display_name": "CB100"
         },
         {
           "name": "cb1000r",
-          "listings": 1,
+          "listings": 2,
           "display_name": "CB1000R"
         },
         {
@@ -2093,34 +2153,54 @@
           "display_name": "CB1000RAL"
         },
         {
+          "name": "cb110",
+          "listings": 1,
+          "display_name": "CB110"
+        },
+        {
+          "name": "cb125",
+          "listings": 8,
+          "display_name": "CB125"
+        },
+        {
           "name": "cb125f",
-          "listings": 2,
+          "listings": 11,
           "display_name": "CB125F"
         },
         {
+          "name": "cb160",
+          "listings": 4,
+          "display_name": "CB160"
+        },
+        {
           "name": "cb160f",
-          "listings": 2,
+          "listings": 3,
           "display_name": "CB160F"
         },
         {
           "name": "cb190",
-          "listings": 2,
+          "listings": 6,
           "display_name": "CB190"
         },
         {
           "name": "cb190r",
-          "listings": 10,
+          "listings": 12,
           "display_name": "CB190R"
         },
         {
           "name": "cb250",
-          "listings": 1,
+          "listings": 2,
           "display_name": "CB250"
         },
         {
           "name": "cb300",
-          "listings": 1,
+          "listings": 2,
           "display_name": "CB300"
+        },
+        {
+          "name": "cb500",
+          "listings": 2,
+          "display_name": "CB500"
         },
         {
           "name": "cb500f",
@@ -2129,7 +2209,7 @@
         },
         {
           "name": "cb500x",
-          "listings": 1,
+          "listings": 3,
           "display_name": "CB500X"
         },
         {
@@ -2238,9 +2318,9 @@
           "display_name": "Navi"
         },
         {
-          "name": "nc",
+          "name": "nc750",
           "listings": 2,
-          "display_name": "NC"
+          "display_name": "NC750"
         },
         {
           "name": "nc750x",
@@ -2258,18 +2338,18 @@
           "display_name": "Neo"
         },
         {
-          "name": "ns",
+          "name": "ns190l",
           "listings": 1,
-          "display_name": "NS"
+          "display_name": "NS190L"
         },
         {
           "name": "nx",
-          "listings": 6,
+          "listings": 1,
           "display_name": "NX"
         },
         {
           "name": "nx190",
-          "listings": 1,
+          "listings": 6,
           "display_name": "NX190"
         },
         {
@@ -2358,9 +2438,14 @@
           "display_name": "Xblade"
         },
         {
-          "name": "xl",
-          "listings": 4,
-          "display_name": "XL"
+          "name": "xl125",
+          "listings": 1,
+          "display_name": "XL125"
+        },
+        {
+          "name": "xl250",
+          "listings": 3,
+          "display_name": "XL250"
         },
         {
           "name": "xlr",
@@ -2368,24 +2453,39 @@
           "display_name": "XLR"
         },
         {
-          "name": "xr",
-          "listings": 12,
-          "display_name": "XR"
+          "name": "xr150",
+          "listings": 2,
+          "display_name": "XR150"
         },
         {
           "name": "xr150l",
-          "listings": 1,
+          "listings": 2,
           "display_name": "XR150L"
         },
         {
-          "name": "xr190l",
+          "name": "xr190",
           "listings": 2,
+          "display_name": "XR190"
+        },
+        {
+          "name": "xr190l",
+          "listings": 4,
           "display_name": "XR190L"
         },
         {
           "name": "xr250",
-          "listings": 1,
+          "listings": 2,
           "display_name": "XR250"
+        },
+        {
+          "name": "xr400r",
+          "listings": 1,
+          "display_name": "XR400R"
+        },
+        {
+          "name": "xr650",
+          "listings": 3,
+          "display_name": "XR650"
         },
         {
           "name": "xr650l",
@@ -2435,13 +2535,8 @@
           "display_name": "EE3"
         },
         {
-          "name": "fe",
-          "listings": 1,
-          "display_name": "FE"
-        },
-        {
           "name": "fe250",
-          "listings": 1,
+          "listings": 2,
           "display_name": "FE250"
         },
         {
@@ -2460,14 +2555,14 @@
           "display_name": "TC50"
         },
         {
-          "name": "te",
-          "listings": 1,
-          "display_name": "TE"
-        },
-        {
           "name": "te150",
           "listings": 1,
           "display_name": "TE150"
+        },
+        {
+          "name": "te300",
+          "listings": 1,
+          "display_name": "TE300"
         },
         {
           "name": "vitpilen",
@@ -2592,13 +2687,13 @@
           "display_name": "Mantenimiento"
         },
         {
-          "name": "rc",
-          "listings": 5,
-          "display_name": "RC"
+          "name": "rc200",
+          "listings": 3,
+          "display_name": "RC200"
         },
         {
           "name": "rc390",
-          "listings": 1,
+          "listings": 3,
           "display_name": "RC390"
         },
         {
@@ -2661,9 +2756,9 @@
           "display_name": "500"
         },
         {
-          "name": "er",
+          "name": "er650",
           "listings": 1,
-          "display_name": "ER"
+          "display_name": "ER650"
         },
         {
           "name": "er6n",
@@ -2711,9 +2806,34 @@
           "display_name": "KMX"
         },
         {
-          "name": "kx",
-          "listings": 7,
-          "display_name": "KX"
+          "name": "kx110",
+          "listings": 1,
+          "display_name": "KX110"
+        },
+        {
+          "name": "kx112",
+          "listings": 2,
+          "display_name": "KX112"
+        },
+        {
+          "name": "kx250",
+          "listings": 1,
+          "display_name": "KX250"
+        },
+        {
+          "name": "kx450",
+          "listings": 1,
+          "display_name": "KX450"
+        },
+        {
+          "name": "kx450f",
+          "listings": 1,
+          "display_name": "KX450F"
+        },
+        {
+          "name": "kx85",
+          "listings": 1,
+          "display_name": "KX85"
         },
         {
           "name": "mule",
@@ -2751,13 +2871,8 @@
           "display_name": "Wind"
         },
         {
-          "name": "z",
-          "listings": 8,
-          "display_name": "Z"
-        },
-        {
           "name": "z1000",
-          "listings": 2,
+          "listings": 7,
           "display_name": "Z1000"
         },
         {
@@ -2772,7 +2887,7 @@
         },
         {
           "name": "z250",
-          "listings": 3,
+          "listings": 4,
           "display_name": "Z250"
         },
         {
@@ -2787,7 +2902,7 @@
         },
         {
           "name": "z900",
-          "listings": 4,
+          "listings": 6,
           "display_name": "Z900"
         },
         {
@@ -3294,9 +3409,9 @@
           "display_name": "NHX"
         },
         {
-          "name": "xc",
+          "name": "xc15",
           "listings": 1,
-          "display_name": "XC"
+          "display_name": "XC15"
         }
       ]
     },
@@ -3343,13 +3458,8 @@
           "display_name": "Agility"
         },
         {
-          "name": "ax",
-          "listings": 1,
-          "display_name": "AX"
-        },
-        {
           "name": "ax4",
-          "listings": 4,
+          "listings": 5,
           "display_name": "AX4"
         },
         {
@@ -3358,23 +3468,23 @@
           "display_name": "Burgman"
         },
         {
-          "name": "dl",
+          "name": "dl1000",
           "listings": 2,
-          "display_name": "DL"
+          "display_name": "DL1000"
         },
         {
           "name": "dr",
-          "listings": 23,
+          "listings": 4,
           "display_name": "DR"
         },
         {
           "name": "dr150",
-          "listings": 3,
+          "listings": 12,
           "display_name": "DR150"
         },
         {
           "name": "dr650",
-          "listings": 2,
+          "listings": 12,
           "display_name": "DR650"
         },
         {
@@ -3384,13 +3494,28 @@
         },
         {
           "name": "gn",
-          "listings": 12,
+          "listings": 2,
           "display_name": "GN"
         },
         {
-          "name": "gs",
+          "name": "gn125",
+          "listings": 8,
+          "display_name": "GN125"
+        },
+        {
+          "name": "gn125f",
           "listings": 1,
-          "display_name": "GS"
+          "display_name": "GN125F"
+        },
+        {
+          "name": "gn160",
+          "listings": 1,
+          "display_name": "GN160"
+        },
+        {
+          "name": "gs125",
+          "listings": 1,
+          "display_name": "GS125"
         },
         {
           "name": "gs500",
@@ -3448,9 +3573,9 @@
           "display_name": "GSXR150"
         },
         {
-          "name": "gz",
+          "name": "gz150",
           "listings": 1,
-          "display_name": "GZ"
+          "display_name": "GZ150"
         },
         {
           "name": "hayabusa",
@@ -3473,23 +3598,18 @@
           "display_name": "LTF-250"
         },
         {
-          "name": "sv",
-          "listings": 1,
-          "display_name": "SV"
-        },
-        {
           "name": "sv650",
           "listings": 1,
           "display_name": "SV650"
         },
         {
-          "name": "v",
-          "listings": 2,
-          "display_name": "V"
+          "name": "sv650a",
+          "listings": 1,
+          "display_name": "SV650A"
         },
         {
           "name": "v-strom",
-          "listings": 60,
+          "listings": 62,
           "display_name": "V-Strom"
         },
         {
@@ -3503,9 +3623,9 @@
           "display_name": "XF650"
         },
         {
-          "name": "xr",
+          "name": "xr650",
           "listings": 1,
-          "display_name": "XR"
+          "display_name": "XR650"
         },
         {
           "name": "z1000",
@@ -3685,9 +3805,9 @@
           "display_name": "Primavera"
         },
         {
-          "name": "px",
+          "name": "px166",
           "listings": 1,
-          "display_name": "PX"
+          "display_name": "PX166"
         },
         {
           "name": "sprint",
@@ -3827,9 +3947,9 @@
           "display_name": "Venom"
         },
         {
-          "name": "zs",
+          "name": "zs125",
           "listings": 2,
-          "display_name": "ZS"
+          "display_name": "ZS125"
         }
       ]
     },
@@ -3913,9 +4033,14 @@
           "display_name": "Crypton"
         },
         {
-          "name": "dt",
-          "listings": 5,
-          "display_name": "DT"
+          "name": "dt125",
+          "listings": 4,
+          "display_name": "DT125"
+        },
+        {
+          "name": "dt125d",
+          "listings": 1,
+          "display_name": "DT125D"
         },
         {
           "name": "fazer",
@@ -3929,12 +4054,12 @@
         },
         {
           "name": "fz",
-          "listings": 66,
+          "listings": 20,
           "display_name": "FZ"
         },
         {
           "name": "fz150",
-          "listings": 1,
+          "listings": 24,
           "display_name": "FZ150"
         },
         {
@@ -3943,9 +4068,24 @@
           "display_name": "FZ16"
         },
         {
+          "name": "fz2.0",
+          "listings": 5,
+          "display_name": "FZ2.0"
+        },
+        {
           "name": "fz25",
           "listings": 10,
           "display_name": "FZ25"
+        },
+        {
+          "name": "fz250",
+          "listings": 14,
+          "display_name": "FZ250"
+        },
+        {
+          "name": "fz3.0",
+          "listings": 4,
+          "display_name": "FZ3.0"
         },
         {
           "name": "fz8n",
@@ -3979,33 +4119,38 @@
         },
         {
           "name": "mt",
-          "listings": 37,
+          "listings": 2,
           "display_name": "MT"
         },
         {
           "name": "mt-03",
-          "listings": 7,
+          "listings": 11,
           "display_name": "MT-03"
         },
         {
           "name": "mt-07",
-          "listings": 1,
+          "listings": 3,
           "display_name": "MT-07"
         },
         {
           "name": "mt-09",
-          "listings": 10,
+          "listings": 17,
           "display_name": "MT-09"
         },
         {
           "name": "mt-15",
-          "listings": 13,
+          "listings": 34,
           "display_name": "MT-15"
         },
         {
           "name": "mt-o3",
           "listings": 1,
           "display_name": "MT-O3"
+        },
+        {
+          "name": "mt10",
+          "listings": 1,
+          "display_name": "MT10"
         },
         {
           "name": "mtn",
@@ -4023,13 +4168,8 @@
           "display_name": "N-Max"
         },
         {
-          "name": "r",
-          "listings": 2,
-          "display_name": "R"
-        },
-        {
           "name": "r15",
-          "listings": 17,
+          "listings": 19,
           "display_name": "R15"
         },
         {
@@ -4063,14 +4203,14 @@
           "display_name": "Super Tenere"
         },
         {
-          "name": "sz",
-          "listings": 2,
-          "display_name": "SZ"
-        },
-        {
           "name": "sz-rr",
           "listings": 1,
           "display_name": "SZ-RR"
+        },
+        {
+          "name": "sz150",
+          "listings": 2,
+          "display_name": "SZ150"
         },
         {
           "name": "sz15rr",
@@ -4133,13 +4273,8 @@
           "display_name": "WR250F"
         },
         {
-          "name": "x",
-          "listings": 3,
-          "display_name": "X"
-        },
-        {
           "name": "xmax",
-          "listings": 23,
+          "listings": 26,
           "display_name": "X-Max"
         },
         {
@@ -4148,13 +4283,8 @@
           "display_name": "XSR"
         },
         {
-          "name": "xt",
-          "listings": 4,
-          "display_name": "XT"
-        },
-        {
           "name": "xt1200",
-          "listings": 1,
+          "listings": 2,
           "display_name": "XT1200"
         },
         {
@@ -4168,8 +4298,13 @@
           "display_name": "XT225"
         },
         {
-          "name": "xt660",
+          "name": "xt500",
           "listings": 1,
+          "display_name": "XT500"
+        },
+        {
+          "name": "xt660",
+          "listings": 3,
           "display_name": "XT660"
         },
         {
@@ -4258,19 +4393,39 @@
           "display_name": "YXR66FSPW"
         },
         {
-          "name": "yz",
-          "listings": 9,
-          "display_name": "YZ"
-        },
-        {
           "name": "yz-125",
           "listings": 1,
           "display_name": "YZ-125"
         },
         {
-          "name": "yz450f",
+          "name": "yz125",
+          "listings": 3,
+          "display_name": "YZ125"
+        },
+        {
+          "name": "yz250",
+          "listings": 2,
+          "display_name": "YZ250"
+        },
+        {
+          "name": "yz250f",
           "listings": 1,
+          "display_name": "YZ250F"
+        },
+        {
+          "name": "yz450",
+          "listings": 1,
+          "display_name": "YZ450"
+        },
+        {
+          "name": "yz450f",
+          "listings": 2,
           "display_name": "YZ450F"
+        },
+        {
+          "name": "yz65",
+          "listings": 1,
+          "display_name": "YZ65"
         },
         {
           "name": "yz85",
@@ -4426,5 +4581,9 @@
   "engine_cc": {
     "min": 50.0,
     "max": 2491.0
+  },
+  "asking_price_cop": {
+    "min": 2650000.0,
+    "max": 194850001.0
   }
 }
