@@ -2,9 +2,10 @@
   "name": "autovalor-web",
   "version": "0.1.0",
   "private": true,
-  "description": "AutoValor CO — static front end for the valuation API",
+  "description": "AutoValor CO \u2014 static front end for the valuation API",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/og.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

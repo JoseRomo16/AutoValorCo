@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+import { PageTitle } from "@/components/PageTitle";
+import { copy } from "@/lib/i18n";
+
 import { ValuationForm } from "@/components/ValuationForm";
 import { ValueHero } from "@/components/ValueHero";
 import { manifest, servedModels } from "@/lib/results";
@@ -10,6 +14,11 @@ import { manifest, servedModels } from "@/lib/results";
  * fetching them would cost a cold start to learn something the repository already knows.
  * The form below is the only part of the site that talks to the service.
  */
+export const metadata: Metadata = {
+  description:
+    "Estima el precio de un carro o una moto usada en Colombia, con el rango en el que se publican vehículos parecidos y qué lo sube o lo baja.",
+};
+
 export default function ValuePage() {
   const models = servedModels();
   const car = models.find((model) => model.vehicle_type === "car");
@@ -22,6 +31,7 @@ export default function ValuePage() {
 
   return (
     <>
+      <PageTitle title={copy.titles.value} />
       <ValueHero
         facts={{
           listings: car.trained_on_rows + motorcycle.trained_on_rows,

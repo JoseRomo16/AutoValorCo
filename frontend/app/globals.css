@@ -85,7 +85,7 @@
   --ink: #f2efe6;
   --muted: #d4cfc2;
   /* Was #767163 at 3.42:1 on surface, under the 4.5:1 that 12px text needs. */
-  --faint: #c2bdb0;
+  --faint: #a09b8e; /* was #c2bdb0, only 1.21:1 against --muted */
   --accent: #f6c800;
   --accent-ink: #14130f;
   --accent-text: #f6c800;

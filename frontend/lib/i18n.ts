@@ -69,6 +69,18 @@ export const copy = {
       en: "AutoValor CO, used car and motorcycle prices",
     },
   },
+
+  /**
+   * The browser tab, per page. The meta description is not here: it is static in each
+   * page's `metadata`, because it is written for crawlers and they do not run the
+   * language switch.
+   */
+  titles: {
+    value: { es: "AutoValor CO", en: "AutoValor CO" },
+    market: { es: "Mercado", en: "Market" },
+    method: { es: "Metodología", en: "Methodology" },
+    notFound: { es: "Página no encontrada", en: "Page not found" },
+  },
   nav: {
     value: { es: "Valorar", en: "Value" },
     market: { es: "Mercado", en: "Market" },
@@ -92,6 +104,18 @@ export const copy = {
     auto: { es: "Auto", en: "Auto" },
     dark: { es: "Oscuro", en: "Dark" },
   },
+  /** The 404. Its own block because none of it is reused anywhere else. */
+  notFound: {
+    code: { es: "Error 404", en: "Error 404" },
+    title: { es: "Esta página no existe", en: "This page does not exist" },
+    body: {
+      es: "El enlace puede estar mal escrito, o apuntar a algo que ya no está. Las tres páginas del sitio están abajo.",
+      en: "The link may be mistyped, or point at something that is no longer here. The site's three pages are below.",
+    },
+    back: { es: "Ir a Valorar", en: "Go to Value" },
+    pages: { es: "Páginas del sitio", en: "Pages on this site" },
+  },
+
   footer: {
     disclaimer: {
       es: "Las estimaciones son informativas y no son un avalúo comercial. Salen de precios pedidos en anuncios publicados.",
