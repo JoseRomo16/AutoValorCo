@@ -312,4 +312,3 @@ def test_bmw_motorcycles_read_the_way_bmw_writes_them(con: duckdb.DuckDBPyConnec
     }
     assert {"R 1250", "G 310"} <= shown
     assert not any(name[:1].islower() for name in shown if name[:1].isalpha())
-
