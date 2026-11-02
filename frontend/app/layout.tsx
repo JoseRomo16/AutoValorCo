@@ -5,6 +5,7 @@ import "./globals.css";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { THEME_SCRIPT, ThemeProvider } from "@/components/ThemeProvider";
+import { SITE_URL } from "@/lib/links";
 import { manifest, servedModels } from "@/lib/results";
 
 /*
@@ -44,7 +45,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   // Without this the Open Graph image resolves against localhost, so a shared link shows
   // no preview anywhere. The deployed origin is a constant for a static export.
-  metadataBase: new URL("https://autovalor-web.onrender.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "AutoValor CO, precios de carros y motos usados",
     template: "%s · AutoValor CO",
@@ -57,7 +58,25 @@ export const metadata: Metadata = {
       "Precio estimado, rango probable y los factores que lo mueven, para carros y motos usados en Colombia.",
     type: "website",
     locale: "es_CO",
-    images: [{ url: "/og.svg", width: 1200, height: 630, alt: "AutoValor CO" }],
+    // A PNG, and at a path that ends in `.png`. It was an SVG, which LinkedIn, WhatsApp
+    // and Facebook all decline to render, so a shared link previewed as nothing. Written
+    // by `scripts/og.mjs` before every build; see that file for why it is not
+    // `app/opengraph-image.tsx`.
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "AutoValor CO. Cuánto vale tu carro o tu moto usada: precio estimado, rango probable y qué lo mueve.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AutoValor CO",
+    description:
+      "Precio estimado, rango probable y los factores que lo mueven, para carros y motos usados en Colombia.",
+    images: ["/og.png"],
   },
   robots: { index: true, follow: true },
 };
