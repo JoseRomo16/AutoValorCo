@@ -20,10 +20,8 @@ import type { Theme } from "./ThemeProvider";
 import { isoDay, modelDate } from "@/lib/format";
 import { LANGS, copy, fill } from "@/lib/i18n";
 import type { Lang, Localized } from "@/lib/i18n";
+import { API_DOCS_URL, LINKEDIN_URL, REPO_URL } from "@/lib/links";
 
-const REPO_URL = "https://github.com/JoseRomo16/AutoValorCo";
-const API_DOCS_URL = "https://autovalor-api.onrender.com/docs";
-const LINKEDIN_URL = "https://www.linkedin.com/in/jose-luis-romo-dev-data";
 
 const NAV = [
   { href: "/", label: copy.nav.value },
@@ -215,7 +213,11 @@ function FooterColumn({ title, children }: { title: Localized; children: React.R
 
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   const external = href.startsWith("http");
-  const className = "text-muted transition-colors duration-200 hover:text-ink hover:underline";
+  // The links were 18 px of hit area, which is a miss on a phone and a fiddly target with
+  // a mouse. 44 px on small screens is the touch minimum; 24 px from `sm` up keeps the
+  // footer compact without going back under the pointer minimum.
+  const className =
+    "inline-flex min-h-11 items-center text-muted transition-colors duration-200 hover:text-ink hover:underline sm:min-h-6";
   return (
     <li>
       {external ? (
@@ -288,4 +290,3 @@ export function SiteFooter({
   );
 }
 
-export { REPO_URL, API_DOCS_URL, LINKEDIN_URL };

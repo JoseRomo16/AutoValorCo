@@ -15,17 +15,21 @@
  */
 
 import { useLang } from "./LanguageProvider";
-import { API_DOCS_URL, REPO_URL } from "./SiteChrome";
+
 import type { LabelGate, Manifest, SegmentErrorRow, ServedModelInfo } from "@/lib/results";
+import {
+  API_DOCS_URL,
+  DATA_BRANCH_URL,
+  DECISIONS_URL,
+  LINKEDIN_URL,
+  MODEL_INFO_URL,
+  REPO_URL,
+  STATUS_URL,
+} from "@/lib/links";
 import { copy, fill } from "@/lib/i18n";
 import type { Localized } from "@/lib/i18n";
 import { integer, isoDay, isoMonth, modelDate, percent, points } from "@/lib/format";
 
-const DATA_BRANCH_URL = `${REPO_URL}/tree/data`;
-const MODEL_INFO_URL = "https://autovalor-api.onrender.com/model-info";
-const DECISIONS_URL = `${REPO_URL}/tree/main/docs/adr`;
-const STATUS_URL = `${REPO_URL}/blob/main/docs/STATUS.md`;
-const LINKEDIN_URL = "https://www.linkedin.com/in/jose-luis-romo";
 
 /** The gate's two criteria, read off the failure codes rather than from local thresholds. */
 function criteria(model: ServedModelInfo): { coverage: boolean; width: boolean } {
