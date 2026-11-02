@@ -1013,6 +1013,56 @@ departamentos reales y sigue decidiendo si la vertical publica etiqueta. Esto es
 **segunda** medición que condicionaría la etiqueta para una clase de entrada; no la
 reemplaza ni la relaja.
 
+#### Paso 1 — la línea base, medida el 2026-11-02
+
+Sobre el bundle publicado `2026-10-25.12948`, con
+`python -m autovalor.models.band_diagnostics`; el detalle completo está en
+[`reports/block4_baseline.json`](reports/block4_baseline.json). El holdout se reproduce
+exacto (1.689 carros, 901 motos). "Real" es el holdout como está en gold, que es como se
+midieron las cifras publicadas; **"servido" es el mismo holdout con los valores que manda
+la API** (`city = "Desconocida"`, tienda oficial, cuadriciclo y carga en `False`).
+
+| | Carros real | **Carros servido** | Motos real | **Motos servido** |
+| --- | --- | --- | --- | --- |
+| MAPE | 10,3 % | 10,4 % | 22,0 % | 21,7 % |
+| Sesgo medio (log) | −0,009 | −0,019 | +0,001 | **−0,058** |
+| Cobertura de la banda del gate | 80,0 % | **75,0 %** | 79,4 % | **69,7 %** |
+| Ancho medio | 39,9 % | 37,5 % | 88,8 % | 84,7 % |
+| Cobertura bajo "Otro departamento" | 80,7 % | **75,7 %** | 79,8 % | **70,4 %** |
+| Estimado: mediana de la posición en la banda | 0,50 | 0,51 | 0,48 | 0,45 |
+| Filas con el estimado fuera de la banda (se ensancha) | 3,5 % | 4,9 % | 4,8 % | 10,5 % |
+| MAPE del P50 de cuantiles (primera vez) | 10,8 % | 10,9 % | 23,2 % | 23,3 % |
+| Tirón SHAP medio de `city` (log) | −0,001 | −0,012 | +0,007 | −0,053 |
+
+**Hallazgo: la etiqueta de carros se publica hoy con una banda que en producción no cumple
+el gate.** El gate se evaluó con la ciudad real de cada anuncio, que la API nunca manda: con
+la que sí manda, la banda cubre **75,0 %**, fuera de 78–82 %. En motos la etiqueta ya estaba
+retenida (por el ancho) y la cobertura servida, 69,7 %, también cae fuera. La causa es una
+sola variable: forzar solo las tres banderas no mueve la cobertura (80,6 % en carros), forzar
+solo la ciudad la lleva a 75,7 %. El nivel `"Desconocida"` **no aparece ni una vez** en el
+holdout, así que cada valoración real carga el efecto de un grupo pequeño y particular —
+el sesgo de −5,8 % en motos es eso.
+
+Tres cosas más que dice la línea base:
+
+- **El departamento no reproduce el efecto regional.** Con el mismo vehículo, cambiar de
+  departamento mueve el estimado entre −0,2 % y +0,2 %, mientras `/market` publica +27 %
+  para motos en Antioquia y +7,6 % para carros en Santander. Lo absorbe la ciudad.
+- **"Otro departamento" no es el problema**: con la ciudad real, promediar sobre los otros
+  departamentos deja la cobertura igual (80,7 % / 79,8 %). Lo que la hunde es la ciudad, y
+  la hunde en toda petición.
+- **El estimado pegado a un borde existe, pero menos de lo que sugería la muestra en
+  vivo.** Sobre el holdout la mediana de la posición está en el centro (0,51 carros, 0,45
+  motos, servido) y la banda se ensancha para contener el estimado en 4,9 % y 10,5 % de las
+  filas. La medición en vivo (0,32 y 0,10) usó 60 combinaciones elegidas a mano en Bogotá,
+  no la distribución real de anuncios; las dos cifras no se contradicen, miden poblaciones
+  distintas. En motos baratas el P90 es ~2× el P10 en mediana (no 5×: ese era el caso
+  Bajaj).
+
+La decisión sobre retener la etiqueta para "Otro departamento" espera a la misma medición
+sobre el modelo sin ciudad (paso 4). La prueba de paridad entrenamiento/servicio que entra
+en este bloque es la que impide que vuelva a pasar.
+
 ### F2 — cerrada
 
 Los cinco pasos estaban hechos desde el 2026-10-05; lo que faltaba era el criterio de
