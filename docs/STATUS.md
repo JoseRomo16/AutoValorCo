@@ -1063,6 +1063,44 @@ La decisión sobre retener la etiqueta para "Otro departamento" espera a la mism
 sobre el modelo sin ciudad (paso 4). La prueba de paridad entrenamiento/servicio que entra
 en este bloque es la que impide que vuelva a pasar.
 
+#### Paso 4 — el modelo sin ciudad, medido el 2026-11-02
+
+Bundle **`2026-11-02.12948`**: misma partición, misma búsqueda (40 ensayos) y misma
+calibración conformal, sin `city` y con los prefijos de familia de motos corregidos (BMW
+`r`/`f`/`g`/`s`, Yamaha `mt`). Desde este bundle **toda cifra publicada se mide sobre el
+holdout tal como lo puntúa la API** (`models/serving.py`), así que "publicado" y "servido"
+son la misma cifra. Detalle en [`reports/block4_after.json`](reports/block4_after.json) y la
+decisión en [ADR 0006](adr/0006-drop-city-feature.md).
+
+| | Carros antes (servido) | **Carros después** | Motos antes (servido) | **Motos después** |
+| --- | --- | --- | --- | --- |
+| MAPE | 10,4 % | **10,0 %** | 21,7 % | **20,4 %** |
+| MAPE partición temporal | 11,6 % | 11,4 % | 23,5 % | 21,9 % |
+| Hedónico OLS | 12,9 % | 12,9 % | 34,6 % | 33,2 % |
+| Cobertura de la banda | 75,0 % | **80,2 %** | 69,7 % | **80,5 %** |
+| Ancho medio | 37,5 % | 38,5 % | 84,7 % | **70,0 %** |
+| Etiqueta | publicada (sin cumplir el gate) | **publicada** | retenida | **retenida**, solo por ancho |
+| Cobertura bajo "Otro departamento" | 75,7 % | **80,0 %** | 70,4 % | **80,4 %** |
+| Filas donde la banda se ensancha | 4,9 % | 2,8 % | 10,5 % | 4,0 % |
+
+**Por qué cambiaron las cifras publicadas:** se retiró la ciudad, se corrigieron los
+modelos de una letra y las cifras pasaron a medirse con los valores que manda la API. Ningún
+umbral se tocó. La meta de carros se mantiene (10,0 % contra 15 %) y las dos verticales
+siguen ganándole al OLS.
+
+- **"Otro departamento" queda dentro de la ventana** en las dos verticales, así que la
+  etiqueta no necesita retenerse para ese caso (punto (a) del ADR, pendiente de que el dueño
+  lo confirme).
+- **El departamento ahora mueve el estimado** (−3,2 % a +1,6 % en carros, −7,3 % a +3,2 %
+  en motos), casi siempre en la dirección de `/market`, pero mucho menos que el efecto
+  hedónico. Ver el ADR: son dos modelos contestando preguntas distintas.
+- **El estimado pegado al borde casi desaparece en el holdout** (mediana 0,49 / 0,50). En la
+  grilla de la auditoría en vivo, motos pasa de 0,11 a 0,30. La recomendación es no cambiar
+  la banda (opción g), y la decisión es del dueño.
+- **Tres decisiones abiertas en el ADR 0006**: (a) retención para "Otro departamento" (no
+  hace falta), (b) la banda (g recomendada), (c) qué error publicar en Metodología (ambos
+  recomendados).
+
 ### F2 — cerrada
 
 Los cinco pasos estaban hechos desde el 2026-10-05; lo que faltaba era el criterio de
@@ -1652,12 +1690,13 @@ absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por blo
 | 2b | `/predict` valida contra `/catalog`; `warnings`; "Otro departamento" como promedio ponderado | [#27](https://github.com/JoseRomo16/AutoValorCo/pull/27), [#28](https://github.com/JoseRomo16/AutoValorCo/pull/28) |
 | 3 | 404, imagen para redes, LinkedIn, metas por página, contraste de tokens | [#30](https://github.com/JoseRomo16/AutoValorCo/pull/30) |
 | — | Especificación de la medición del Bloque 4 | [#29](https://github.com/JoseRomo16/AutoValorCo/pull/29) |
-| **4** | **Reentrenar sin ciudad y revisar la banda** — en curso, rama `fix/city-and-band` | — |
+| **4** | **Reentrenar sin ciudad y revisar la banda**: bundle `2026-11-02.12948`, [ADR 0006](adr/0006-drop-city-feature.md) con tres decisiones abiertas | rama `fix/city-and-band`, PR abierto |
 | 5–9 | Tooling, copy, Mercado, Metodología, verificación final | sin empezar |
 
-El bundle publicado **y desplegado** es `2026-10-25.12948` (verificado en `/model-info`
-el 2026-11-02). Los workflows "Weekly capture" y "Enrich motorcycle details" siguen
-deshabilitados a mano; habilitarlos le toca al usuario.
+El bundle desplegado es `2026-10-25.12948` (verificado en `/model-info` el 2026-11-02); el
+del Bloque 4, `2026-11-02.12948`, entra con su PR y se despliega API primero, sitio después.
+Los workflows "Weekly capture" y "Enrich motorcycle details" siguen deshabilitados a mano;
+habilitarlos le toca al usuario.
 
 ### Las cifras ya no se teclean en ningún documento
 
