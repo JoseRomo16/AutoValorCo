@@ -5,9 +5,9 @@
     "segment_kind": "brand",
     "segment": "Mercedes-Benz",
     "n": 92,
-    "mape_pct": 14.1486,
+    "mape_pct": 14.141,
     "median_ape_pct": 8.8674,
-    "sigma_log": 0.2663,
+    "sigma_log": 0.2664,
     "within_10pct": 54.3478
   },
   {
@@ -16,7 +16,7 @@
     "segment_kind": "brand",
     "segment": "BMW",
     "n": 62,
-    "mape_pct": 12.0475,
+    "mape_pct": 12.0695,
     "median_ape_pct": 11.2376,
     "sigma_log": 0.1613,
     "within_10pct": 41.9355
@@ -27,10 +27,10 @@
     "segment_kind": "brand",
     "segment": "Toyota",
     "n": 270,
-    "mape_pct": 10.3067,
+    "mape_pct": 10.3026,
     "median_ape_pct": 7.5708,
-    "sigma_log": 0.2025,
-    "within_10pct": 65.5556
+    "sigma_log": 0.2024,
+    "within_10pct": 65.1852
   },
   {
     "vehicle_type": "car",
@@ -38,10 +38,10 @@
     "segment_kind": "brand",
     "segment": "Chevrolet",
     "n": 161,
-    "mape_pct": 10.0444,
+    "mape_pct": 10.0676,
     "median_ape_pct": 7.2554,
-    "sigma_log": 0.1385,
-    "within_10pct": 62.7329
+    "sigma_log": 0.1386,
+    "within_10pct": 62.1118
   },
   {
     "vehicle_type": "car",
@@ -49,10 +49,10 @@
     "segment_kind": "brand",
     "segment": "Nissan",
     "n": 93,
-    "mape_pct": 9.7482,
+    "mape_pct": 9.785,
     "median_ape_pct": 5.8917,
-    "sigma_log": 0.1376,
-    "within_10pct": 69.8925
+    "sigma_log": 0.1382,
+    "within_10pct": 68.8172
   },
   {
     "vehicle_type": "car",
@@ -60,8 +60,8 @@
     "segment_kind": "brand",
     "segment": "Audi",
     "n": 49,
-    "mape_pct": 9.3578,
-    "median_ape_pct": 5.6367,
+    "mape_pct": 9.3599,
+    "median_ape_pct": 5.4973,
     "sigma_log": 0.1249,
     "within_10pct": 61.2245
   },
@@ -71,10 +71,10 @@
     "segment_kind": "brand",
     "segment": "Renault",
     "n": 139,
-    "mape_pct": 9.049,
-    "median_ape_pct": 5.9987,
-    "sigma_log": 0.2198,
-    "within_10pct": 70.5036
+    "mape_pct": 9.0773,
+    "median_ape_pct": 5.8959,
+    "sigma_log": 0.22,
+    "within_10pct": 69.7842
   },
   {
     "vehicle_type": "car",
@@ -82,9 +82,9 @@
     "segment_kind": "brand",
     "segment": "Suzuki",
     "n": 43,
-    "mape_pct": 9.0333,
+    "mape_pct": 9.0429,
     "median_ape_pct": 6.6213,
-    "sigma_log": 0.1236,
+    "sigma_log": 0.1238,
     "within_10pct": 65.1163
   },
   {
@@ -93,10 +93,10 @@
     "segment_kind": "brand",
     "segment": "Ford",
     "n": 136,
-    "mape_pct": 8.7225,
-    "median_ape_pct": 5.9423,
-    "sigma_log": 0.1373,
-    "within_10pct": 72.7941
+    "mape_pct": 8.7407,
+    "median_ape_pct": 5.9182,
+    "sigma_log": 0.1375,
+    "within_10pct": 72.0588
   },
   {
     "vehicle_type": "car",
@@ -104,9 +104,9 @@
     "segment_kind": "brand",
     "segment": "Kia",
     "n": 94,
-    "mape_pct": 8.2861,
-    "median_ape_pct": 6.5512,
-    "sigma_log": 0.1008,
+    "mape_pct": 8.3462,
+    "median_ape_pct": 6.4454,
+    "sigma_log": 0.1011,
     "within_10pct": 72.3404
   },
   {
@@ -115,10 +115,10 @@
     "segment_kind": "brand",
     "segment": "Volkswagen",
     "n": 92,
-    "mape_pct": 7.6354,
-    "median_ape_pct": 5.7738,
-    "sigma_log": 0.1009,
-    "within_10pct": 73.913
+    "mape_pct": 7.6329,
+    "median_ape_pct": 5.8405,
+    "sigma_log": 0.1007,
+    "within_10pct": 75.0
   },
   {
     "vehicle_type": "car",
@@ -126,8 +126,8 @@
     "segment_kind": "brand",
     "segment": "Mazda",
     "n": 165,
-    "mape_pct": 5.8143,
-    "median_ape_pct": 4.3867,
+    "mape_pct": 5.8245,
+    "median_ape_pct": 4.5236,
     "sigma_log": 0.0778,
     "within_10pct": 84.8485
   },
@@ -137,10 +137,10 @@
     "segment_kind": "department",
     "segment": "Cundinamarca",
     "n": 242,
-    "mape_pct": 11.2438,
+    "mape_pct": 11.2815,
     "median_ape_pct": 7.5366,
-    "sigma_log": 0.1634,
-    "within_10pct": 63.2231
+    "sigma_log": 0.1637,
+    "within_10pct": 62.8099
   },
   {
     "vehicle_type": "car",
@@ -148,10 +148,10 @@
     "segment_kind": "department",
     "segment": "Bogotá D.C.",
     "n": 339,
-    "mape_pct": 10.7395,
+    "mape_pct": 10.7335,
     "median_ape_pct": 6.7933,
     "sigma_log": 0.2246,
-    "within_10pct": 63.7168
+    "within_10pct": 63.4218
   },
   {
     "vehicle_type": "car",
@@ -159,10 +159,10 @@
     "segment_kind": "department",
     "segment": "Antioquia",
     "n": 263,
-    "mape_pct": 10.6102,
-    "median_ape_pct": 8.4457,
-    "sigma_log": 0.1814,
-    "within_10pct": 61.9772
+    "mape_pct": 10.6111,
+    "median_ape_pct": 8.3968,
+    "sigma_log": 0.1817,
+    "within_10pct": 60.8365
   },
   {
     "vehicle_type": "car",
@@ -170,9 +170,9 @@
     "segment_kind": "department",
     "segment": "Atlántico",
     "n": 284,
-    "mape_pct": 10.2186,
-    "median_ape_pct": 6.9396,
-    "sigma_log": 0.1689,
+    "mape_pct": 10.2244,
+    "median_ape_pct": 6.8965,
+    "sigma_log": 0.169,
     "within_10pct": 65.493
   },
   {
@@ -181,7 +181,7 @@
     "segment_kind": "department",
     "segment": "Santander",
     "n": 193,
-    "mape_pct": 9.7352,
+    "mape_pct": 9.7391,
     "median_ape_pct": 5.9114,
     "sigma_log": 0.1581,
     "within_10pct": 70.9845
@@ -192,7 +192,7 @@
     "segment_kind": "department",
     "segment": "Norte de Santander",
     "n": 91,
-    "mape_pct": 8.2722,
+    "mape_pct": 8.2777,
     "median_ape_pct": 5.7788,
     "sigma_log": 0.1562,
     "within_10pct": 72.5275
@@ -203,21 +203,10 @@
     "segment_kind": "department",
     "segment": "Valle del Cauca",
     "n": 268,
-    "mape_pct": 7.763,
-    "median_ape_pct": 5.3981,
-    "sigma_log": 0.1237,
-    "within_10pct": 75.3731
-  },
-  {
-    "vehicle_type": "car",
-    "model": "lightgbm",
-    "segment_kind": "price_segment",
-    "segment": "Q4",
-    "n": 422,
-    "mape_pct": 10.864,
-    "median_ape_pct": 7.6802,
-    "sigma_log": 0.2104,
-    "within_10pct": 62.7962
+    "mape_pct": 7.7959,
+    "median_ape_pct": 5.2682,
+    "sigma_log": 0.1239,
+    "within_10pct": 75.0
   },
   {
     "vehicle_type": "car",
@@ -225,9 +214,20 @@
     "segment_kind": "price_segment",
     "segment": "Q3",
     "n": 422,
-    "mape_pct": 10.8493,
+    "mape_pct": 10.8779,
     "median_ape_pct": 7.458,
-    "sigma_log": 0.1801,
+    "sigma_log": 0.1803,
+    "within_10pct": 61.8483
+  },
+  {
+    "vehicle_type": "car",
+    "model": "lightgbm",
+    "segment_kind": "price_segment",
+    "segment": "Q4",
+    "n": 422,
+    "mape_pct": 10.8616,
+    "median_ape_pct": 7.6802,
+    "sigma_log": 0.2105,
     "within_10pct": 62.3223
   },
   {
@@ -236,10 +236,10 @@
     "segment_kind": "price_segment",
     "segment": "Q1",
     "n": 423,
-    "mape_pct": 9.5938,
-    "median_ape_pct": 6.3436,
+    "mape_pct": 9.6047,
+    "median_ape_pct": 6.3101,
     "sigma_log": 0.1714,
-    "within_10pct": 68.0851
+    "within_10pct": 67.8487
   },
   {
     "vehicle_type": "car",
@@ -247,10 +247,10 @@
     "segment_kind": "price_segment",
     "segment": "Q2",
     "n": 422,
-    "mape_pct": 8.7607,
-    "median_ape_pct": 5.9884,
-    "sigma_log": 0.1269,
-    "within_10pct": 73.4597
+    "mape_pct": 8.7712,
+    "median_ape_pct": 5.9242,
+    "sigma_log": 0.1271,
+    "within_10pct": 73.2227
   },
   {
     "vehicle_type": "motorcycle",
@@ -258,9 +258,9 @@
     "segment_kind": "brand",
     "segment": "Desconocida",
     "n": 80,
-    "mape_pct": 41.2837,
+    "mape_pct": 41.3497,
     "median_ape_pct": 29.9707,
-    "sigma_log": 0.5096,
+    "sigma_log": 0.5101,
     "within_10pct": 15.0
   },
   {
@@ -269,9 +269,9 @@
     "segment_kind": "brand",
     "segment": "Honda",
     "n": 82,
-    "mape_pct": 29.5659,
-    "median_ape_pct": 12.6624,
-    "sigma_log": 0.4083,
+    "mape_pct": 29.6464,
+    "median_ape_pct": 12.7579,
+    "sigma_log": 0.4084,
     "within_10pct": 42.6829
   },
   {
@@ -280,10 +280,10 @@
     "segment_kind": "brand",
     "segment": "AKT",
     "n": 40,
-    "mape_pct": 23.2418,
-    "median_ape_pct": 7.9924,
-    "sigma_log": 0.3202,
-    "within_10pct": 57.5
+    "mape_pct": 23.219,
+    "median_ape_pct": 8.1516,
+    "sigma_log": 0.3204,
+    "within_10pct": 55.0
   },
   {
     "vehicle_type": "motorcycle",
@@ -291,21 +291,10 @@
     "segment_kind": "brand",
     "segment": "Yamaha",
     "n": 115,
-    "mape_pct": 16.9693,
-    "median_ape_pct": 7.1898,
-    "sigma_log": 0.275,
+    "mape_pct": 16.963,
+    "median_ape_pct": 7.1633,
+    "sigma_log": 0.2748,
     "within_10pct": 63.4783
-  },
-  {
-    "vehicle_type": "motorcycle",
-    "model": "lightgbm",
-    "segment_kind": "brand",
-    "segment": "KTM",
-    "n": 51,
-    "mape_pct": 13.8564,
-    "median_ape_pct": 8.566,
-    "sigma_log": 0.2782,
-    "within_10pct": 64.7059
   },
   {
     "vehicle_type": "motorcycle",
@@ -313,10 +302,21 @@
     "segment_kind": "brand",
     "segment": "Suzuki",
     "n": 76,
-    "mape_pct": 13.8199,
-    "median_ape_pct": 6.9856,
-    "sigma_log": 0.2655,
+    "mape_pct": 13.8546,
+    "median_ape_pct": 7.4644,
+    "sigma_log": 0.2654,
     "within_10pct": 57.8947
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "model": "lightgbm",
+    "segment_kind": "brand",
+    "segment": "KTM",
+    "n": 51,
+    "mape_pct": 13.8097,
+    "median_ape_pct": 8.2409,
+    "sigma_log": 0.2777,
+    "within_10pct": 64.7059
   },
   {
     "vehicle_type": "motorcycle",
@@ -324,9 +324,9 @@
     "segment_kind": "brand",
     "segment": "BMW",
     "n": 91,
-    "mape_pct": 12.7971,
+    "mape_pct": 12.8096,
     "median_ape_pct": 9.9528,
-    "sigma_log": 0.2273,
+    "sigma_log": 0.227,
     "within_10pct": 50.5495
   },
   {
@@ -335,10 +335,10 @@
     "segment_kind": "brand",
     "segment": "Bajaj",
     "n": 66,
-    "mape_pct": 9.7354,
-    "median_ape_pct": 6.5539,
-    "sigma_log": 0.1275,
-    "within_10pct": 60.6061
+    "mape_pct": 9.79,
+    "median_ape_pct": 6.8833,
+    "sigma_log": 0.1276,
+    "within_10pct": 59.0909
   },
   {
     "vehicle_type": "motorcycle",
@@ -346,9 +346,9 @@
     "segment_kind": "department",
     "segment": "Santander",
     "n": 66,
-    "mape_pct": 36.7552,
+    "mape_pct": 36.7756,
     "median_ape_pct": 16.9895,
-    "sigma_log": 0.4352,
+    "sigma_log": 0.4351,
     "within_10pct": 34.8485
   },
   {
@@ -357,9 +357,9 @@
     "segment_kind": "department",
     "segment": "Valle del Cauca",
     "n": 117,
-    "mape_pct": 29.774,
+    "mape_pct": 29.7744,
     "median_ape_pct": 11.7462,
-    "sigma_log": 0.3764,
+    "sigma_log": 0.3769,
     "within_10pct": 41.0256
   },
   {
@@ -368,9 +368,9 @@
     "segment_kind": "department",
     "segment": "Cundinamarca",
     "n": 120,
-    "mape_pct": 29.2092,
+    "mape_pct": 29.2351,
     "median_ape_pct": 11.4994,
-    "sigma_log": 0.3856,
+    "sigma_log": 0.3857,
     "within_10pct": 45.0
   },
   {
@@ -379,9 +379,9 @@
     "segment_kind": "department",
     "segment": "Antioquia",
     "n": 261,
-    "mape_pct": 14.7174,
-    "median_ape_pct": 7.6307,
-    "sigma_log": 0.2742,
+    "mape_pct": 14.7178,
+    "median_ape_pct": 7.6551,
+    "sigma_log": 0.2741,
     "within_10pct": 56.705
   },
   {
@@ -390,9 +390,9 @@
     "segment_kind": "department",
     "segment": "Bogotá D.C.",
     "n": 294,
-    "mape_pct": 13.7346,
-    "median_ape_pct": 7.9737,
-    "sigma_log": 0.2368,
+    "mape_pct": 13.7678,
+    "median_ape_pct": 8.3122,
+    "sigma_log": 0.2366,
     "within_10pct": 59.5238
   },
   {
@@ -401,9 +401,9 @@
     "segment_kind": "price_segment",
     "segment": "Q2",
     "n": 225,
-    "mape_pct": 31.0281,
-    "median_ape_pct": 13.4232,
-    "sigma_log": 0.4195,
+    "mape_pct": 31.1117,
+    "median_ape_pct": 14.2324,
+    "sigma_log": 0.4198,
     "within_10pct": 40.4444
   },
   {
@@ -412,10 +412,10 @@
     "segment_kind": "price_segment",
     "segment": "Q1",
     "n": 226,
-    "mape_pct": 20.8435,
-    "median_ape_pct": 9.7747,
-    "sigma_log": 0.2858,
-    "within_10pct": 50.4425
+    "mape_pct": 20.8314,
+    "median_ape_pct": 9.6583,
+    "sigma_log": 0.2854,
+    "within_10pct": 50.885
   },
   {
     "vehicle_type": "motorcycle",
@@ -423,9 +423,9 @@
     "segment_kind": "price_segment",
     "segment": "Q4",
     "n": 225,
-    "mape_pct": 15.8595,
+    "mape_pct": 15.8762,
     "median_ape_pct": 9.9003,
-    "sigma_log": 0.2796,
+    "sigma_log": 0.2793,
     "within_10pct": 51.5556
   },
   {
@@ -434,9 +434,9 @@
     "segment_kind": "price_segment",
     "segment": "Q3",
     "n": 225,
-    "mape_pct": 13.868,
+    "mape_pct": 13.8517,
     "median_ape_pct": 6.5362,
-    "sigma_log": 0.2275,
-    "within_10pct": 64.0
+    "sigma_log": 0.2274,
+    "within_10pct": 63.5556
   }
 ]
