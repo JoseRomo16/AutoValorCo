@@ -972,6 +972,47 @@ encontrando 3,3 %.
 
 ## Lo que falta
 
+### Bloque 4 — la medición de la banda bajo "Otro departamento"
+
+Encargada el 2026-11-02, y va **en los dos lados** del Bloque 4: en el paso 1 contra el
+modelo publicado (la línea base) y en el paso 4 contra el modelo reentrenado sin ciudad,
+con el mismo procedimiento, para que las dos cifras sean comparables.
+
+**Qué se mide.** Sobre el holdout, fila por fila, la cobertura del rango cuando el
+departamento **no** está cubierto:
+
+1. Para cada fila, calcular la banda promediada como si su departamento no estuviera en los
+   datos, **excluyendo su propio departamento del promedio** y renormalizando los pesos de
+   los que quedan. La exclusión no es un detalle: dejar dentro el departamento real
+   convertiría esto en una medición parcialmente del caso cubierto, y daría optimista.
+2. Medir qué porcentaje de precios reales cae dentro del P10–P90 así calculado.
+3. Reportarlo **por tipo de vehículo**, al lado de la cobertura publicada.
+
+La mecánica ya existe: `autovalor.api.regions.average_band` promedia en log sobre un frame
+de departamentos como filas, así que el holdout completo son `n_filas × n_departamentos`
+filas en una sola pasada de scoring (~15 k filas en carros), no un bucle por fila.
+
+**Qué se decide con eso.**
+
+- **Dentro de 78–82 %** → la etiqueta se mantiene para departamentos no cubiertos y no hay
+  nada más que hacer. Solo se reporta la cifra.
+- **Fuera de la ventana** → **proponer retener la etiqueta solo en ese caso** y **esperar
+  decisión**. No se tocan los umbrales: la ventana es la del gate y moverla para que algo
+  pase la convierte en una cifra en muestra.
+
+**Dónde iría el código de retención, si hace falta.** Hay dos candidatos y la decisión es
+del dueño, pero vale anotar la inclinación: `precision_codes` ya es exactamente "por qué se
+retiene la etiqueta, con el valor y el límite medidos en el holdout", y esta medición
+produce las dos cifras, así que encaja sin estirar el campo. `warnings` es para cosas que el
+modelo contesta peor, no para una etiqueta retenida. La objeción a `precision_codes` es que
+hoy describe una propiedad de la **vertical** y esto sería una propiedad de **una petición**,
+que es un cambio de significado del campo y hay que decirlo en el PR.
+
+**Qué no cambia esta medición.** La regla del gate se evalúa sobre el holdout con los
+departamentos reales y sigue decidiendo si la vertical publica etiqueta. Esto es una
+**segunda** medición que condicionaría la etiqueta para una clase de entrada; no la
+reemplaza ni la relaja.
+
 ### F2 — cerrada
 
 Los cinco pasos estaban hechos desde el 2026-10-05; lo que faltaba era el criterio de
