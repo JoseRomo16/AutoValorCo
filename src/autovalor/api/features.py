@@ -20,10 +20,7 @@ import pandas as pd
 
 from autovalor.api.schemas import PredictRequest
 from autovalor.features.naming import slug
-
-UNKNOWN_CITY = "Desconocida"
-"""Cities are not asked for: a user knows their department, and the model gets most of the
-geography from it. The level the trees saw for an unparsed city is this one."""
+from autovalor.models.serving import SERVING_ASSUMPTIONS
 
 
 def current_year() -> int:
@@ -84,18 +81,13 @@ def to_frame(
                 "brand": request.brand,
                 "model": request.model,
                 "department": resolve_department(request.department, departments),
-                "city": UNKNOWN_CITY,
                 "vehicle_age_years": float(age),
                 "mileage_km": float(request.mileage_km),
                 "engine_cc": None if request.engine_cc is None else float(request.engine_cc),
                 "km_per_year": float(km_per_year),
-                "is_official_store": False,
-                # Only read for motorcycles. A request cannot say "this is a quad" or "this
-                # is a cargo trike", and guessing from the brand would be worse than the
-                # default: the flags exist to let the model separate populations it saw
-                # while fitting, not to be asked about.
-                "is_quad": False,
-                "is_cargo": False,
+                # What the form never asks for. Read from the one mapping the published
+                # figures are evaluated with, so the two cannot drift apart.
+                **SERVING_ASSUMPTIONS,
             }
         ]
     )
