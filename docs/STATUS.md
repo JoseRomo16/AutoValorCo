@@ -1589,19 +1589,25 @@ token está mal", y esas dos llevan a conclusiones opuestas.
   bajo la pausa ya no es cierto. **Se corrige en el Bloque 8** por una frase que diga la
   fecha de los datos y que la captura está en pausa.
 
-### Dónde quedó esto el 2026-10-26
+### Dónde quedó esto el 2026-11-02
 
-El trabajo en curso es el **rediseño del sitio**, que tiene su propio documento de
-seguimiento: [`redesign.md`](redesign.md) dice en qué estado está cada paso, guarda el
-diagnóstico de las tres páginas y lista las decisiones abiertas. **Empezar por ahí.**
+El trabajo sigue un **plan de Bloques 0 a 9** (lo trae el usuario; no está en el repo), que
+absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por bloque.
 
-De los siete pasos, **seis están cerrados** —limpieza del catálogo, reentrenamiento, los
-cuatro datos del lago que faltaban exportar, el diagnóstico, el copy y los pendientes de API
-y documentación— y faltan los tres de maquetación: fundaciones visuales, las páginas y la
-verificación.
+| Bloque | Qué resolvió | PR |
+| --- | --- | --- |
+| 0 | El tema "Auto" no pintaba el oscuro | [#22](https://github.com/JoseRomo16/AutoValorCo/pull/22) |
+| 1 | La captura se detiene ante la verificación de TuCarro; [ADR 0005](adr/0005-capture-source-after-verification-wall.md): captura en pausa | [#23](https://github.com/JoseRomo16/AutoValorCo/pull/23), [#25](https://github.com/JoseRomo16/AutoValorCo/pull/25) |
+| 2a | Formulario de Valorar: año, máscaras, foco, lectura en voz alta, idioma | [#26](https://github.com/JoseRomo16/AutoValorCo/pull/26) |
+| 2b | `/predict` valida contra `/catalog`; `warnings`; "Otro departamento" como promedio ponderado | [#27](https://github.com/JoseRomo16/AutoValorCo/pull/27), [#28](https://github.com/JoseRomo16/AutoValorCo/pull/28) |
+| 3 | 404, imagen para redes, LinkedIn, metas por página, contraste de tokens | [#30](https://github.com/JoseRomo16/AutoValorCo/pull/30) |
+| — | Especificación de la medición del Bloque 4 | [#29](https://github.com/JoseRomo16/AutoValorCo/pull/29) |
+| **4** | **Reentrenar sin ciudad y revisar la banda** — en curso, rama `fix/city-and-band` | — |
+| 5–9 | Tooling, copy, Mercado, Metodología, verificación final | sin empezar |
 
-El bundle publicado es **2026-10-25.12948**, con las capturas del 12 y el 19 de octubre
-dentro, y **no está desplegado todavía**.
+El bundle publicado **y desplegado** es `2026-10-25.12948` (verificado en `/model-info`
+el 2026-11-02). Los workflows "Weekly capture" y "Enrich motorcycle details" siguen
+deshabilitados a mano; habilitarlos le toca al usuario.
 
 ### Las cifras ya no se teclean en ningún documento
 
@@ -1622,13 +1628,9 @@ el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el
 
 **Lo que sigue:**
 
-1. **Desplegar el modelo nuevo: la API primero, el sitio después.** El bundle vive dentro
-   de la imagen, así que la API necesita un deploy para servirlo; el sitio lee
-   `model.json` y `docs/results/` en tiempo de construcción, así que su deploy es el que
-   publica las cifras nuevas. En ese orden no hay ventana en la que la página cite una
-   cifra que el servicio no está sirviendo. Pasos en [`deploy-render.md`](deploy-render.md);
-   el despliegue no se automatiza desde aquí.
-2. **Los pasos 4 a 6 del rediseño**, en [`redesign.md`](redesign.md).
+1. **El Bloque 4** (modelo sin ciudad), y su despliegue: la API primero, el sitio después.
+   Pasos en [`deploy-render.md`](deploy-render.md); el despliegue no se automatiza desde aquí.
+2. **Los Bloques 5 a 9**; lo que queda del rediseño está en [`redesign.md`](redesign.md).
 3. **La captura semanal está caída y no es culpa del código.** Desde el run del 2026-10-26
    TuCarro responde a las IP de GitHub Actions con un `302` a la verificación de cuenta de
    MercadoLibre, así que el scraper parsea esa página y captura 0 anuncios en las seis
