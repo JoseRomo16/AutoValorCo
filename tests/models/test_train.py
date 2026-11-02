@@ -8,6 +8,7 @@ import pytest
 from autovalor.models import train as train_module
 from autovalor.models.dataset import split_listings
 from autovalor.models.explain import global_importance
+from autovalor.models.serving import as_served
 from autovalor.models.train import (
     DEFAULT_MODEL_KINDS,
     MODEL_KINDS,
@@ -196,13 +197,14 @@ def test_only_lightgbm_is_explained(gold_cars: pd.DataFrame) -> None:
 
 def test_the_importance_is_measured_on_the_holdout(gold_cars: pd.DataFrame) -> None:
     # Read off the training rows the trees already memorised, the ranking would overstate
-    # whatever they overfitted, so it has to come from the held-out rows.
+    # whatever they overfitted, so it has to come from the held-out rows -- scored as the
+    # API serves them, like every other published figure.
     split = split_listings(gold_cars)
 
     result = train_model(split, "lightgbm", n_trials=0)
 
     assert result.importance is not None
-    expected = global_importance(result.model, split.test)  # type: ignore[arg-type]
+    expected = global_importance(result.model, as_served(split.test))  # type: ignore[arg-type]
     assert result.importance["feature"].tolist() == expected["feature"].tolist()
     assert np.allclose(result.importance["mean_abs_phi"], expected["mean_abs_phi"])
 
