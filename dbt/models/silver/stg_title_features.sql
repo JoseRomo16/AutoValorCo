@@ -273,6 +273,29 @@ mined as (
             when model_tokens[1] is null then null
             when list_contains(join_tokens, model_tokens[1]) and model_tokens[2] is not null
                 then model_tokens[1] || ' ' || model_tokens[2]
+            -- A motorcycle family prefix written apart from its number is not a model:
+            -- "BMW R 1250 GS" came out as "r" for 101 listings that run from a R 18 to a
+            -- R 1300, and "Yamaha MT 15" as "mt" for 43. Glued back together they land on
+            -- the level the same bike already has when the title writes it as one word
+            -- ("r1250", "mt15" -> "mt-15" through the alias seed). A single letter always
+            -- takes the next token ("X Max" -> "xmax"); two letters only take a number,
+            -- because "Gn Nova" or "Tt Ds" are names, not a prefix and its displacement.
+            -- Motorcycles only: in cars a single letter is a class or a whole name
+            -- ("Clase C", "Zeekr X"), handled by the alias seed instead.
+            when vehicle_type = 'motorcycle'
+                and model_tokens[2] is not null
+                and (
+                    regexp_matches(model_tokens[1], '^[a-z]$')
+                    or (
+                        regexp_matches(model_tokens[1], '^[a-z]{2}$')
+                        and regexp_matches(model_tokens[2], '^[0-9]')
+                    )
+                )
+                then model_tokens[1] || model_tokens[2]
+            -- A lone letter with nothing after it is a truncated title ("... Se Vende Con
+            -- P"), not a model: unknown is the honest level.
+            when vehicle_type = 'motorcycle' and regexp_matches(model_tokens[1], '^[a-z]$')
+                then null
             else model_tokens[1]
         end as model_token
     from scanned
@@ -319,7 +342,22 @@ select
     -- One spelling per model. The seed carries the duplicates and typos the lake actually
     -- holds ("mt03" and "mt-03", "himalaya" and "himlayan", "v-strom" through five
     -- spellings), scoped to a make where the token is only unambiguous under that make.
-    coalesce(aliases.model, named.model_before_alias) as model,
+    --
+    -- BMW writes its motorcycles with the family letter, the number and the variant apart
+    -- ("R 1250 GS", "F 900 R", "CE 04"), and so do sellers half the time. The level keeps
+    -- those spaces so every surface spells it the way BMW does without knowing the make:
+    -- the display rule upper-cases word by word, so "r 1250 gs" reads "R 1250 GS". The
+    -- API matches models on an alphanumeric-only slug, so "R1250GS" typed by a caller
+    -- still finds this level.
+    case
+        when named.vehicle_type = 'motorcycle' and named.brand = 'BMW'
+            then trim(regexp_replace(
+                coalesce(aliases.model, named.model_before_alias),
+                '^([a-z]{1,2})([0-9]{2,4})([a-z]*)$',
+                '\1 \2 \3'
+            ))
+        else coalesce(aliases.model, named.model_before_alias)
+    end as model,
     case
         when named.vehicle_type = 'car'
             then case
