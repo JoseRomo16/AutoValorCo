@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { PageTitle } from "@/components/PageTitle";
+import { copy } from "@/lib/i18n";
 
 import { MarketDashboard } from "@/components/MarketDashboard";
 import { PageIntro } from "@/components/PageIntro";
@@ -11,7 +13,11 @@ import {
   retainedValue,
 } from "@/lib/results";
 
-export const metadata: Metadata = { title: "Mercado" };
+export const metadata: Metadata = {
+  title: "Mercado",
+  description:
+    "Qué dicen los anuncios usados de Colombia: curvas de depreciación por marca, cuánto cuesta el kilometraje y dónde se pide más por el mismo vehículo.",
+};
 
 /**
  * Read at build time, not fetched.
@@ -23,6 +29,7 @@ export const metadata: Metadata = { title: "Mercado" };
 export default function MarketPage() {
   return (
     <>
+      <PageTitle title={copy.titles.market} />
       <PageIntro page="market" />
       <div className="mx-auto w-full max-w-[1120px] px-5 pb-20 sm:px-6">
       <MarketDashboard

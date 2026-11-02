@@ -19,7 +19,6 @@
 import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 
-import { copy } from "@/lib/i18n";
 import type { Lang, Localized } from "@/lib/i18n";
 
 const STORAGE_KEY = "autovalor.lang";
@@ -67,10 +66,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    // The tab too. `metadata` in layout.tsx is baked into the export at build time, so
-    // without this an English reader keeps a Spanish tab — the one piece of the page the
-    // language switch could not reach.
-    document.title = copy.site.documentTitle[lang];
   }, [lang]);
 
   const value = useMemo<LanguageState>(
