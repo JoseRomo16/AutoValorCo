@@ -391,7 +391,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         results.append(diagnose(model, dataset.test, _market_rows(vehicle_type, RESULTS_DIR)))
     payload = json.dumps(results, indent=2, ensure_ascii=False)
     if args.output is not None:
-        args.output.write_text(payload + "\n", encoding="utf-8")
+        args.output.write_text(payload + "\n", encoding="utf-8", newline="\n")
         logger.info("wrote %s", args.output)
     else:
         print(payload)  # noqa: T201
