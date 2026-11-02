@@ -26,7 +26,7 @@ import pandas as pd
 UNKNOWN_CITY: Final = "Desconocida"
 """The city level the lake gives an unparsed location, and what ``/predict`` sends."""
 
-SERVING_ASSUMPTIONS: Final[Mapping[str, object]] = MappingProxyType(
+SERVING_ASSUMPTIONS: Final[Mapping[str, str | bool]] = MappingProxyType(
     {
         "city": UNKNOWN_CITY,
         "is_official_store": False,
