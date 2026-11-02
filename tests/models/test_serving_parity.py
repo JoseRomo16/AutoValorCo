@@ -101,6 +101,19 @@ def test_every_constant_the_api_sends_is_a_declared_serving_assumption(
         assert value == SERVING_ASSUMPTIONS[column], column
 
 
+@pytest.mark.parametrize("vehicle_type", VEHICLE_TYPES)
+def test_city_is_not_a_model_column(vehicle_type: VehicleType) -> None:
+    # Block 4: the form never asks for the city, so the model must not read it.
+    assert "city" not in tree_spec(vehicle_type).columns
+    assert "city" not in tree_spec(vehicle_type, detail_features=True).columns
+
+
+@pytest.mark.parametrize("vehicle_type", VEHICLE_TYPES)
+def test_the_api_frame_carries_no_city(vehicle_type: VehicleType) -> None:
+    frame = to_frame(PredictRequest(**_REQUESTS[vehicle_type][0]), year=2026)
+    assert "city" not in frame.columns
+
+
 def test_as_served_applies_every_declared_value_and_nothing_else() -> None:
     frame = make_gold_frame(20)
     served = as_served(frame)

@@ -201,6 +201,5 @@ def test_the_served_condition_scores_what_the_api_sends() -> None:
     result = diagnose(_served(fake), test)
 
     assert set(result["conditions"]) == {"real", "served"}
-    served_frames = [frame for frame in fake.seen if (frame["city"] == "Desconocida").all()]
-    assert served_frames, "no frame was scored with the city the API sends"
-    assert all(not frame["is_official_store"].any() for frame in served_frames)
+    served_frames = [frame for frame in fake.seen if not frame["is_official_store"].any()]
+    assert served_frames, "no frame was scored with the values the API sends"

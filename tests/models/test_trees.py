@@ -65,7 +65,7 @@ def test_an_unseen_make_does_not_crash_prediction(
     unseen = gold_cars.head(5).copy()
     unseen["brand"] = "Marca Nueva"
     unseen["model"] = "modelo-nuevo"
-    unseen["city"] = "Ciudad Nueva"
+    unseen["department"] = "Departamento Nuevo"
 
     predictions = model.predict_log_price(unseen)
 

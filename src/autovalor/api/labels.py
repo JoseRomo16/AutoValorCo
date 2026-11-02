@@ -24,7 +24,7 @@ SPANISH = "es"
 ENGLISH = "en"
 
 UNKNOWN_LEVEL = "Desconocida"
-"""The level the lake uses for a make, city or department it could not parse. It reaches
+"""The level the lake uses for a make it could not parse. It reaches
 this module as data, so it is translated rather than shown verbatim in English."""
 
 
@@ -44,7 +44,6 @@ FEATURE_LABELS: dict[str, Localized] = {
     "brand": Localized(es="Marca", en="Make"),
     "model": Localized(es="Modelo", en="Model"),
     "department": Localized(es="Departamento", en="Department"),
-    "city": Localized(es="Ciudad", en="City"),
     "vehicle_age_years": Localized(es="Edad del vehículo", en="Vehicle age"),
     "mileage_km": Localized(es="Kilometraje", en="Mileage"),
     "engine_cc": Localized(es="Cilindrada", en="Engine displacement"),

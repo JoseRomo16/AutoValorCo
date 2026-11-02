@@ -11,10 +11,13 @@ two things read the same mapping:
 
 The second is the point. A band measured with values the API cannot send describes a
 model nobody is served: that is how the published 80,0 % coverage on cars turned out to be
-75,7 % for the rows the API actually scores, once ``city`` was forced to the constant the
-API sends (``docs/STATUS.md``, Block 4). ``tests/models/test_serving_parity.py`` fails if a
-model column is filled with a constant that is not declared here, or if the gate is scored
-on a frame that did not go through :func:`as_served`.
+75,0 % for the rows the API actually scores, once ``city`` was forced to the constant the
+API sent (``docs/STATUS.md``, Block 4). ``city`` has since left the model, so it is no
+longer an assumption; a column the API cannot send is better dropped than assumed.
+
+``tests/models/test_serving_parity.py`` fails if a model column is filled with a constant
+that is not declared here, or if the gate is scored on a frame that did not go through
+:func:`as_served`.
 """
 
 from collections.abc import Mapping
@@ -23,12 +26,8 @@ from typing import Final
 
 import pandas as pd
 
-UNKNOWN_CITY: Final = "Desconocida"
-"""The city level the lake gives an unparsed location, and what ``/predict`` sends."""
-
 SERVING_ASSUMPTIONS: Final[Mapping[str, str | bool]] = MappingProxyType(
     {
-        "city": UNKNOWN_CITY,
         "is_official_store": False,
         # Only read for motorcycles. A request cannot say "this is a quad" or "this is a
         # cargo trike", and guessing from the brand would be worse than the default: the

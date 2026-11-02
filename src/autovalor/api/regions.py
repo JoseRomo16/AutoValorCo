@@ -9,12 +9,11 @@ Measured on the deployed service, "Nariño", "xyz", "Otro" and a lower-cased "an
 returned exactly the same estimate as Antioquia: not a considered answer about an unknown
 region, just an arbitrary one.
 
-That it currently *looks* harmless is an accident of the bug this project is about to fix.
-The department moves the estimate by at most ~1 % today because `city` absorbs the regional
-effect, and `/market` publishes regional differences up to +27 % for motorcycles in
-Antioquia. The moment `city` is dropped (Block 4) the department carries that effect and the
-default branch starts distorting the answer by tens of percent. So this is built now, while
-it is cheap to check.
+It used to *look* harmless only because the model also read `city`, which absorbed the
+regional effect: the department moved the estimate by at most ~0,2 %, while `/market`
+publishes regional differences up to +27 % for motorcycles in Antioquia. Block 4 dropped
+`city`, so the department now carries that effect, and the default branch would distort
+the answer by as much.
 
 **The answer is the weighted average over the departments the model does know**, in log
 space, weighted by how many training listings each one contributed. Not an unweighted mean:

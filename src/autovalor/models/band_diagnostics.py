@@ -10,8 +10,10 @@ Each vertical is scored under two conditions:
   until Block 4.
 - ``served``: the holdout passed through :func:`autovalor.models.serving.as_served`, i.e.
   with every column ``/predict`` fixes set to the value it sends. **This is the one a user
-  meets.** Under the published bundle it forces ``city`` to ``"Desconocida"``, a level that
-  does not occur once in the holdout.
+  meets.** For the bundle ``2026-10-25.12948`` that included ``city = "Desconocida"``, a
+  level that does not occur once in the holdout; ``city`` has since left the model and the
+  serving assumptions, so measuring that bundle again with this code would not reproduce
+  ``docs/reports/block4_baseline.json``, which is the record of it.
 
 Per condition: error and bias of the point model, coverage and width of the band (both the
 gate's calibrated band and the published one, which is widened to contain the estimate),

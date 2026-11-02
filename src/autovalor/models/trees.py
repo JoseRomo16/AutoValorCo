@@ -31,10 +31,17 @@ TREE_NUMERIC = ("vehicle_age_years", "mileage_km", "engine_cc", "km_per_year")
 down their own branch, so "engine size unknown" stays a signal instead of becoming an
 imputed average. ``model_year`` is left out as collinear with ``vehicle_age_years``."""
 
-TREE_CATEGORICAL = ("brand", "model", "department", "city")
-"""Categorical features, passed raw. ``city`` has ~110 values per vertical; it is included
-because trees can use it, but note that sponsored cards leak between regions, so neither
-it nor ``department`` is a clean sampling frame."""
+TREE_CATEGORICAL = ("brand", "model", "department")
+"""Categorical features, passed raw. Sponsored cards leak between regions, so ``department``
+is not a clean sampling frame.
+
+``city`` is deliberately **not** here (Block 4, ADR 0006). The form asks for the department
+and never the city, so the API could only ever send one constant, ``"Desconocida"`` — a
+level that does not occur once in the holdout. Every valuation carried the effect of that
+small, particular group, the car band covered 75 % instead of 80 % as served, and the city
+absorbed the regional effect the department should carry (the department moved the
+estimate by at most 0,2 % while ``/market`` publishes up to +27 %). The column stays in
+silver and gold as data."""
 
 TREE_BOOLEAN = ("is_official_store",)
 """Booleans every vertical carries."""
