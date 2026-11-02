@@ -60,6 +60,7 @@ export function Combobox({
   error,
   required = false,
   optionalLabel,
+  fallbackOption,
 }: {
   id: string;
   label: string;
@@ -71,6 +72,14 @@ export function Combobox({
   disabledHint?: string;
   /** Built from what was typed, so the message can quote it back. */
   emptyText: (query: string) => string;
+  /**
+   * An option that survives filtering and is offered when nothing else matches.
+   *
+   * For a list that cannot be exhaustive. Typing "nari" into departments matched nothing
+   * and filtered out the "Otro departamento" escape hatch along with everything else, so
+   * the one person the message was written for had no way to act on it.
+   */
+  fallbackOption?: ComboOption;
   /** Renders the listing count beside an option, e.g. `(n) => "125 anuncios"`. */
   countLabel?: (count: number) => string;
   hint?: string;
@@ -109,8 +118,12 @@ export function Combobox({
     if (typed === null) return options;
     const needle = fold(typed.trim());
     if (needle === "") return options;
-    return options.filter((option) => fold(option.label).includes(needle));
-  }, [options, typed]);
+    const found = options.filter((option) => fold(option.label).includes(needle));
+    // Appended rather than always present, so it does not sit in the way of a search that
+    // is working.
+    if (found.length === 0 && fallbackOption) return [fallbackOption];
+    return found;
+  }, [options, typed, fallbackOption]);
 
   // Keep the highlighted option in view when arrowing past the visible window.
   useEffect(() => {
@@ -227,7 +240,9 @@ export function Combobox({
             aria-label={label}
             className="absolute inset-x-0 top-[calc(100%+4px)] z-20 max-h-[264px] overflow-y-auto rounded-md border border-line-strong bg-surface-2 p-1"
           >
-            {matches.length === 0 && (
+            {/* The message stays above the fallback option: it explains why the only row
+                on offer is "another department". */}
+            {(matches.length === 0 || (fallbackOption && matches[0] === fallbackOption)) && (
               <p className="px-2.5 py-3 text-sm text-muted">{emptyText(query.trim())}</p>
             )}
             {matches.map((option, index) => {

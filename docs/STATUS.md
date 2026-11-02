@@ -1361,6 +1361,35 @@ pausa** (opción B), **C descartada por evasión**, y **A abierta y en medición
 **Lo único que sigue abierto aquí es A**, y depende de un dato que todavía no existe: qué
 responde `/sites/MCO/search` con un token válido.
 
+### De dónde sale la cilindrada, con número
+
+Medido el 2026-11-01 sobre el lago local (el de las 4 capturas), porque el plan del Bloque
+2b lo pedía antes de documentarlo en Metodología:
+
+| Vertical | Filas | Con cilindrada | Cobertura |
+| --- | --- | --- | --- |
+| Carros | 8.443 | 7.265 | **86,0 %** |
+| Motos | 4.505 | 3.985 | **88,5 %** |
+
+**En carros, el 100 % de esas 7.265 sale del título del anuncio y cero de la página de
+detalle** — consistente con el `detail_coverage` 0,0 que publica `/market`: el
+enriquecimiento es solo de motos. En gold la columna es
+`coalesce(detail_engine_cc, title_features.engine_cc)`, así que para carros el `coalesce`
+siempre cae al segundo término.
+
+El parser vive en `dbt/models/silver/stg_title_features.sql` y trata las dos verticales
+distinto a propósito, porque el mercado las anuncia distinto: **los carros se publican en
+litros** ("Mazda 3 2.0"), así que `1.6` → 1.600 cc y después se valida contra
+`min_car_cc`/`max_car_cc`; **las motos se publican en cc**, a veces explícito ("690cc") y
+a veces dentro del nombre del modelo ("Xre 300", "G310"), con el explícito ganándole al
+inferido y los dos pasando el mismo chequeo de rango.
+
+**86 % no es cobertura baja, así que no hay nada que proponer ni que decidir acá.** El 14 %
+restante son anuncios cuyo título no dice la cilindrada, y el modelo trata el dato ausente
+como señal propia en vez de imputarlo — que es también por qué el campo es opcional en el
+formulario. Queda para el **Bloque 8** llevar estas dos cifras a Metodología → "Alcance y
+supuestos", desde aquí y no tecleadas a mano.
+
 ---
 
 ## Deuda conocida

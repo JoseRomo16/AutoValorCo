@@ -123,3 +123,56 @@ describe("what must not be said", () => {
     }
   });
 });
+
+describe("the warning notices", () => {
+  it("says the estimate is an average when the department is not covered", () => {
+    show({ prediction: { ...prediction, warnings: ["department_not_covered"] } });
+    expect(
+      screen.getByText(
+        "Tu departamento no está en los datos, así que el estimado usa el promedio de los departamentos que sí tenemos.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says the make alone was used when the model is not covered", () => {
+    show({ prediction: { ...prediction, warnings: ["model_not_covered"] } });
+    expect(
+      screen.getByText("No tenemos anuncios de ese modelo, así que lo valoramos solo con la marca."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows both when both apply", () => {
+    show({
+      prediction: {
+        ...prediction,
+        warnings: ["department_not_covered", "model_not_covered"],
+      },
+    });
+    const list = screen.getByRole("list", { name: "Avisos sobre este estimado" });
+    expect(list.querySelectorAll("li")).toHaveLength(2);
+  });
+
+  it("says nothing when there is nothing to warn about", () => {
+    show();
+    expect(screen.queryByRole("list", { name: "Avisos sobre este estimado" })).toBeNull();
+  });
+
+  it("stays silent on a service that sends no warnings field at all", () => {
+    const { warnings: _omitted, ...withoutField } = { ...prediction, warnings: [] };
+    show({ prediction: withoutField as typeof prediction });
+    expect(screen.queryByRole("list", { name: "Avisos sobre este estimado" })).toBeNull();
+  });
+
+  it("ignores a code this build does not know rather than printing it", () => {
+    // The service can add a code before the site is rebuilt, and an untranslated
+    // identifier on the page is worse than silence.
+    show({
+      prediction: {
+        ...prediction,
+        warnings: ["something_new_entirely"] as unknown as typeof prediction.warnings,
+      },
+    });
+    expect(screen.queryByRole("list", { name: "Avisos sobre este estimado" })).toBeNull();
+    expect(document.body.textContent).not.toContain("something_new_entirely");
+  });
+});
