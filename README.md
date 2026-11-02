@@ -30,8 +30,8 @@ entrega, además del valor puntual, un intervalo de predicción **P10–P90**. C
 
 - **Clasifica anuncios** como _ganga_, _justo_ o _caro_ según dónde cae el precio pedido
   dentro del intervalo.
-- **Explica cada predicción** con SHAP: cuánto aporta el año, el kilometraje, la versión,
-  la ciudad o la transmisión al precio estimado.
+- **Explica cada predicción** con SHAP: cuánto aportan el año, el kilometraje, la marca,
+  el modelo o el departamento al precio estimado.
 - **Publica curvas de depreciación** por marca y segmento, y un **índice mensual** de
   precios de usados.
 
@@ -305,8 +305,8 @@ returns, besides the point estimate, a **P10–P90** prediction interval. On top
 
 - **Classifies listings** as _bargain_, _fair_ or _overpriced_, depending on where the
   asking price falls inside the interval.
-- **Explains every prediction** with SHAP: how much the model year, mileage, trim, city
-  or transmission contribute to the estimate.
+- **Explains every prediction** with SHAP: how much the model year, mileage, make, model
+  or department contribute to the estimate.
 - **Publishes depreciation curves** by brand and segment, plus a **monthly used-price
   index**.
 
