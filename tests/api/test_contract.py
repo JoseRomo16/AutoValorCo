@@ -489,6 +489,17 @@ def test_the_catalogue_publishes_an_asking_price_range(client: TestClient) -> No
         assert 0 < price["min"] < price["max"]
 
 
+def test_the_catalogue_publishes_the_mileage_predict_enforces(client: TestClient) -> None:
+    """The form reads the odometer cap from here instead of keeping its own copy."""
+    bounds = car_catalog(client)["mileage_km"]
+    assert bounds is not None
+    assert bounds["min"] == 0
+    accepted = client.post("/predict", json={**CAR, "mileage_km": int(bounds["max"])})
+    refused = client.post("/predict", json={**CAR, "mileage_km": int(bounds["max"]) + 1})
+    assert accepted.status_code == 200
+    assert refused.status_code == 422
+
+
 def test_predict_refuses_a_year_outside_the_published_range(client: TestClient) -> None:
     bounds = car_catalog(client)["model_year"]
     for year in (int(bounds["min"]) - 1, int(bounds["max"]) + 1):

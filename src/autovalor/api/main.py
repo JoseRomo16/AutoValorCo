@@ -48,6 +48,7 @@ from autovalor.api.labels import Localized, feature_label, format_value
 from autovalor.api.regions import AVERAGE_REGION, average_band, average_contributions, weights
 from autovalor.api.rules import DEPARTMENT_NOT_COVERED, resolve, year_range
 from autovalor.api.schemas import (
+    MAX_MILEAGE_KM,
     CatalogBrand,
     CatalogEntry,
     CatalogRange,
@@ -309,6 +310,7 @@ def catalog(models: ModelsDep, vehicle_type: VehicleType | None = None) -> Catal
                 # two used to differ, which is how a form could offer a year the service
                 # then rejected -- or worse, accept one it should not have.
                 model_year=_year_range(model.catalog),
+                mileage_km=CatalogRange(min=0, max=MAX_MILEAGE_KM),
                 engine_cc=None
                 if model.catalog.engine_cc is None
                 else CatalogRange(min=model.catalog.engine_cc.min, max=model.catalog.engine_cc.max),
