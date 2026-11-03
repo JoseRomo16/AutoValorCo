@@ -25,7 +25,7 @@
  * say what is wrong in the reader's language.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 
 import { useLang } from "./LanguageProvider";
 import { PriceResult } from "./PriceResult";
@@ -53,6 +53,7 @@ import type { Localized } from "@/lib/i18n";
  * service at all, which costs more than telling them the estimate is thinner.
  */
 import { LOW_DATA_LISTINGS } from "@/lib/listings";
+import { fromQuery, toQuery } from "@/lib/shareLink";
 
 /**
  * The lake's unresolved-make bucket, which must never be offered as a make.
@@ -136,7 +137,7 @@ function Fieldset({
 }) {
   return (
     <fieldset disabled={disabled} className="mb-7 min-w-0 border-0 p-0 last:mb-0">
-      <legend className="mb-3.5 p-0 font-mono text-xs uppercase tracking-[0.1em] text-accent-text">
+      <legend className="mb-3.5 p-0 font-mono text-caption uppercase tracking-[0.1em] text-accent-text">
         {legend}
       </legend>
       <div className="grid gap-[18px] sm:grid-cols-2">{children}</div>
@@ -165,14 +166,17 @@ export function ValuationForm() {
   const [explanation, setExplanation] = useState<ExplainResponse | null>(null);
   const [predictedFor, setPredictedFor] = useState<PricedSpec | null>(null);
   const [reloads, setReloads] = useState(0);
-  const [slowStart, setSlowStart] = useState(false);
+  /** The request that has been waiting past the line, if any: "slow" belongs to one status. */
+  const [slowFor, setSlowFor] = useState<Status | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   // Five seconds is the line between "loading" and "the instance was asleep". Under it the
-  // indicator next to the button is enough; over it the wait needs explaining.
+  // indicator next to the button is enough; over it the wait needs explaining. It covers a
+  // valuation too, not only the first load: Render puts the API back to sleep after a
+  // quiet spell, so a request made later can be the one that wakes it.
   useEffect(() => {
-    if (status !== "loading-catalog") return;
-    const timer = window.setTimeout(() => setSlowStart(true), 5_000);
+    if (status !== "loading-catalog" && status !== "submitting") return;
+    const timer = window.setTimeout(() => setSlowFor(status), 5_000);
     return () => window.clearTimeout(timer);
   }, [status]);
 
@@ -384,6 +388,15 @@ export function ValuationForm() {
       asking_price_cop: askingPrice === "" ? null : Number(askingPrice),
     };
 
+    run(body);
+  }
+
+  /**
+   * Price one request. The form calls it on submit and a shared link calls it on load, so
+   * both go through the same success and failure handling, and a success writes the
+   * request into the address bar: reloading or sharing the page repeats it.
+   */
+  function run(body: PredictRequest, verticals: VerticalCatalog[] = catalogs) {
     setStatus("submitting");
     setError(null);
     // Both at once: they describe the same estimate, and two round trips in sequence would
@@ -392,8 +405,9 @@ export function ValuationForm() {
       .then(([predicted, explained]) => {
         setPrediction(predicted);
         setExplanation(explained);
-        setPredictedFor(describe());
+        setPredictedFor(describe(body, verticals));
         setStatus("ready");
+        window.history.replaceState(null, "", `${window.location.pathname}${toQuery(body)}`);
       })
       .catch((cause: unknown) => {
         setError(cause instanceof ApiError ? cause.message : String(cause));
@@ -401,15 +415,65 @@ export function ValuationForm() {
       });
   }
 
+  /**
+   * Fill the form from a shared link and price it, once the lists have loaded.
+   *
+   * The link's shape is checked by `fromQuery`; the catalogue decides the rest. A make
+   * that is not in it leaves the form empty rather than asking the API for a 422, and a
+   * department that is not listed becomes "Otro departamento", which is what the form
+   * would have offered.
+   */
+  function restoreFromLink(verticals: VerticalCatalog[]) {
+    const request = fromQuery(window.location.search);
+    if (!request) return;
+    const vertical = verticals.find((entry) => entry.vehicle_type === request.vehicle_type);
+    const make = vertical?.brands.find((entry) => entry.name === request.brand);
+    if (!vertical || !make) return;
+    const known = make.models.some((entry) => entry.name === request.model);
+    const department = vertical.departments.some((entry) => entry.name === request.department)
+      ? request.department
+      : OTHER_DEPARTMENT;
+    const body: PredictRequest = {
+      ...request,
+      model: known ? request.model : null,
+      department,
+    };
+    setVehicleType(body.vehicle_type);
+    setBrand(body.brand);
+    setModel(body.model ?? "");
+    setYear(String(body.model_year));
+    setMileage(String(body.mileage_km));
+    setDepartment(body.department);
+    setEngineCc(body.engine_cc == null ? "" : String(body.engine_cc));
+    setAskingPrice(body.asking_price_cop == null ? "" : String(body.asking_price_cop));
+    run(body, verticals);
+  }
+
+  // A shared link is priced once, when the lists first land. An effect event, so the
+  // effect depends on the lists alone and not on a function recreated every render.
+  const restoreOnce = useEffectEvent((verticals: VerticalCatalog[]) => restoreFromLink(verticals));
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current || catalogs.length === 0) return;
+    restored.current = true;
+    restoreOnce(catalogs);
+  }, [catalogs]);
+
   /** What was priced, captured at submit time; the wording happens on render. */
-  function describe(): PricedSpec {
+  function describe(body: PredictRequest, verticals: VerticalCatalog[]): PricedSpec {
+    const vertical = verticals.find((entry) => entry.vehicle_type === body.vehicle_type);
+    const make = vertical?.brands.find((entry) => entry.name === body.brand);
+    const modelEntry = make?.models.find((entry) => entry.name === body.model);
+    const departmentEntry = vertical?.departments.find((entry) => entry.name === body.department);
     return {
-      brandLabel: brandOptions.find((option) => option.value === brand)?.label ?? brand,
-      modelLabel: modelOptions.find((option) => option.value === model)?.label,
-      year,
-      mileageKm: Number(mileage),
+      brandLabel: make?.display_name ?? body.brand,
+      modelLabel: modelEntry ? (modelEntry.display_name ?? modelEntry.name) : undefined,
+      year: String(body.model_year),
+      mileageKm: body.mileage_km,
       departmentLabel:
-        departmentOptions.find((option) => option.value === department)?.label ?? department,
+        body.department === OTHER_DEPARTMENT
+          ? t(copy.form.departmentOther)
+          : (departmentEntry?.display_name ?? body.department),
     };
   }
 
@@ -425,6 +489,8 @@ export function ValuationForm() {
     setExplanation(null);
     setPredictedFor(null);
     setTouched(new Set());
+    // The address bar stops promising a valuation that is no longer on screen.
+    window.history.replaceState(null, "", window.location.pathname);
   }
 
   const failure = classify(error, catalogs.length === 0);
@@ -624,7 +690,7 @@ export function ValuationForm() {
           {status !== "failed" && (
             <span
               role="status"
-              className="inline-flex items-center gap-2 font-mono text-xs text-muted"
+              className="inline-flex items-center gap-2 font-mono text-caption text-muted"
             >
               <i aria-hidden className={`size-2 rounded-full ${loading ? "bg-faint" : "bg-good"}`} />
               {loading ? t(copy.status.connecting) : t(copy.status.ready)}
@@ -642,7 +708,7 @@ export function ValuationForm() {
           )}
         </div>
 
-        {loading && slowStart && (
+        {(loading || busy) && slowFor === status && (
           <div className="mt-5 border-l-2 border-accent pl-4 text-sm">
             <p className="font-semibold">{t(copy.status.wakingTitle)}</p>
             <p className="mt-1 text-muted">{t(copy.status.wakingBody)}</p>
@@ -655,7 +721,7 @@ export function ValuationForm() {
           <div role="alert" className="rounded-lg border border-bad bg-bad-bg p-5 text-sm">
             <p className="font-semibold">{t(failure.title)}</p>
             <p className="mt-1 text-muted">{t(failure.body)}</p>
-            <details className="mt-3 text-xs text-muted">
+            <details className="mt-3 text-caption text-muted">
               <summary className="cursor-pointer">{t(copy.result.errors.detail)}</summary>
               <p className="mt-1 break-words font-mono">{error}</p>
             </details>
@@ -666,7 +732,7 @@ export function ValuationForm() {
                 if (catalogs.length === 0) {
                   // The lists never arrived, so retry means fetching them again.
                   setStatus("loading-catalog");
-                  setSlowStart(false);
+                  setSlowFor(null);
                   setReloads((count) => count + 1);
                 } else {
                   setStatus("ready");

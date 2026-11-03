@@ -127,6 +127,9 @@ function switchToEnglish() {
 
 beforeEach(() => {
   window.localStorage.clear();
+  // A priced valuation writes itself into the address bar, and a page that opens on such
+  // an address prices it again: each test starts from a clean one.
+  window.history.replaceState(null, "", "/");
   vi.stubGlobal("fetch", stubFetch());
   // The focus move is scheduled on the next frame, so the frame has to actually run.
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
@@ -328,5 +331,90 @@ describe("the displacement error", () => {
 
     // "800-6.400" in both places, rather than a grouped placeholder and a bare 6400.
     expect(await screen.findByText(/6\.400 cc/)).toBeInTheDocument();
+  });
+});
+
+describe("the shareable link", () => {
+  const predictCalls = () =>
+    vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith("/predict"));
+
+  async function priceToyota() {
+    await choose(/Marca/, "Toyota", /Toyota/);
+    fireEvent.change(screen.getByLabelText(/Año del modelo/), { target: { value: "2018" } });
+    fireEvent.change(screen.getByLabelText(/Kilometraje/), { target: { value: "60000" } });
+    await choose(/Departamento/, "Bogot", /Bogot/);
+    fireEvent.click(screen.getByRole("button", { name: "Calcular el precio" }));
+    await screen.findByRole("button", { name: "Copiar enlace" });
+  }
+
+  it("writes the priced request into the address bar", async () => {
+    show();
+    await ready();
+    await priceToyota();
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get("tipo")).toBe("carro");
+    expect(params.get("marca")).toBe("Toyota");
+    expect(params.get("anio")).toBe("2018");
+    expect(params.get("km")).toBe("60000");
+    expect(params.get("depto")).toBe("Bogotá D.C.");
+  });
+
+  it("prices a shared link on arrival, with the form filled in", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/?tipo=carro&marca=Toyota&modelo=corolla&anio=2019&km=45000&depto=Bogot%C3%A1+D.C.",
+    );
+    show();
+    await waitFor(() => expect(predictCalls()).toHaveLength(1));
+    const body = JSON.parse(String(predictCalls()[0]?.[1]?.body));
+    expect(body).toMatchObject({ brand: "Toyota", model: "corolla", model_year: 2019, mileage_km: 45000 });
+    expect(screen.getByLabelText(/Año del modelo/)).toHaveValue("2019");
+  });
+
+  it("ignores a link to a make the catalogue does not have", async () => {
+    window.history.replaceState(null, "", "/?tipo=carro&marca=Lada&anio=2019&km=1&depto=Meta");
+    show();
+    await ready();
+    expect(predictCalls()).toHaveLength(0);
+  });
+
+  it("clears the address bar on 'Valorar otro'", async () => {
+    show();
+    await ready();
+    await priceToyota();
+    fireEvent.click(screen.getByRole("button", { name: "Valorar otro" }));
+    expect(window.location.search).toBe("");
+  });
+});
+
+describe("the waking notice", () => {
+  it("also explains a valuation that takes more than five seconds", async () => {
+    const base = stubFetch();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) =>
+        String(input).endsWith("/predict") || String(input).endsWith("/explain")
+          ? new Promise<Response>(() => {})
+          : base(input),
+      ),
+    );
+    show();
+    await ready();
+    await choose(/Marca/, "Toyota", /Toyota/);
+    fireEvent.change(screen.getByLabelText(/Año del modelo/), { target: { value: "2018" } });
+    fireEvent.change(screen.getByLabelText(/Kilometraje/), { target: { value: "60000" } });
+    await choose(/Departamento/, "Bogot", /Bogot/);
+    // Fake time only from here: the combobox helpers wait on real timers.
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(screen.getByRole("button", { name: "Calcular el precio" }));
+      act(() => vi.advanceTimersByTime(4_000));
+      expect(screen.queryByText("El servicio está arrancando")).toBeNull();
+      act(() => vi.advanceTimersByTime(1_500));
+      expect(screen.getByText("El servicio está arrancando")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

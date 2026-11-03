@@ -24,7 +24,7 @@
  * exact, not an approximation dressed up as pesos.
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useLang } from "./LanguageProvider";
 import { type ExplainResponse, type PredictResponse, type PriceLabel } from "@/lib/api";
@@ -116,7 +116,7 @@ function Panel({
         <h2
           id="result-title"
           tabIndex={-1}
-          className="font-mono text-xs uppercase tracking-[0.1em] text-muted outline-none"
+          className="font-mono text-caption uppercase tracking-[0.1em] text-muted outline-none"
         >
           {title}
         </h2>
@@ -124,6 +124,42 @@ function Panel({
       </div>
       {children}
     </section>
+  );
+}
+
+/**
+ * Copy the address bar, which holds the valuation once it has been priced.
+ *
+ * The confirmation is a live region so it is heard, and it fades after a moment so the
+ * button is ready for a second copy. A clipboard the browser refuses fails quietly: the
+ * link is still in the address bar.
+ */
+function CopyLink() {
+  const { t } = useLang();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 2_500);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+  return (
+    <span className="inline-flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => {
+          navigator.clipboard
+            ?.writeText(window.location.href)
+            .then(() => setCopied(true))
+            .catch(() => undefined);
+        }}
+        className="inline-flex min-h-10 items-center rounded-md border border-line-strong px-3 font-medium text-ink hover:border-ink"
+      >
+        {t(copy.result.copyLink)}
+      </button>
+      <span role="status" className="font-mono text-caption text-good">
+        {copied ? t(copy.result.copied) : ""}
+      </span>
+    </span>
   );
 }
 
@@ -177,10 +213,17 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
 
   if (!arrived) {
     return (
-      <Panel title={t(copy.result.emptyTitle)}>
+      <Panel
+        title={t(copy.result.emptyTitle)}
+        badge={
+          <span className="rounded border border-accent-text px-2 py-1 font-mono text-caption leading-none text-accent-text">
+            {t(copy.result.exampleBadge)}
+          </span>
+        }
+      >
         <p className="text-sm text-muted">{t(copy.result.emptyBody)}</p>
-        {/* The shapes the answer will take, in the order it will take them. Unfilled on
-            purpose: a worked example would need invented figures. */}
+        {/* The shapes the answer will take, in the order it will take them, marked as an
+            example. Unfilled on purpose: a worked example would need invented figures. */}
         <div aria-hidden className="mt-6 space-y-4 opacity-45">
           <div className="grid grid-cols-2 rounded-lg border border-line">
             <div className="border-r border-line p-4">
@@ -266,19 +309,19 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
       {/* Price and range, same size, one object. */}
       <dl className="grid grid-cols-1 rounded-lg border border-line sm:grid-cols-2">
         <div className="min-w-0 border-b border-line p-4 sm:border-b-0 sm:border-r">
-          <dt className="mb-2 text-xs text-muted">{t(copy.result.heading)}</dt>
+          <dt className="mb-2 text-caption text-muted">{t(copy.result.heading)}</dt>
           <dd className="font-mono text-2xl leading-tight tracking-[-0.03em] tabular-nums">
             {copMillions(band.estimate_cop, lang)}
-            <small className="mt-1.5 block font-sans text-xs font-normal tracking-normal text-muted">
+            <small className="mt-1.5 block font-sans text-caption font-normal tracking-normal text-muted">
               {cop(band.estimate_cop, lang)}
             </small>
           </dd>
         </div>
         <div className="min-w-0 p-4">
-          <dt className="mb-2 text-xs text-muted">{t(copy.result.range)}</dt>
+          <dt className="mb-2 text-caption text-muted">{t(copy.result.range)}</dt>
           <dd className="font-mono text-2xl leading-tight tracking-[-0.03em] tabular-nums">
             {`${copMillions(band.lower_cop, lang)}–${copMillions(band.upper_cop, lang)}`}
-            <small className="mt-1.5 block font-sans text-xs font-normal tracking-normal text-muted">
+            <small className="mt-1.5 block font-sans text-caption font-normal tracking-normal text-muted">
               {t(copy.result.rangeHelp)}
             </small>
           </dd>
@@ -302,7 +345,7 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
             />
           )}
         </div>
-        <div className="mt-2 flex justify-between font-mono text-xs text-muted">
+        <div className="mt-2 flex justify-between font-mono text-caption text-muted">
           <span>
             <b className="block font-medium text-ink">{copMillions(band.lower_cop, lang)}</b>P10
           </span>
@@ -334,7 +377,7 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
           {verdict ? (
             <>
               <span
-                className={`rounded px-2 py-1 font-mono text-xs leading-none ${verdict.tone}`}
+                className={`rounded px-2 py-1 font-mono text-caption leading-none ${verdict.tone}`}
               >
                 {t(verdict.title)}
               </span>
@@ -342,11 +385,11 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
             </>
           ) : (
             <>
-              <span className="rounded border border-line-strong px-2 py-1 font-mono text-xs leading-none text-neutral">
+              <span className="rounded border border-line-strong px-2 py-1 font-mono text-caption leading-none text-neutral">
                 {t(copy.result.noLabelTitle)}
               </span>
               <p className="text-sm text-muted">{t(copy.result.noLabelBody)}</p>
-              <p className="col-start-2 text-xs text-faint">{precisionReason(prediction, lang)}</p>
+              <p className="col-start-2 text-caption text-muted">{precisionReason(prediction, lang)}</p>
             </>
           )}
           {askingPrice !== null && (
@@ -373,21 +416,25 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
               >
                 <div className="min-w-0">
                   <b className="block text-sm font-medium">{factor.label[lang]}</b>
-                  <small className="font-mono text-xs text-faint">
+                  <small className="font-mono text-caption text-faint">
                     {factor.value_display[lang]}
                   </small>
                 </div>
-                {/* Grey, with the side of the centre line carrying the direction. Colour
-                    here would collide with the verdict's vocabulary. */}
+                {/* Green when the feature raises the price (good news for the seller),
+                    terracotta when it lowers it. Never colour alone: the side of the centre
+                    line, the sign and the word say the same thing. */}
                 <div aria-hidden className="relative h-3.5">
                   <span className="absolute -inset-y-0.5 left-1/2 w-px bg-line-strong" />
                   <span
-                    className="absolute inset-y-[3px] rounded-sm bg-bar"
+                    className={`absolute inset-y-[3px] rounded-sm ${raises ? "bg-good" : "bg-bad"}`}
                     style={raises ? { left: "50%", width: `${width}%` } : { right: "50%", width: `${width}%` }}
                   />
                 </div>
                 <span className="text-right font-mono text-sm font-medium tabular-nums">
                   {factorAsPercent(factor.factor, lang)}
+                  <span className={`block text-caption font-normal ${raises ? "text-good" : "text-bad"}`}>
+                    {t(raises ? copy.result.raises : copy.result.lowers)}
+                  </span>
                 </span>
               </li>
             );
@@ -396,17 +443,20 @@ export function PriceResult({ prediction, explanation, askingPrice, spec, busy }
       </div>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm">
-        <span className="font-mono text-xs text-faint">
+        <span className="font-mono text-caption text-faint">
           {fill(copy.result.modelVersion, lang, {
             date: modelDate(prediction.model_version, lang),
           })}
         </span>
-        <a
-          href="/metodologia/"
-          className="font-semibold text-accent-text underline underline-offset-4 hover:opacity-80"
-        >
-          {t(copy.result.howItWorks)}
-        </a>
+        <span className="inline-flex flex-wrap items-center gap-x-5 gap-y-2">
+          <CopyLink />
+          <a
+            href="/metodologia/"
+            className="font-semibold text-accent-text underline underline-offset-4 hover:opacity-80"
+          >
+            {t(copy.result.howItWorks)}
+          </a>
+        </span>
       </div>
     </Panel>
   );
