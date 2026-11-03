@@ -119,20 +119,24 @@ export function IntervalBars({ items, signed = false, caption, columns, highligh
                 setOpen(next);
                 onHighlight?.(next);
               }}
-              className={`relative grid cursor-default grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 rounded px-1 py-1 transition-opacity duration-150 sm:grid-cols-[9rem_minmax(0,1fr)_10.5rem] sm:gap-y-0 ${
+              className={`relative grid cursor-default grid-cols-[minmax(7rem,1fr)_auto] items-center gap-x-3 gap-y-1 rounded px-1 py-1 transition-opacity duration-150 sm:grid-cols-[10rem_minmax(0,1fr)_12rem] sm:gap-y-0 ${
                 dimmed ? "opacity-40" : ""
               } ${lit ? "bg-surface" : ""} ${item.separatorAfter ? "mb-3 after:absolute after:inset-x-0 after:-bottom-2 after:h-px after:bg-line" : ""}`}
             >
-              <span className="truncate text-sm text-muted" title={item.label}>
+              {/* Wraps between words instead of truncating: a cut label is a wrong label.
+                  The 7 rem floor on phones matters as much: with breaks allowed anywhere, a
+                  long note in the figure column squeezed "Norte de Santander" into a
+                  column one letter wide. */}
+              <span className="min-w-0 text-label text-muted [overflow-wrap:break-word]">
                 {item.label}
               </span>
 
-              <span className="text-right font-mono text-sm tnum sm:order-3 sm:pl-3">
+              <span className="max-w-[12rem] text-right font-mono text-value tnum sm:order-3 sm:max-w-none sm:pl-3">
                 <span className={item.muted || item.reference ? "text-muted" : "font-medium text-ink"}>
                   {item.valueText}
                 </span>
                 {(item.note ?? item.detail ?? item.intervalText) && (
-                  <span className="block text-xs text-muted">
+                  <span className="block text-detail text-muted">
                     {item.note ?? item.detail ?? item.intervalText}
                   </span>
                 )}
@@ -163,10 +167,11 @@ export function IntervalBars({ items, signed = false, caption, columns, highligh
                     </span>
                   )}
                   {open === item.label && item.tooltip && (
+                    // Anchored to the track's left edge and never wider than it: a nowrap
+                    // tooltip centred on the bar ran past a 320 px screen when tapped.
                     <span
                       role="tooltip"
-                      className="pointer-events-none absolute bottom-full z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded border border-line-strong bg-surface px-2 py-1 font-mono text-xs text-ink"
-                      style={{ left: `${Math.min(Math.max(value, 15), 85)}%` }}
+                      className="pointer-events-none absolute bottom-full left-0 z-10 mb-1 w-max max-w-full rounded border border-line-strong bg-surface px-2 py-1 font-mono text-caption text-ink"
                     >
                       {item.tooltip}
                     </span>

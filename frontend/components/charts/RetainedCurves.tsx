@@ -264,7 +264,7 @@ export function RetainedCurves({
         {hoverAge !== null && (
           <div
             role="tooltip"
-            className="pointer-events-none absolute top-2 z-10 rounded border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink"
+            className="pointer-events-none absolute top-2 z-10 rounded border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-caption text-ink"
             style={
               x(hoverAge) > width / 2
                 ? { right: width - x(hoverAge) + 8 }
@@ -285,7 +285,7 @@ export function RetainedCurves({
         )}
       </div>
 
-      <ul aria-hidden="true" className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 font-mono text-[13px]">
+      <ul aria-hidden="true" className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 font-mono text-caption">
         {curves.map((curve) => {
           const last = lastOf(curve);
           return (
