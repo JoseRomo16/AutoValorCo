@@ -157,7 +157,7 @@ function Figure({
         }`}
       >
         {number}
-        {unit && <small className="ml-1 text-[0.52em] tracking-normal text-accent-text">{unit}</small>}
+        {unit && <small className="ml-1 text-[max(0.52em,0.8125rem)] tracking-normal text-accent-text">{unit}</small>}
       </p>
       <p className="mt-4 font-display text-detail font-bold uppercase tracking-[0.04em] text-ink [font-stretch:110%]">
         {label}
