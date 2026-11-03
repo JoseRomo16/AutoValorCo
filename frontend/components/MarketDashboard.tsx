@@ -25,6 +25,7 @@ import type {
   VehicleType,
 } from "@/lib/results";
 import { copy, fill } from "@/lib/i18n";
+import { isThin, orderRegions } from "@/lib/listings";
 import {
   cop,
   copMillions,
@@ -147,6 +148,12 @@ export function MarketDashboard({
     }));
   }
 
+  const retainedLegend = (point: { age: number; retained: number }): string =>
+    fill(copy.market.retained.legendPoint, lang, {
+      pct: percent(point.retained, lang, 0),
+      age: point.age,
+    });
+
   function segmentLabel(row: MileageRow): string {
     const name =
       row.segment === "all"
@@ -172,10 +179,8 @@ export function MarketDashboard({
     }));
 
   function regionalBars(vertical: VehicleType): BarItem[] {
-    return regional
-      .filter((row) => row.vehicle_type === vertical)
-      .sort((a, b) => b.pct_change - a.pct_change)
-      .map((row) => ({
+    return orderRegions(regional.filter((row) => row.vehicle_type === vertical)).map(
+      (row) => ({
         label: row.department,
         value: row.pct_change,
         low: row.is_reference ? undefined : row.pct_ci_low,
@@ -186,11 +191,14 @@ export function MarketDashboard({
           : `${signedPercent(row.pct_ci_low, lang)} – ${signedPercent(row.pct_ci_high, lang)}`,
         note: row.is_reference
           ? t(copy.market.reference)
-          : row.significant
-            ? undefined
-            : notSignificant,
-        muted: row.is_reference || !row.significant,
-      }));
+          : isThin(row.listings)
+            ? t(copy.market.regional.fewListings)
+            : row.significant
+              ? undefined
+              : notSignificant,
+        muted: row.is_reference || isThin(row.listings) || !row.significant,
+      }),
+    );
   }
 
   const shares: Share[] = contrast.map((row) => ({
@@ -243,14 +251,17 @@ export function MarketDashboard({
   const carMileageAll = mileage.find(
     (row) => row.vehicle_type === "car" && row.segment === "all",
   );
-  const dearestQuartile = carQuartiles
+  const topQuartile = carQuartiles
     .slice()
     .sort((a, b) => b.median_price_cop - a.median_price_cop)[0];
 
+  // The readings quote the extremes among well-covered departments only: the thin ones are
+  // on the chart, last and flagged, but a region with a few dozen listings is not the
+  // country's cheapest on the strength of them.
   const byRegion = (vertical: VehicleType) =>
-    regional
-      .filter((row) => row.vehicle_type === vertical)
-      .sort((a, b) => b.pct_change - a.pct_change);
+    orderRegions(regional.filter((row) => row.vehicle_type === vertical)).filter(
+      (row) => !isThin(row.listings),
+    );
   const carRegions = byRegion("car");
   const motoRegions = byRegion("motorcycle");
   const ratioOf = (vertical: VehicleType) =>
@@ -292,27 +303,27 @@ export function MarketDashboard({
     .filter((sentence) => sentence !== "")
     .join(" ");
 
-  const carDearest = carRegions.at(0);
+  const carHighest = carRegions.at(0);
   const carCheapest = carRegions.at(-1);
-  const motoDearest = motoRegions.at(0);
+  const motoHighest = motoRegions.at(0);
   const motoCheapest = motoRegions.at(-1);
 
   const regionalReading = [
-    carDearest && carCheapest
+    carHighest && carCheapest
       ? fill(copy.market.regional.insightCar, lang, {
-          spread: points(carDearest.pct_change - carCheapest.pct_change, lang),
+          spread: points(carHighest.pct_change - carCheapest.pct_change, lang),
           median: copMillions(carMedian, lang),
           amount: copMillions(
-            ((carDearest.pct_change - carCheapest.pct_change) / 100) * carMedian,
+            ((carHighest.pct_change - carCheapest.pct_change) / 100) * carMedian,
             lang,
           ),
         })
       : "",
-    motoDearest && motoCheapest
+    motoHighest && motoCheapest
       ? fill(copy.market.regional.insightMoto, lang, {
-          spread: points(motoDearest.pct_change - motoCheapest.pct_change, lang),
-          high: percent(motoDearest.pct_change, lang),
-          highDept: motoDearest.department,
+          spread: points(motoHighest.pct_change - motoCheapest.pct_change, lang),
+          high: percent(motoHighest.pct_change, lang),
+          highDept: motoHighest.department,
           low: percent(abs(motoCheapest.pct_change), lang),
           lowDept: motoCheapest.department,
         })
@@ -375,6 +386,7 @@ export function MarketDashboard({
               curves={retainedCurves("car")}
               axisLabelX={t(copy.market.retained.axisAge)}
               axisLabelY={t(copy.market.retained.axisRetained)}
+              formatLastPoint={retainedLegend}
             />
           </div>
           <div className="min-w-0">
@@ -383,6 +395,7 @@ export function MarketDashboard({
               curves={retainedCurves("motorcycle")}
               axisLabelX={t(copy.market.retained.axisAge)}
               axisLabelY={t(copy.market.retained.axisRetained)}
+              formatLastPoint={retainedLegend}
             />
           </div>
         </div>
@@ -392,10 +405,10 @@ export function MarketDashboard({
         title={t(copy.market.mileage.title)}
         help={`${t(copy.market.mileage.lead)} ${t(copy.market.mileage.leadDetail)}`}
         reading={
-          carMileageAll && dearestQuartile
+          carMileageAll && topQuartile
             ? fill(copy.market.mileage.insight, lang, {
                 median: cop(abs(carMileageAll.cop_per_step), lang),
-                top: cop(abs(dearestQuartile.cop_per_step), lang),
+                top: cop(abs(topQuartile.cop_per_step), lang),
                 flatCount: carQuartiles.filter((row) => !row.significant).length,
               })
             : ""

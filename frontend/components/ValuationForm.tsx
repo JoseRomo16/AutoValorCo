@@ -47,17 +47,12 @@ import {
 import { cop, integer, kilometres } from "@/lib/format";
 import { copy, fill } from "@/lib/i18n";
 import type { Localized } from "@/lib/i18n";
-
-/**
- * Below this many training listings a department is offered in its own group at the end of
- * the list, with a notice when it is chosen.
- *
- * Fifty rather than a rounder number because that is where the catalogue actually splits:
- * three of ten car departments sit under it (Cauca 1, Meta 2, Quindío 12) and the next one
- * up has an order of magnitude more. Hiding them would leave whoever lives there with no
+/*
+ * Below LOW_DATA_LISTINGS a department is offered in its own group at the end of the list,
+ * with a notice when it is chosen. Hiding them would leave whoever lives there with no
  * service at all, which costs more than telling them the estimate is thinner.
  */
-const LOW_DATA_LISTINGS = 50;
+import { LOW_DATA_LISTINGS } from "@/lib/listings";
 
 /**
  * The lake's unresolved-make bucket, which must never be offered as a make.

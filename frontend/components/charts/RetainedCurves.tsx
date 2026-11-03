@@ -20,6 +20,12 @@ type Props = {
   curves: Curve[];
   axisLabelX: string;
   axisLabelY: string;
+  /**
+   * How the legend reads a curve's last point, already translated and formatted: "59 % a
+   * los 10 años". It used to print `59% · 10`, which left the reader to guess that the
+   * second number was an age.
+   */
+  formatLastPoint: (point: { age: number; retained: number }) => string;
 };
 
 const WIDTH = 640;
@@ -29,7 +35,7 @@ const PAD = { top: 12, right: 12, bottom: 34, left: 40 };
 /** Deliberately not a rainbow: six hues that stay distinguishable in both themes. */
 const COLORS = ["#059669", "#0284c7", "#d97706", "#7c3aed", "#db2777", "#475569"];
 
-export function RetainedCurves({ curves, axisLabelX, axisLabelY }: Props) {
+export function RetainedCurves({ curves, axisLabelX, axisLabelY, formatLastPoint }: Props) {
   const ages = curves.flatMap((curve) => curve.points.map((point) => point.age));
   const maxAge = Math.max(...ages, 1);
   const plotWidth = WIDTH - PAD.left - PAD.right;
@@ -116,9 +122,7 @@ export function RetainedCurves({ curves, axisLabelX, axisLabelY }: Props) {
               />
               <span className="font-medium text-slate-700 dark:text-slate-200">{curve.label}</span>
               {last && (
-                <span className="tnum">
-                  {Math.round(last.retained)}% · {last.age}
-                </span>
+                <span className="tnum">{formatLastPoint(last)}</span>
               )}
             </span>
           );
