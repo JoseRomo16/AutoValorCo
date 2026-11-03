@@ -47,6 +47,10 @@
   --color-bar-muted: var(--bar-muted);
   --color-bar-edge: var(--bar-edge);
   --color-grid: var(--grid);
+  --color-seg-identity: var(--seg-identity);
+  --color-seg-condition: var(--seg-condition);
+  --color-seg-other: var(--seg-other);
+  --color-on-seg: var(--on-seg);
 
   --font-display: var(--font-archivo), "Arial Black", system-ui, sans-serif;
   --font-sans: var(--font-plex), "Segoe UI", system-ui, sans-serif;
@@ -101,6 +105,13 @@
      zero", which is the thing it exists to say. */
   --bar-edge: #908d85;
   --grid: #2b2923;
+  /* The identity / condition / other split on the market page. Each fill carries its
+     number inside it, so the pair is measured as text (4.5:1), not as a mark: --on-seg on
+     identity and condition, --ink on other. The audit found white 11 px type at 2.71:1. */
+  --seg-identity: #f6c800;
+  --seg-condition: #8b8678;
+  --seg-other: #45423a;
+  --on-seg: #14130f;
   --veil: rgba(20, 19, 15, 0.78);
 }
 
@@ -129,6 +140,11 @@
   --bar-muted: #d6d0c0;
   --bar-edge: #7a7464;
   --grid: #e3ded1;
+  /* --bar is 3.65:1 under paper-coloured text, so condition takes the darker muted grey. */
+  --seg-identity: #7a5c00;
+  --seg-condition: #5f5a4d;
+  --seg-other: #d6d0c0;
+  --on-seg: #f6f3ea;
   --veil: rgba(246, 243, 234, 0.82);
 }
 
