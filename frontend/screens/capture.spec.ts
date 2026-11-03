@@ -42,7 +42,8 @@ const VIEWS = {
     const query = new URLSearchParams({
       tipo: "carro",
       marca: MAKE,
-      anio: String(Math.floor((model_year.min + model_year.max) / 2)),
+      // A recent car reads as a realistic example: the mid-point of 1955–2027 is 1991.
+      anio: String(Math.round(model_year.max) - 8),
       km: "60000",
       depto: DEPARTMENT,
       precio: "60000000",
@@ -60,6 +61,9 @@ function selected(theme: ThemeName, width: number): boolean {
   return (theme === "claro" || theme === "oscuro") && (width === 1440 || width === 375);
 }
 
+/** The views the README shows, one screenful each. */
+const README = new Set(["valorar-resultado", "mercado", "metodologia"]);
+
 mkdirSync(OUT, { recursive: true });
 
 for (const [view, open] of Object.entries(VIEWS)) {
@@ -73,6 +77,22 @@ for (const [view, open] of Object.entries(VIEWS)) {
           await open(page);
           await settle(page);
           const name = `${view}_${theme}_${width}.jpg`;
+          // The README shows one screen, not a page eight thousand pixels tall: the first
+          // screenful at 1440, Valorar scrolled to its form and result. Taken before the
+          // full-page capture, which leaves a sticky header drawn out of place.
+          if (process.env.SCREENS_SELECTION === "1" && width === 1440 && README.has(view) && selected(theme, width)) {
+            if (view === "valorar-resultado") {
+              await page.locator("form").first().evaluate((node) => {
+                // The site scrolls smoothly; a capture mid-scroll catches the header in motion.
+                window.scrollTo({ top: node.getBoundingClientRect().top + window.scrollY - 80, behavior: "instant" });
+              });
+              await settle(page);
+            }
+            const screen = await page.screenshot({ type: "jpeg", quality: 80 });
+            writeFileSync(path.join(SELECTED, `readme_${view}_${theme}.jpg`), screen);
+            await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+            await settle(page);
+          }
           const shot = await page.screenshot({ fullPage: true, type: "jpeg", quality: 72 });
           writeFileSync(path.join(OUT, name), shot);
           if (process.env.SCREENS_SELECTION === "1" && selected(theme, width)) {
