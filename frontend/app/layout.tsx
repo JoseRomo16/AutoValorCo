@@ -91,7 +91,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // lang="es" because Spanish is the default; LanguageProvider rewrites it when a visitor
   // switches, so the attribute never disagrees with what is rendered.
   return (
-    <html lang="es" className={`${archivo.variable} ${plex.variable} ${jetbrains.variable}`}>
+    <html
+      lang="es"
+      // LANG_SCRIPT and THEME_SCRIPT write lang and data-theme before React hydrates.
+      suppressHydrationWarning
+      className={`${archivo.variable} ${plex.variable} ${jetbrains.variable}`}>
       <head>
         {/* Before the first paint. React runs after parsing, so a React-based fix flashes. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

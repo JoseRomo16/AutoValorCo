@@ -77,9 +77,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // one after it. The first commit during hydration is the server's Spanish; the hold is
   // only released once the rendered language is the stored one.
   useLayoutEffect(() => {
+    // Never write the server's Spanish over what LANG_SCRIPT set: `lang` would flip
+    // en -> es -> en during hydration.
+    if (lang !== getSnapshot()) return;
     const root = document.documentElement;
     root.lang = lang;
-    if (lang === getSnapshot()) delete root.dataset.langPending;
+    delete root.dataset.langPending;
   }, [lang]);
 
   const value = useMemo<LanguageState>(
