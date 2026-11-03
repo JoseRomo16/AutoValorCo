@@ -140,8 +140,8 @@ export const copy = {
     ready: { es: "Modelo listo", en: "Model ready" },
     wakingTitle: { es: "El servicio está arrancando", en: "The service is starting up" },
     wakingBody: {
-      es: "Estaba inactivo por falta de uso. Esta primera consulta puede tardar cerca de un minuto y las siguientes responden al instante.",
-      en: "It had gone idle for lack of traffic. This first request can take about a minute, and the rest answer instantly.",
+      es: "El servidor se estaba despertando. Seguimos esperando su respuesta: la primera consulta puede tardar cerca de un minuto y las siguientes responden al instante.",
+      en: "The server was waking up. We are still waiting for its answer: the first request can take about a minute, and the rest answer instantly.",
     },
   },
 
@@ -407,8 +407,8 @@ export const copy = {
   market: {
     heading: { es: "Qué dice el mercado", en: "What the market says" },
     lead: {
-      es: "Cuánto valor pierde un vehículo cada año, cuánto se cobra el kilometraje y dónde se pide más caro el mismo vehículo.",
-      en: "How much value a vehicle loses each year, how much mileage is charged for, and where the same vehicle is asked at more.",
+      es: "Cuánto valor pierde un vehículo cada año, cuánto se cobra el kilometraje y dónde se pide a mayor precio el mismo vehículo.",
+      en: "How much value a vehicle loses each year, how much mileage is charged for, and where the same vehicle is listed higher.",
     },
     leadDetail: {
       es: "Las cifras salen de una regresión de precios, que separa cuánto aporta cada característica por separado (una regresión hedónica, en la jerga). Cada estimación lleva su margen al 95 %, y cuando ese margen pasa por el cero lo marcamos.",
@@ -425,8 +425,8 @@ export const copy = {
     findingsTitle: { es: "Lo que encontramos", en: "What we found" },
     findings: {
       flatMotoTitle: {
-        es: "Una moto casi no pierde valor con los años",
-        en: "A motorcycle barely loses value with age",
+        es: "En varias marcas de motos, el precio pedido baja poco con los años",
+        en: "For several motorcycle makes, the asking price drops little with age",
       },
       flatMotoBody: {
         es: "Una {brand} pierde {pct} al año, y la medición no la distingue de no perder nada.",
@@ -441,8 +441,8 @@ export const copy = {
         en: "They take {amount} off the asking price, against a median of {median}.",
       },
       regionalTitle: {
-        es: "La misma moto se pide más caro en {department}",
-        en: "The same motorcycle is asked at more in {department}",
+        es: "La misma moto se pide a mayor precio en {department}",
+        en: "The same motorcycle is listed higher in {department}",
       },
       regionalBody: {
         es: "{pct} por encima de Bogotá, con el mismo modelo, la misma edad y el mismo kilometraje.",
@@ -466,8 +466,8 @@ export const copy = {
         en: "{lowBrand} loses {lowPct} a year and {highBrand} loses {highPct}, nearly twice as fast. On a {median} car that gap is {gap} every year.",
       },
       insightMoto: {
-        es: "{refBrand} pierde {refPct} al año y su margen pasa por el cero, así que estos datos no la distinguen de no perder nada. {highBrand} pierde {highPct}. En las marcas que aguantan, una moto usada cuesta casi lo mismo que una nueva.",
-        en: "{refBrand} loses {refPct} a year and its margin crosses zero, so this data cannot tell it apart from losing nothing. {highBrand} loses {highPct}. For the makes that hold value, a used motorcycle costs close to a new one.",
+        es: "{refBrand} pierde {refPct} al año y su margen pasa por el cero, así que estos datos no la distinguen de no perder nada. {highBrand} pierde {highPct}. En las marcas que más conservan su valor, la diferencia de precio entre años es pequeña.",
+        en: "{refBrand} loses {refPct} a year and its margin crosses zero, so this data cannot tell it apart from losing nothing. {highBrand} loses {highPct}. For the makes that hold their value best, the price gap between model years is small.",
       },
     },
 
@@ -488,6 +488,8 @@ export const copy = {
         es: "Mostramos la marca que más conserva, la que menos y la de referencia.",
         en: "We show the make that holds most, the one that holds least, and the reference.",
       },
+      /** The legend's value at the oldest age drawn, so the number reads with its unit. */
+      legendPoint: { es: "{pct} a los {age} años", en: "{pct} at {age} years" },
       axisAge: { es: "Edad (años)", en: "Age (years)" },
       axisRetained: { es: "Valor que queda", en: "Value left" },
     },
@@ -504,7 +506,7 @@ export const copy = {
       },
       insight: {
         es: "En el carro de precio medio 10.000 km valen {median}, y en el cuartil más caro {top}. En {flatCount} de los cuatro cuartiles de carros el efecto no se distingue de cero, así que el kilometraje no explica el precio por sí solo.",
-        en: "On the mid-priced car 10,000 km are worth {median}, and in the dearest quartile {top}. In {flatCount} of the four car quartiles the effect is indistinguishable from zero, so mileage does not explain the price on its own.",
+        en: "On the mid-priced car 10,000 km are worth {median}, and in the most expensive quartile {top}. In {flatCount} of the four car quartiles the effect is indistinguishable from zero, so mileage does not explain the price on its own.",
       },
       segmentAll: { es: "todo el grupo", en: "the whole group" },
       quartile: { es: "Cuartil {n}", en: "Quartile {n}" },
@@ -513,8 +515,8 @@ export const copy = {
 
     regional: {
       title: {
-        es: "Dónde se pide más caro el mismo vehículo",
-        en: "Where the same vehicle is asked at more",
+        es: "Dónde se pide a mayor precio el mismo vehículo",
+        en: "Where the same vehicle is listed higher",
       },
       lead: {
         es: "Diferencia frente a Bogotá para un vehículo comparable: mismo modelo, misma edad, mismo kilometraje y misma cilindrada.",
@@ -522,11 +524,16 @@ export const copy = {
       },
       insightCar: {
         es: "En carros el país se comporta casi como un solo mercado: entre el departamento más caro y el más barato hay {spread}, que sobre un carro de {median} son {amount}.",
-        en: "For cars the country behaves almost as a single market: between the dearest and the cheapest department there are {spread}, which on a {median} car comes to {amount}.",
+        en: "For cars the country behaves almost as a single market: between the most expensive and the cheapest department there are {spread}, which on a {median} car comes to {amount}.",
       },
       insightMoto: {
         es: "En motos la diferencia llega a {spread}. La misma moto se pide {high} por encima de Bogotá en {highDept} y {low} por debajo en {lowDept}.",
         en: "For motorcycles the difference reaches {spread}. The same motorcycle is asked {high} above Bogotá in {highDept} and {low} below it in {lowDept}.",
+      },
+      /** Departments under the catalogue's low-data line go last, with this instead of a figure note. */
+      fewListings: {
+        es: "pocos anuncios, estimado menos preciso",
+        en: "few listings, less precise estimate",
       },
       caveat: {
         es: "El departamento dice dónde se publicó el anuncio, que se parece al lugar donde está el vehículo sin ser lo mismo.",
@@ -888,7 +895,7 @@ export const copy = {
       term: { es: "rango probable", en: "likely range" },
       definition: {
         es: "El intervalo donde se piden ocho de cada diez anuncios parecidos. Fuera quedan el 10 % más barato y el 10 % más caro.",
-        en: "The interval eight in ten comparable listings are asked within. The cheapest 10 % and the dearest 10 % fall outside.",
+        en: "The interval eight in ten comparable listings are asked within. The cheapest 10 % and the most expensive 10 % fall outside.",
       },
     },
     heldOut: {

@@ -7,8 +7,9 @@ import { defineConfig } from "vitest/config";
  *
  * There was no JavaScript runner here until the theme bug: lint and `tsc` cannot catch a
  * provider that writes the wrong attribute. The scope stays narrow on purpose — behaviour
- * that lives in the browser and has no Python equivalent. Everything that can be measured
- * from a file (figures, copy) is still tested in pytest, where the rest of the suite is.
+ * that lives in the browser and has no Python equivalent. Figures measured from a file are
+ * still tested in pytest, where the rest of the suite is; the copy is checked here
+ * (`tests/copy.test.ts`) because walking the `copy` object beats parsing TypeScript.
  *
  * `.mts` because package.json declares no module type, so a plain `.ts` config would be
  * read as CommonJS; the same reason `next.config.mjs` carries its extension.
