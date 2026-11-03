@@ -41,6 +41,8 @@ docs/          # ADRs, diccionario de datos, results/ (JSON y CSV versionados) y
 - `make readme` regenera las cifras del README desde `model.json` y `docs/results`; `tests/test_readme.py` falla si quedó desactualizado
 - `make serve` levanta la API en local
 - `make web` levanta el frontend en local; `make web-build` hace el export estático; `make web-lint` corre ESLint + tsc
+- `npm run e2e` (en `frontend/`) corre Playwright sobre `out/` contra la API local: regresiones, auditoría de legibilidad/contraste/toque (`e2e/audit.ts`, con autoprueba) y comportamiento global. Antes: `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 npm run build`; en Windows, `E2E_API_COMMAND` con la ruta completa de `uv.exe`
+- `npx playwright test --config playwright.screens.config.ts` genera las 80 capturas en `screens-out/`; con `SCREENS_SELECTION=1` copia la selección a `docs/design/screens/`. El GIF: `VALORAR_GIF=1` y `scripts/valorar_gif.py`
 - `make test` corre pytest; `make lint` corre ruff + mypy
 
 ## Convenciones
@@ -51,6 +53,9 @@ docs/          # ADRs, diccionario de datos, results/ (JSON y CSV versionados) y
 - Commits pequeños con Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`).
 - Nada de lógica de negocio en notebooks: los notebooks importan desde `src/autovalor`.
 - Configuración por variables de entorno (`.env`, nunca commiteado); `.env.example` actualizado.
+- Las pruebas no fijan años ni rangos: leen los bordes de `/catalog` (min − 1, max + 1). Un caso que depende de una marca concreta se salta con mensaje si deja de existir.
+- Un nombre por cifra en las tres páginas, ES/EN y la API: "anuncios en total" (`total_rows`), "para entrenar" (`train_rows`), "para evaluar", "error medio", "rango", "versión del modelo". `tests/copy.test.ts` falla con las variantes retiradas.
+- Plugins del proyecto declarados en `.claude/settings.json` (frontend-design, playwright, pr-review-toolkit, commit-commands, claude-md-management, LSP de TS y Python, security-guidance, context7); ver `CONTRIBUTING.md`.
 
 ## Costo cero
 
@@ -68,6 +73,9 @@ Restricción de diseño, no una preferencia: **el proyecto opera sin ningún cos
 - Scraping educado: respetar robots.txt, pausas aleatorias entre requests, user-agent identificable, sin paralelismo agresivo.
 - Nunca guardar datos personales de vendedores (nombres, teléfonos, correos). Ley 1581 de 2012.
 - La capa bronze es inmutable: se escribe una vez por captura, con `captured_at` y `source_url`.
+- **La captura está en pausa** desde el 2026-10-26 ([ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md)): TuCarro pide verificar cuenta y esquivarla (proxies, rotar IP o user-agent, navegador sin cabeza) es evasión, descartada. La captura se detiene en la primera verificación. Última captura buena: 2026-10-19.
+- **El modelo no usa ciudad** ([ADR 0006](docs/adr/0006-drop-city-feature.md)): el formulario pide departamento, y "Otro departamento" o uno desconocido se valora como promedio ponderado con `warnings: ["department_not_covered"]`. Las cifras publicadas se miden con los valores que `/predict` envía (`as_served` en `models/serving.py`); la prueba de paridad lo exige.
+- **Las reglas de validación salen de `/catalog`**: año, cilindrada, kilometraje y piso de precio. `/predict` las aplica (422) y el formulario las lee para placeholder y error en línea; ningún rango se teclea en el frontend.
 - `valor_fasecolda` no se usa como feature del modelo base (fuga de información). Era solo un benchmark y ese benchmark quedó fuera de alcance; la regla se mantiene por si alguna vez entra un export manual.
 - Precio modelado como log(precio). Carros y motos son modelos separados.
 
@@ -85,6 +93,8 @@ cobertura ya entra en la ventana. No inventes una excepción ni subas el umbral 
 pase: el gate se evalúa sobre el holdout y arreglarlo contra el holdout lo vuelve una cifra
 en muestra.
 
+El error publicado es el de la **partición aleatoria** (la cifra principal, con la que se miden rango y etiqueta); el de la **partición temporal** se publica al lado como segunda medición, nunca en su lugar (ADR 0006, c).
+
 Los tres umbrales no se teclean en ningún lado: `LABEL_GATE` en `models/quantiles.py` los
 publica, `save_bundle` los escribe en `model.json` bajo `label.gate` y `/model-info` los
 devuelve en `label_gate`. **Las cifras vigentes de cada vertical están en el bloque
@@ -96,7 +106,8 @@ generado del README** (`make readme`); no las copies a mano a ningún documento.
 - F1 Datos: piloto de 1.000 anuncios para medir σ del error; cierre con ≥ 6.000 carros y ≥ 2.600 motos limpios (captura bruta ~7.500 y ~3.500). Captura semanal activa desde aquí. (cerrada)
 - F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (**cerrada**: carros cumplen la meta y publican etiqueta; motos no llegan y publican precio + rango sin etiqueta, por la regla de arriba. El modelo servido es LightGBM. Cifras vigentes: bloque generado del README.)
 - F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, efectos regionales y costo del kilometraje. (**cerrada** salvo el índice mensual, que espera histórico hasta ~2027-03-29. La comparación con Fasecolda quedó **fuera de alcance**: la guía no se obtiene por HTTP público y la suscripción la descarta la regla de costo cero.)
-- F4 Producto: API (/predict, /explain, /catalog, /market, /health, /model-info), app Next.js, Docker, despliegue en Render. (**actual**: la API está desplegada y probada; el frontend está en curso.)
+- F4 Producto: API (/predict, /explain, /catalog, /market, /health, /model-info), app Next.js, Docker, despliegue en Render. (**cerrada**: API y sitio desplegados; rediseño y Bloque 9 de verificación cerrados, checklists en `docs/STATUS.md`.)
+- Siguiente: Bloque 10, PWA. Cuando un cambio toca API y sitio, se despliega la API primero.
 
 ## Forma de trabajo
 
