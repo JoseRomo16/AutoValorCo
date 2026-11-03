@@ -183,26 +183,6 @@ export const copy = {
     year: { es: "Año del modelo", en: "Model year" },
     engine: { es: "Cilindrada", en: "Displacement" },
     engineUnit: { es: "cc", en: "cc" },
-    /*
-     * The hints under each field with a rule. The ranges come from /catalog for the
-     * vertical on screen, never typed here, and the placeholder and the error message of
-     * each field quote the same range in the same format.
-     */
-    yearHint: { es: "Entre {min} y {max}", en: "Between {min} and {max}" },
-    mileageHint: { es: "Hasta {max} km", en: "Up to {max} km" },
-    engineHintRange: {
-      es: "Entre {min} y {max} cc. Si no la sabes, déjala vacía.",
-      en: "Between {min} and {max} cc. Leave it empty if you do not know it.",
-    },
-    // Without a published range (a catalogue that records no displacement).
-    engineHint: {
-      es: "Si no la sabes, déjala vacía.",
-      en: "Leave it empty if you do not know it.",
-    },
-    modelHint: {
-      es: "Si no está en la lista, valoramos con la marca.",
-      en: "If it is not on the list, we value it with the make.",
-    },
     mileage: { es: "Kilometraje", en: "Mileage" },
     mileageUnit: { es: "km", en: "km" },
     department: { es: "Departamento", en: "Department" },
@@ -224,15 +204,6 @@ export const copy = {
       en: "We will use the average of the departments we do have.",
     },
     askingPrice: { es: "Precio pedido", en: "Asking price" },
-    askingPriceHintRange: {
-      es: "Desde {min}. Si lo escribes, lo comparamos contra el rango.",
-      en: "From {min}. If you enter it, we compare it against the range.",
-    },
-    // Against a service older than the price range.
-    askingPriceHint: {
-      es: "Si lo escribes, lo comparamos contra el rango.",
-      en: "If you enter it, we compare it against the range.",
-    },
 
     discarded: {
       es: "Quitamos {chars} porque este campo solo acepta números.",
