@@ -20,7 +20,8 @@ export type Share = {
 const FILL: Record<ShareTone, string> = {
   identity: "bg-seg-identity text-on-seg",
   condition: "bg-seg-condition text-on-seg",
-  other: "bg-seg-other text-ink",
+  // The remainder is pale by design, so its edge carries the 3:1 instead.
+  other: "bg-seg-other border border-bar-edge text-ink",
 };
 
 /** Under this share of the bar a 13 px "16 %" no longer fits inside its segment. */
@@ -50,6 +51,7 @@ export function ShareBar({ shares }: { shares: Share[] }) {
               {placed.map((segment) => (
                 <span
                   key={segment.label}
+                  data-mark=""
                   className={`${FILL[segment.tone]} flex items-center justify-center font-mono text-caption font-medium tnum`}
                   style={{ width: `${segment.width}%` }}
                 >

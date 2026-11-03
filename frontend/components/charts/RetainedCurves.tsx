@@ -203,8 +203,12 @@ export function RetainedCurves({
                 y2={y(value)}
                 stroke={value === floor ? "var(--line-strong)" : "var(--grid)"}
                 strokeWidth={1}
+                // Gridlines are reading aids, not marks: WCAG 1.4.11 asks 3:1 of what is
+                // needed to understand the chart, and the values are on the axis and in the
+                // table. The baseline is a mark and keeps line-strong.
+                data-decorative={value === floor ? undefined : ""}
               />
-              <text x={pad.left - 8} y={y(value) + 4} textAnchor="end" fill="var(--muted)">
+              <text x={pad.left - 8} y={y(value) + 4} textAnchor="end" fill="var(--muted)" data-axis="">
                 {value}%
               </text>
             </g>
@@ -219,6 +223,7 @@ export function RetainedCurves({
                 y={pad.top + plotHeight + 20}
                 textAnchor="middle"
                 fill="var(--muted)"
+                data-axis=""
               >
                 {age}
               </text>
