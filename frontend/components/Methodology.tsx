@@ -133,16 +133,23 @@ function Figure({
   label,
   caption,
   extra,
+  pair = false,
 }: {
   number: string;
   unit?: string;
   label: string;
   caption: string;
   extra?: string;
+  /** Two figures in one ("80,2 / 80,5 %"): smaller, and free to wrap at the slash. */
+  pair?: boolean;
 }) {
   return (
-    <div className="min-w-0 border-line py-2 sm:px-6 sm:first:pl-0 lg:border-l lg:first:border-l-0">
-      <p className="whitespace-nowrap font-mono text-step-figure font-medium leading-none tracking-[-0.04em] text-ink tnum">
+    <div className="min-w-0 border-line py-2 lg:border-l lg:pl-6 lg:first:border-l-0 lg:first:pl-0">
+      <p
+        className={`font-mono font-medium leading-none tracking-[-0.04em] text-ink tnum ${
+          pair ? "text-[clamp(1.5rem,1rem+1vw,1.875rem)]" : "whitespace-nowrap text-step-figure"
+        }`}
+      >
         {number}
         {unit && <small className="ml-1 text-[0.52em] tracking-normal text-accent-text">{unit}</small>}
       </p>
@@ -366,7 +373,7 @@ export function Methodology({
 
       {car && moto && (
         <section
-          aria-label={t(copy.method.cards.errorCarLabel)}
+          aria-label={t(copy.method.cards.groupLabel)}
           className="mt-10 grid gap-8 rounded-lg border border-line bg-band p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-4"
         >
           <Figure
@@ -405,6 +412,7 @@ export function Methodology({
               lang,
             )}`}
             unit="%"
+            pair
             label={t(copy.method.cards.coverageLabel)}
             caption={t(copy.method.cards.coverageCaption)}
           />
@@ -532,8 +540,8 @@ export function Methodology({
             <Body>{t(copy.method.results.detail)}</Body>
 
             <div className="overflow-x-auto rounded-lg border border-line">
-              <table className="w-full min-w-[42rem] border-collapse">
-                <caption className="px-5 pt-4 text-left text-detail text-muted">
+              <table className="w-full min-w-[40rem] border-collapse">
+                <caption className="px-4 pt-4 text-left text-detail text-muted">
                   {t(copy.method.results.tableCaption)}
                 </caption>
                 <thead>
@@ -550,7 +558,7 @@ export function Methodology({
                       <th
                         key={column.label.en}
                         scope="col"
-                        className={`whitespace-nowrap px-5 py-4 font-mono text-caption font-normal uppercase tracking-[0.08em] text-muted ${
+                        className={`px-4 py-4 align-bottom font-mono text-caption font-normal uppercase leading-snug tracking-[0.08em] text-muted ${
                           column.right ? "text-right" : "text-left"
                         }`}
                       >
@@ -565,7 +573,7 @@ export function Methodology({
                     const failureCopy = failure ? FAILURE_COPY[failure.code] : undefined;
                     return (
                       <tr key={model.vehicle_type}>
-                        <th scope="row" className="border-t border-line px-5 py-4 text-left font-normal text-ink">
+                        <th scope="row" className="border-t border-line px-4 py-4 text-left font-normal text-ink">
                           {verticalName(model)}
                         </th>
                         {[
@@ -577,15 +585,15 @@ export function Methodology({
                         ].map((value, index) => (
                           <td
                             key={index}
-                            className="border-t border-line px-5 py-4 text-right font-mono text-ink tnum"
+                            className="border-t border-line px-4 py-4 text-right font-mono text-ink tnum"
                           >
                             {value}
                           </td>
                         ))}
-                        <td className="border-t border-line px-5 py-4 align-top">
+                        <td className="border-t border-line px-4 py-4 align-top">
                           <Badge published={model.publishes_label} lang={lang} />
                           {!model.publishes_label && failure && failureCopy && (
-                            <span className="mt-1.5 block max-w-[22rem] text-caption text-muted">
+                            <span className="mt-1.5 block max-w-[15rem] text-caption text-muted">
                               {fill(failureCopy, lang, {
                                 value: percent(failure.value * 100, lang, 0),
                                 limit: percent(failure.limit * 100, lang, 0),
@@ -605,7 +613,7 @@ export function Methodology({
                 <Subtitle>{t(copy.method.results.errorsTitle)}</Subtitle>
                 <div className="overflow-x-auto rounded-lg border border-line">
                   <table className="w-full min-w-[28rem] border-collapse">
-                    <caption className="px-5 pt-4 text-left text-detail text-muted">
+                    <caption className="px-4 pt-4 text-left text-detail text-muted">
                       {t(copy.method.results.errorsCaption)}
                     </caption>
                     <thead>
@@ -618,7 +626,7 @@ export function Methodology({
                           <th
                             key={column.label.en}
                             scope="col"
-                            className={`whitespace-nowrap px-5 py-4 font-mono text-caption font-normal uppercase tracking-[0.08em] text-muted ${
+                            className={`px-4 py-4 align-bottom font-mono text-caption font-normal uppercase leading-snug tracking-[0.08em] text-muted ${
                               column.right ? "text-right" : "text-left"
                             }`}
                           >
@@ -630,13 +638,13 @@ export function Methodology({
                     <tbody>
                       {[car, moto].map((model) => (
                         <tr key={model.vehicle_type}>
-                          <th scope="row" className="border-t border-line px-5 py-4 text-left font-normal text-ink">
+                          <th scope="row" className="border-t border-line px-4 py-4 text-left font-normal text-ink">
                             {verticalName(model)}
                           </th>
-                          <td className="border-t border-line px-5 py-4 text-right font-mono font-medium text-ink tnum">
+                          <td className="border-t border-line px-4 py-4 text-right font-mono font-medium text-ink tnum">
                             {percent(model.mape * 100, lang)}
                           </td>
-                          <td className="border-t border-line px-5 py-4 text-right font-mono text-muted tnum">
+                          <td className="border-t border-line px-4 py-4 text-right font-mono text-muted tnum">
                             {model.temporal ? percent(model.temporal.mape * 100, lang) : "—"}
                           </td>
                         </tr>
