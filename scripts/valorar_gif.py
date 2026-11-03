@@ -18,6 +18,15 @@ BUDGET_BYTES = 5 * 1024 * 1024
 
 
 def main(frames_dir: str, output: str) -> int:
+    """Write the GIF and return 0, or 1 with no frames and 2 when it exceeds the budget.
+
+    Args:
+        frames_dir: Directory of PNG frames, assembled in name order.
+        output: Path of the GIF to write.
+
+    Returns:
+        The process exit code.
+    """
     paths = sorted(Path(frames_dir).glob("*.png"))
     if not paths:
         sys.stderr.write(f"no frames in {frames_dir}\n")
