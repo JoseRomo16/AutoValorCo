@@ -1,8 +1,8 @@
 # ADR 0006 - Drop `city` from the model, and what the band does without it
 
-- Status: **accepted** for dropping `city` (decided before the block). **Proposed** for the
-  three points under "Open for the owner", which wait for a decision.
-- Date: 2026-11-02
+- Status: **accepted**, all of it. Dropping `city` was decided before the block; the three
+  points under "Decided by the owner" were accepted on 2026-11-03.
+- Date: 2026-11-02 (points a-c decided 2026-11-03)
 - Measurements: [`docs/reports/block4_baseline.json`](../reports/block4_baseline.json)
   (before) and [`docs/reports/block4_after.json`](../reports/block4_after.json) (after),
   both produced by `python -m autovalor.models.band_diagnostics` on the same holdout
@@ -97,7 +97,21 @@ same thing now.
   pooled brand groups only. It is a difference between two models answering different
   questions, not a bug, and Metodología should not present one as the other.
 
-## Open for the owner
+## Decided by the owner
+
+Accepted on 2026-11-03, each as recommended below:
+
+- **(a)** The label is **not** withheld under "Otro departamento": its measured coverage
+  (80,0 % cars, 80,4 % motorcycles) is inside 78-82 %. Nothing to implement.
+- **(b)** **Option g**: the band does not change. The regression test on the estimate's
+  position (`tests/models/test_served_band_position.py`) stays as the guard.
+- **(c)** **Both errors are published with their definitions**: the random partition as
+  the headline, the temporal one beside it as "on listings newer than the training data",
+  with the caveat that today it spans 19 days of captures. The copy is Block 8's
+  (Metodología), and reads both figures from `model.json`.
+
+The analysis each decision rests on follows, as it stood when it was proposed.
+
 
 ### (a) Withhold the label only under "Otro departamento"?
 
@@ -134,10 +148,9 @@ Options, as the plan framed them:
   against 10,0 % on cars, 22,7 % against 20,4 % on motorcycles. Not recommended.
 - **g) Change nothing.** Supported by the holdout.
 
-**Recommendation: g**, with the regression test that now pins the grid
+**Recommendation: g** (accepted), with the regression test that now pins the grid
 (`tests/models/test_served_band_position.py`: median within 0,25-0,75, at most half the
-grid in the outer fifths; the old bundle fails both on motorcycles). If the owner prefers e,
-it goes in its own PR, as agreed.
+grid in the outer fifths; the old bundle fails both on motorcycles). Option e was not taken.
 
 ### (c) Which error Metodología publishes
 
