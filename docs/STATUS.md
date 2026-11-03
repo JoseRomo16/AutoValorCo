@@ -1696,8 +1696,9 @@ absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por blo
 | 5 | Tooling: skill duplicada fuera, plugins declarados en `.claude/settings.json`, [`CONTRIBUTING.md`](../CONTRIBUTING.md) | [#32](https://github.com/JoseRomo16/AutoValorCo/pull/32) |
 | 6 | Copy ES/EN: textos corregidos, departamentos con pocos anuncios al final de la gráfica regional, pruebas de claves y de textos retirados | [#33](https://github.com/JoseRomo16/AutoValorCo/pull/33) |
 | 7 | Mercado con el diseño nuevo: tokens, pestañas Carros/Motos, tarjetas de hallazgos, tooltips, descripciones y tablas accesibles, y la nota que separa el efecto regional hedónico del de Valorar | [#34](https://github.com/JoseRomo16/AutoValorCo/pull/34), [#35](https://github.com/JoseRomo16/AutoValorCo/pull/35) (móvil, letra ≥ 13 px, favicon) |
-| **7b** | **Comparar marcas en el valor retenido** (hasta 5, el resto en gris de fondo) y lecturas por vehículo en cada gráfica | rama `feat/market-brand-compare`, PR abierto |
-| 8–9 | Metodología, verificación final | sin empezar |
+| 7b | Comparar marcas en el valor retenido (hasta 5, el resto en gris de fondo) y lecturas por vehículo en cada gráfica | [#36](https://github.com/JoseRomo16/AutoValorCo/pull/36) |
+| **8** | **Metodología con el diseño nuevo y ajustes de Valorar**: los dos errores del ADR 0006 (c), captura en pausa, índice sticky, términos definidos; enlace compartible, botón visible sin scroll, factores con color y texto | rama `feat/methodology-redesign`, PR abierto |
+| 9 | Verificación final | sin empezar |
 
 El bundle desplegado es `2026-10-25.12948` (verificado en `/model-info` el 2026-11-02); el
 del Bloque 4, `2026-11-02.12948`, está en `main` y se despliega API primero, sitio después.
@@ -1725,7 +1726,7 @@ el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el
 
 1. **El Bloque 4** (modelo sin ciudad), y su despliegue: la API primero, el sitio después.
    Pasos en [`deploy-render.md`](deploy-render.md); el despliegue no se automatiza desde aquí.
-2. **Los Bloques 7 a 9** (el 7 en PR); lo que queda del rediseño está en [`redesign.md`](redesign.md).
+2. **Los Bloques 8 y 9** (el 8 en PR); lo que queda del rediseño está en [`redesign.md`](redesign.md).
 3. **La captura semanal está caída y no es culpa del código.** Desde el run del 2026-10-26
    TuCarro responde a las IP de GitHub Actions con un `302` a la verificación de cuenta de
    MercadoLibre, así que el scraper parsea esa página y captura 0 anuncios en las seis
