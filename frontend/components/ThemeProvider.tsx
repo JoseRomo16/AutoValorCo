@@ -115,6 +115,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.dataset.theme = resolved;
     root.dataset.themePref = theme;
+    // The browser chrome (and the installed app's title bar) follows the chosen theme, not
+    // only the system's: the metas carry a media query each, so both get the ground the
+    // page is actually painted with, read back from the stylesheet rather than repeated.
+    const ground = getComputedStyle(root).getPropertyValue("--ground").trim();
+    if (ground) {
+      for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+        meta.content = ground;
+      }
+    }
   }, [resolved, theme]);
 
   const value = useMemo<ThemeState>(() => ({ theme, resolved, setTheme: store }), [theme, resolved]);

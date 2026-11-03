@@ -144,6 +144,13 @@ export type ExplainResponse = {
 export class ApiError extends Error {}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  return (await requestWithHeaders<T>(path, init)).body;
+}
+
+async function requestWithHeaders<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<{ body: T; headers: Headers }> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
@@ -164,11 +171,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       .catch(() => undefined);
     throw new ApiError(detail ?? `HTTP ${response.status}`);
   }
-  return (await response.json()) as T;
+  return { body: (await response.json()) as T, headers: response.headers };
 }
 
-export function fetchCatalog(): Promise<CatalogResponse> {
-  return request<CatalogResponse>("/catalog");
+/**
+ * The catalogue, and when it was saved if it did not come from the network.
+ *
+ * Offline, the service worker answers /catalog with the last copy that worked and stamps
+ * it with `x-autovalor-cached-at` (ADR 0007), so the form can load and still say its
+ * lists may be out of date. Online the header is absent and `cachedAt` is null.
+ */
+export async function fetchCatalog(): Promise<CatalogResponse & { cachedAt: string | null }> {
+  const { body, headers } = await requestWithHeaders<CatalogResponse>("/catalog");
+  return { ...body, cachedAt: headers.get("x-autovalor-cached-at") };
 }
 
 export function fetchPrediction(payload: PredictRequest): Promise<PredictResponse> {

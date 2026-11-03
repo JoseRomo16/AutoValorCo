@@ -280,10 +280,16 @@ make web                                      # http://localhost:3000
 
 Sin `.env.local` el frontend apunta a `https://autovalor-api.onrender.com`.
 
+**Se instala como app.** Chrome (escritorio y Android) ofrece instalarla y en iOS se
+agrega a la pantalla de inicio. Mercado y Metodología funcionan sin conexión; Valorar
+carga el formulario con las últimas listas guardadas y avisa que calcular necesita red.
+Un aviso discreto ofrece actualizar cuando hay una versión nueva
+([ADR 0007](docs/adr/0007-pwa-cache-strategy.md)).
+
 ### Decisiones de ingeniería
 
 Las decisiones que cambian la forma del sistema quedan como ADR en [`docs/adr/`](docs/adr/).
-Dos de ellas explican el estado actual:
+Tres de ellas explican el estado actual:
 
 - **[ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md), captura en
   pausa.** Cuando TuCarro empezó a pedir verificación de cuenta, rotar IPs, user-agents o
@@ -296,6 +302,11 @@ Dos de ellas explican el estado actual:
   variable salió del modelo, y las cifras publicadas se miden con los valores que
   `/predict` envía de verdad (paridad entrenamiento/servicio), con el error en partición
   aleatoria y en partición temporal.
+- **[ADR 0007](docs/adr/0007-pwa-cache-strategy.md), la app instalable.** Un service
+  worker escrito a mano, sin dependencias: las páginas van primero a la red, los
+  archivos con hash salen del caché, la API nunca se sirve desde caché (salvo `/catalog`
+  como respaldo sin conexión, marcado como tal), y hay un worker de emergencia para
+  retirarlo si causa problemas.
 
 ### Roadmap
 
@@ -307,7 +318,7 @@ Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs
 | **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada; el lago de hoy, en las cifras de arriba |
 | **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | cerrada; carros cumplen la meta, motos no (cifras arriba) |
 | **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación y efectos regionales (Fasecolda: fuera de alcance) | cerrada salvo el índice (necesita 6 meses de histórico) |
-| **F4** | Producto    | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | cerrada; siguiente: PWA |
+| **F4** | Producto    | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | cerrada; la app es instalable (PWA, Bloque 10) |
 
 ### Datos y ética
 
@@ -456,10 +467,15 @@ echo "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > frontend/.env.local
 make web                                      # http://localhost:3000
 ```
 
+**It installs as an app.** Chrome (desktop and Android) offers to install it and iOS adds it
+to the home screen. Market and Methodology work offline; Value loads its form from the last
+saved lists and says a price needs a connection. A small notice offers to update when a new
+version is out ([ADR 0007](docs/adr/0007-pwa-cache-strategy.md)).
+
 ### Engineering decisions
 
 Decisions that change the shape of the system are recorded as ADRs in
-[`docs/adr/`](docs/adr/). Two of them explain where things stand:
+[`docs/adr/`](docs/adr/). Three of them explain where things stand:
 
 - **[ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md), capture paused.**
   When TuCarro began asking for account verification, rotating IPs, user-agents or
@@ -470,6 +486,11 @@ Decisions that change the shape of the system are recorded as ADRs in
   valuation carried the effect of a group absent from evaluation. That variable left the
   model, and the published figures are measured with the values `/predict` actually sends
   (training/serving parity), with the error on a random and on a temporal partition.
+- **[ADR 0007](docs/adr/0007-pwa-cache-strategy.md), the installable app.** A
+  hand-written service worker, no dependency: pages network first, hashed assets from
+  the cache, the API never answered from a cache (except `/catalog` as a marked
+  offline fallback), and an emergency worker to retire it if it misbehaves. Market and
+  Methodology work offline; Value says a price needs a connection.
 
 ### Roadmap
 
@@ -481,7 +502,7 @@ Detailed status, open decisions and how to resume: **[`docs/STATUS.md`](docs/STA
 | **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed; today's lake is in the figures above |
 | **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | closed; cars meet the target, motorcycles do not (figures above) |
 | **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, regional effects (Fasecolda: out of scope)                  | closed but the index |
-| **F4** | Product     | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment | closed; next: PWA |
+| **F4** | Product     | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment | closed; the app is installable (PWA, Block 10) |
 
 ### Data and ethics
 

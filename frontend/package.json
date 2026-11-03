@@ -5,8 +5,9 @@
   "description": "AutoValor CO — static front end for the valuation API",
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/og.mjs",
+    "prebuild": "node scripts/og.mjs && node scripts/pwa-assets.mjs",
     "build": "next build",
+    "postbuild": "node scripts/sw.mjs",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

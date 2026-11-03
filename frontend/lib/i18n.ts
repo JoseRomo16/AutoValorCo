@@ -80,6 +80,7 @@ export const copy = {
     market: { es: "Mercado", en: "Market" },
     method: { es: "Metodología", en: "Methodology" },
     notFound: { es: "Página no encontrada", en: "Page not found" },
+    offline: { es: "Sin conexión", en: "Offline" },
   },
   nav: {
     value: { es: "Valorar", en: "Value" },
@@ -116,6 +117,22 @@ export const copy = {
     pages: { es: "Páginas del sitio", en: "Pages on this site" },
   },
 
+  /** The installable app: the update notice, the install button and the offline page. */
+  pwa: {
+    updateReady: { es: "Hay una versión nueva", en: "A new version is available" },
+    updateAction: { es: "Actualizar", en: "Update" },
+    install: { es: "Instalar la app", en: "Install the app" },
+    offline: {
+      code: { es: "Sin conexión", en: "Offline" },
+      title: { es: "Esta página no está guardada", en: "This page is not saved" },
+      body: {
+        es: "No hay conexión y esta página no se guardó en tu dispositivo. Mercado y Metodología sí funcionan sin conexión; Valorar necesita la red para calcular.",
+        en: "There is no connection and this page was not saved on your device. Market and Methodology work offline; Value needs the network to compute a price.",
+      },
+      pages: { es: "Disponibles sin conexión", en: "Available offline" },
+    },
+  },
+
   footer: {
     disclaimer: {
       es: "Las estimaciones son informativas y no son un avalúo comercial. Salen de precios pedidos en anuncios publicados.",
@@ -138,6 +155,11 @@ export const copy = {
   status: {
     connecting: { es: "Conectando con el modelo…", en: "Connecting to the model…" },
     ready: { es: "Modelo listo", en: "Model ready" },
+    // When the service worker answered /catalog from its last good copy, offline.
+    cached: {
+      es: "Sin conexión: listas guardadas el {date}, pueden estar desactualizadas",
+      en: "Offline: lists saved on {date}, they may be out of date",
+    },
     wakingTitle: { es: "El servicio está arrancando", en: "The service is starting up" },
     wakingBody: {
       es: "La primera consulta puede tardar cerca de un minuto y las siguientes responden al instante.",
