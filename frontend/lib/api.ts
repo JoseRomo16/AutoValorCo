@@ -56,6 +56,11 @@ export type VerticalCatalog = {
    * -- so the form has to treat a missing range as "no floor to enforce".
    */
   asking_price_cop: CatalogRange | null;
+  /**
+   * The odometer range `/predict` accepts. Absent from a service deployed before it was
+   * published, and then the form shows no limit and enforces none: the API still does.
+   */
+  mileage_km?: CatalogRange | null;
 };
 
 export type CatalogResponse = { verticals: VerticalCatalog[] };

@@ -25,6 +25,7 @@ const catalog: CatalogResponse = {
       model_year: { min: 1955, max: 2027 },
       engine_cc: { min: 800, max: 6400 },
       asking_price_cop: { min: 5_000_000, max: 400_000_000 },
+      mileage_km: { min: 0, max: 2_000_000 },
     },
     {
       vehicle_type: "motorcycle",
@@ -37,6 +38,7 @@ const catalog: CatalogResponse = {
       model_year: { min: 1958, max: 2027 },
       engine_cc: { min: 50, max: 2491 },
       asking_price_cop: { min: 900_000, max: 90_000_000 },
+      mileage_km: { min: 0, max: 1_500_000 },
     },
   ],
 };
@@ -431,5 +433,71 @@ describe("the field groups", () => {
     for (const label of [/Departamento/, /Precio pedido/]) {
       expect(listing.contains(screen.getByLabelText(label))).toBe(true);
     }
+  });
+});
+
+describe("the field hints", () => {
+  /** The hint under a field, by the field's label. */
+  const hintOf = (label: RegExp) => {
+    const input = screen.getByLabelText(label);
+    const ids = (input.getAttribute("aria-describedby") ?? "").split(" ").filter(Boolean);
+    return ids.map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
+  };
+
+  it("quote the car catalogue's ranges, never a typed number", async () => {
+    show();
+    await ready();
+    expect(hintOf(/Año del modelo/)).toBe("Entre 1955 y 2027");
+    expect(hintOf(/Kilometraje/)).toBe("Hasta 2.000.000 km");
+    expect(hintOf(/Cilindrada/)).toBe("Entre 800 y 6.400 cc. Si no la sabes, déjala vacía.");
+    expect(hintOf(/Precio pedido/)).toMatch(/^Desde \$\s5\.000\.000\. Si lo escribes/);
+    expect(hintOf(/Modelo/)).toBe("Si no está en la lista, valoramos con la marca.");
+  });
+
+  it("follow the vehicle type", async () => {
+    show();
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: "Moto" }));
+    expect(hintOf(/Año del modelo/)).toBe("Entre 1958 y 2027");
+    expect(hintOf(/Kilometraje/)).toBe("Hasta 1.500.000 km");
+    expect(hintOf(/Cilindrada/)).toBe("Entre 50 y 2.491 cc. Si no la sabes, déjala vacía.");
+  });
+
+  it("share their range with the placeholder and the error message", async () => {
+    show();
+    await ready();
+    const year = screen.getByLabelText(/Año del modelo/);
+    expect(year).toHaveAttribute("placeholder", "1955–2027");
+    fireEvent.change(year, { target: { value: "1900" } });
+    fireEvent.blur(year);
+    expect(screen.getByText("El año tiene que estar entre 1955 y 2027.")).toBeInTheDocument();
+
+    const km = screen.getByLabelText(/Kilometraje/);
+    expect(km).toHaveAttribute("placeholder", "0–2.000.000");
+    fireEvent.change(km, { target: { value: "2000001" } });
+    fireEvent.blur(km);
+    expect(screen.getByText("Escribe un kilometraje entre 0 y 2.000.000 km.")).toBeInTheDocument();
+  });
+
+  it("show no odometer limit when the service does not publish one", async () => {
+    const withoutMileage: CatalogResponse = {
+      verticals: catalog.verticals.map(({ mileage_km: _drop, ...rest }) => rest),
+    };
+    const base = stubFetch();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) =>
+        String(input).endsWith("/catalog")
+          ? Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(withoutMileage) } as Response)
+          : base(input),
+      ),
+    );
+    show();
+    await ready();
+    expect(hintOf(/Kilometraje/)).toBe("");
+    const km = screen.getByLabelText(/Kilometraje/);
+    fireEvent.change(km, { target: { value: "9000000" } });
+    fireEvent.blur(km);
+    expect(screen.queryByText(/Escribe un kilometraje entre/)).toBeNull();
   });
 });
