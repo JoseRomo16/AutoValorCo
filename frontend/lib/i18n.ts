@@ -511,8 +511,8 @@ export const copy = {
         en: "What share of the value is left over time",
       },
       lead: {
-        es: "La misma estimación vista como curva, del primer año al año {age}.",
-        en: "The same estimate seen as a curve, from the first year to year {age}.",
+        es: "La misma estimación vista como curva, del año 0 al año {age}.",
+        en: "The same estimate seen as a curve, from year 0 to year {age}.",
       },
       insight: {
         es: "A los {age} años un {carBrand} conserva {carPct} y una {motoBrand}, {motoPct}. Las curvas de las motos son casi planas y las de los carros bajan.",
