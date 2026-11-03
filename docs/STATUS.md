@@ -1700,10 +1700,10 @@ absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por blo
 | 8 | Metodología con el diseño nuevo y ajustes de Valorar: los dos errores del ADR 0006 (c), captura en pausa, índice sticky, términos definidos; enlace compartible, botón visible sin scroll, factores con color y texto | [#37](https://github.com/JoseRomo16/AutoValorCo/pull/37) |
 | 9a | Pendientes del #37 y pruebas de regresión en CI: e2e sobre el export con la API local, casos medidos en vivo contra el bundle servido, cobertura de cilindrada en `make results` | [#38](https://github.com/JoseRomo16/AutoValorCo/pull/38) |
 | 9b | Cierre: auditoría de legibilidad, contraste, desbordamiento y áreas de toque en CI, comportamiento global, Lighthouse, nombres canónicos, capturas y README | [#39](https://github.com/JoseRomo16/AutoValorCo/pull/39) |
-| **10** | **PWA** | **siguiente** |
+| 10 | PWA: manifiesto e íconos desde los tokens, service worker escrito a mano, sin conexión, aviso de actualización, worker de emergencia ([ADR 0007](adr/0007-pwa-cache-strategy.md)) | [#40](https://github.com/JoseRomo16/AutoValorCo/pull/40) |
 
-**El rediseño y el plan de verificación están cerrados; lo que sigue es el Bloque 10
-(PWA).** El bundle servido es `2026-11-02.12948`. Cuando un PR toca a la vez la API y el
+**El plan de Bloques 0 a 10 está cerrado con la PWA del Bloque 10.** Lo que queda abierto
+está en "Decisiones abiertas" y en los pendientes del usuario (los workflows de captura). El bundle servido es `2026-11-02.12948`. Cuando un PR toca a la vez la API y el
 sitio, el orden de despliegue es **la API primero y el sitio después**: el sitio lee de
 `/catalog` los rangos que valida.
 

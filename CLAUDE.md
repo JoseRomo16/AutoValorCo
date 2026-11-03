@@ -66,6 +66,7 @@ Restricción de diseño, no una preferencia: **el proyecto opera sin ningún cos
 - **El histórico de capturas vive en la rama `data`** del propio repositorio ([ADR 0004](docs/adr/0004-capture-history-storage.md)). Almacenamiento de objetos solo se reconsidera con aprobación explícita.
 - **El frontend es un export estático** (`output: "export"`), servido por el plan `static` de Render, que es gratis y no tiene proceso que mantener despierto. Las vistas Mercado y Metodología leen `docs/results/` y `artifacts/models/*/model.json` **en tiempo de construcción**, no por HTTP: son archivos del repositorio y pedirlos a la API costaría un arranque en frío por nada. Solo el formulario de Valorar llama al servicio.
 - **F4 cabe en el plan gratuito de Render** — y ya está hecho: `Dockerfile.api` instala solo el runtime (`uv sync --no-default-groups`), sin CatBoost, MLflow, Playwright, dbt ni shap, y el modelo servido va **dentro de la imagen** en `artifacts/models/`, no descargado al arrancar. `pyproject.toml` está partido en grupos (`ingest`, `transform`, `train`, `analysis`, `dev`) que `uv sync` sigue instalando por defecto, así que dev y CI no cambian. El frontend Next.js se publica como sitio estático. Pasos de despliegue en [docs/deploy-render.md](docs/deploy-render.md); **el despliegue lo hace el usuario**, no se automatiza desde aquí.
+- **La PWA no agrega dependencias**: el service worker es `frontend/scripts/sw.template.js`, que `postbuild` (`scripts/sw.mjs`) convierte en `out/sw.js` con la lista de precache y la versión; manifiesto e íconos los genera `prebuild` (`scripts/pwa-assets.mjs`) desde los tokens. Solo intercepta GET; la API nunca sale del caché salvo `/catalog` como respaldo marcado. Si el worker falla, `NEXT_PUBLIC_SW_KILL=1` publica el de emergencia (ADR 0007).
 - **Fasecolda solo por fuentes públicas y gratuitas.** Sin suscripción a la guía — y como por HTTP público no se consigue, el benchmark está fuera de alcance, no pendiente.
 
 ## Reglas de datos
@@ -107,7 +108,7 @@ generado del README** (`make readme`); no las copies a mano a ningún documento.
 - F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (**cerrada**: carros cumplen la meta y publican etiqueta; motos no llegan y publican precio + rango sin etiqueta, por la regla de arriba. El modelo servido es LightGBM. Cifras vigentes: bloque generado del README.)
 - F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, efectos regionales y costo del kilometraje. (**cerrada** salvo el índice mensual, que espera histórico hasta ~2027-03-29. La comparación con Fasecolda quedó **fuera de alcance**: la guía no se obtiene por HTTP público y la suscripción la descarta la regla de costo cero.)
 - F4 Producto: API (/predict, /explain, /catalog, /market, /health, /model-info), app Next.js, Docker, despliegue en Render. (**cerrada**: API y sitio desplegados; rediseño y Bloque 9 de verificación cerrados, checklists en `docs/STATUS.md`.)
-- Siguiente: Bloque 10, PWA. Cuando un cambio toca API y sitio, se despliega la API primero.
+- Bloque 10, PWA ([ADR 0007](docs/adr/0007-pwa-cache-strategy.md)): el sitio es instalable. Cuando un cambio toca API y sitio, se despliega la API primero.
 
 ## Forma de trabajo
 
