@@ -28,7 +28,7 @@ export type HeroFacts = {
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="border-line py-1 sm:border-l sm:pl-6 sm:first:border-l-0 sm:first:pl-0">
-      <dt className="text-xs text-muted">{label}</dt>
+      <dt className="text-caption text-muted">{label}</dt>
       <dd className="mt-1 font-mono text-sm tabular-nums">{children}</dd>
     </div>
   );

@@ -188,7 +188,7 @@ export function Combobox({
 
   return (
     <div className="min-w-0">
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium">
+      <label htmlFor={id} className="mb-1.5 block text-base font-medium">
         {label}
         {!required && optionalLabel && (
           <span className="ml-1.5 font-normal text-faint">{optionalLabel}</span>
@@ -250,7 +250,7 @@ export function Combobox({
               return (
                 <div key={option.value}>
                   {heading && (
-                    <p className="px-2.5 pb-1.5 pt-2.5 font-mono text-xs uppercase tracking-[0.08em] text-faint">
+                    <p className="px-2.5 pb-1.5 pt-2.5 font-mono text-caption uppercase tracking-[0.08em] text-faint">
                       {heading}
                     </p>
                   )}
@@ -271,7 +271,7 @@ export function Combobox({
                   >
                     <span className="min-w-0 truncate">{option.label}</span>
                     {option.count !== undefined && countLabel && (
-                      <span className="shrink-0 font-mono text-xs text-faint">
+                      <span className="shrink-0 font-mono text-caption text-faint">
                         {countLabel(option.count)}
                       </span>
                     )}
@@ -284,12 +284,12 @@ export function Combobox({
       </div>
 
       {error ? (
-        <p id={`${hintId}-error`} className="mt-1.5 text-xs text-bad">
+        <p id={`${hintId}-error`} className="mt-1.5 text-detail text-bad">
           {error}
         </p>
       ) : (
         hint && (
-          <p id={`${hintId}-hint`} className="mt-1.5 text-xs text-muted">
+          <p id={`${hintId}-hint`} className="mt-1.5 text-detail text-muted">
             {hint}
           </p>
         )

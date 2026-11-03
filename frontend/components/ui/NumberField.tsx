@@ -119,7 +119,7 @@ export function NumberField({
 
   return (
     <div className="min-w-0">
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium">
+      <label htmlFor={id} className="mb-1.5 block text-base font-medium">
         {label}
         {optionalLabel && <span className="ml-1.5 font-normal text-faint">{optionalLabel}</span>}
       </label>
@@ -164,18 +164,18 @@ export function NumberField({
       </div>
 
       {error ? (
-        <p id={`${hintId}-error`} className="mt-1.5 text-xs text-bad">
+        <p id={`${hintId}-error`} className="mt-1.5 text-detail text-bad">
           {error}
         </p>
       ) : notice ? (
         // `role="status"` so it is announced when it appears: the whole point is that the
         // field no longer changes what was typed without saying so.
-        <p id={`${hintId}-notice`} role="status" className="mt-1.5 text-xs text-muted">
+        <p id={`${hintId}-notice`} role="status" className="mt-1.5 text-detail text-muted">
           {notice}
         </p>
       ) : (
         hint && (
-          <p id={`${hintId}-hint`} className="mt-1.5 text-xs text-muted">
+          <p id={`${hintId}-hint`} className="mt-1.5 text-detail text-muted">
             {hint}
           </p>
         )
