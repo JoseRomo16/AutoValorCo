@@ -1,0 +1,16 @@
+[
+  {
+    "vehicle_type": "car",
+    "feature": "engine_cc",
+    "rows": 8443,
+    "covered": 7265,
+    "coverage_pct": 86.0476
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "feature": "engine_cc",
+    "rows": 4505,
+    "covered": 3985,
+    "coverage_pct": 88.4573
+  }
+]
