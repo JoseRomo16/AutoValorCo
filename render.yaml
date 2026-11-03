@@ -54,6 +54,15 @@ services:
       - path: /_next/static/*
         name: Cache-Control
         value: public, max-age=31536000, immutable
+      # The service worker must never be served from the HTTP cache, or a deploy (or the
+      # emergency worker, ADR 0007) would not reach visitors until it expired.
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      # Pinned rather than left to the extension table, so Chrome reads it as a manifest.
+      - path: /manifest.webmanifest
+        name: Content-Type
+        value: application/manifest+json
     envVars:
       # Baked into the bundle at build time by Next, so it is a build input and not a
       # runtime setting: changing it requires a redeploy, which is what `autoDeploy` does.
