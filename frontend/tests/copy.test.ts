@@ -28,7 +28,7 @@ function leaves(node: unknown, path = "copy"): Leaf[] {
 const ALL = leaves(copy);
 
 function placeholders(text: string): string[] {
-  return [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
+  return [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1] ?? "").sort();
 }
 
 describe("copy", () => {
