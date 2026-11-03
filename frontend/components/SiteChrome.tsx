@@ -35,7 +35,7 @@ export const WRAP = "mx-auto w-full max-w-[1120px] px-5 sm:px-6";
 function Plate() {
   // The doubled outline is what a real plate has: a black keyline inside a yellow field.
   return (
-    <span className="inline-block rounded-[3px] border-[1.5px] border-[#111] bg-accent px-1.5 pb-[3px] pt-1 font-mono text-[11px] leading-none text-[#111] shadow-[0_0_0_1.5px_var(--accent)]">
+    <span className="inline-block rounded-[3px] border-[1.5px] border-[#111] bg-accent px-1.5 pb-[3px] pt-1 font-mono text-caption leading-none text-[#111] shadow-[0_0_0_1.5px_var(--accent)]">
       CO
     </span>
   );
@@ -47,6 +47,10 @@ function Wordmark({ className = "" }: { className?: string }) {
       <span className="font-display text-[1.1875rem] font-extrabold tracking-[-0.01em] [font-stretch:112%]">
         AutoValor
       </span>
+      {/* The name is read from the text itself, so it has to carry the space the gap
+          draws: "AutoValor CO", not "AutoValorCO". An aria-label over it disagreed with
+          the visible text (axe label-content-name-mismatch). */}
+      <span className="sr-only"> </span>
       <Plate />
     </span>
   );
@@ -75,7 +79,7 @@ function Segmented<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className="inline-flex rounded-md border border-line p-0.5 font-mono text-xs"
+      className="inline-flex rounded-md border border-line p-0.5 font-mono text-caption"
     >
       {options.map((option) => (
         <button
@@ -159,7 +163,7 @@ export function SiteHeader() {
       }`}
     >
       <div className={`${WRAP} flex min-h-[60px] flex-wrap items-center gap-x-8`}>
-        <Link href="/" prefetch={false} aria-label="AutoValor CO" className="py-2">
+        <Link href="/" prefetch={false} className="py-2">
           <Wordmark />
         </Link>
 
@@ -200,7 +204,7 @@ export function SiteHeader() {
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-controls="site-tools"
-          className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-md border border-line px-3 font-mono text-xs text-muted sm:hidden"
+          className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-md border border-line px-3 font-mono text-caption text-muted sm:hidden"
         >
           {t(copy.nav.settings)}
         </button>
@@ -222,7 +226,7 @@ function FooterColumn({ title, children }: { title: Localized; children: React.R
   const { t } = useLang();
   return (
     <div>
-      <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.1em] text-faint">{t(title)}</h2>
+      <h2 className="mb-3 font-mono text-caption uppercase tracking-[0.1em] text-faint">{t(title)}</h2>
       <ul className="grid gap-2 text-sm">{children}</ul>
     </div>
   );
@@ -271,7 +275,7 @@ export function SiteFooter({
       <div className={WRAP}>
         <div className="grid gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            <Link href="/" prefetch={false} aria-label="AutoValor CO">
+            <Link href="/" prefetch={false}>
               <Wordmark />
             </Link>
             <p className="mt-4 max-w-[46ch] text-sm text-muted">{t(copy.footer.disclaimer)}</p>
@@ -292,7 +296,7 @@ export function SiteFooter({
           </FooterColumn>
         </div>
 
-        <div className="mt-9 flex flex-wrap justify-between gap-x-6 gap-y-2 border-t border-line pt-5 font-mono text-xs text-faint">
+        <div className="mt-9 flex flex-wrap justify-between gap-x-6 gap-y-2 border-t border-line pt-5 font-mono text-caption text-faint">
           <span>{t(copy.footer.author)}</span>
           {dataDate && modelVersion && (
             <span>

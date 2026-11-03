@@ -131,7 +131,7 @@ export const copy = {
     projectTitle: { es: "El proyecto", en: "The project" },
     // Precedes the served model's date in the footer's last line, where the data date sits
     // beside it. Two dates with no labels would be unreadable.
-    modelLabel: { es: "modelo del", en: "model from" },
+    modelLabel: { es: "versión del modelo", en: "model version" },
   },
 
   /** The connection indicator next to the button, and the notice if the wait gets long. */
@@ -154,7 +154,7 @@ export const copy = {
       es: "Dinos qué vehículo es y te damos un precio estimado, el rango en el que se piden los anuncios parecidos y qué características lo suben o lo bajan.",
       en: "Tell us which vehicle it is and you get an estimated price, the range comparable listings are asked at, and the features that push it up or down.",
     },
-    listingsLabel: { es: "Anuncios analizados", en: "Listings analysed" },
+    listingsLabel: { es: "Anuncios en total", en: "Listings in total" },
     errorLabel: { es: "Error medio", en: "Average error" },
     errorValue: {
       es: "{car} en carros · {motorcycle} en motos",
@@ -365,7 +365,7 @@ export const copy = {
     raises: { es: "sube", en: "raises" },
     lowers: { es: "baja", en: "lowers" },
     basePrice: { es: "Precio base", en: "Base price" },
-    modelVersion: { es: "Modelo del {date}", en: "Model from {date}" },
+    modelVersion: { es: "Versión del modelo: {date}", en: "Model version: {date}" },
     howItWorks: { es: "Cómo se calcula", en: "How this is computed" },
     copyLink: { es: "Copiar enlace", en: "Copy link" },
     copied: { es: "Enlace copiado", en: "Link copied" },
@@ -674,14 +674,14 @@ export const copy = {
       en: "The figures on this page are read from the published model's own file, so they change when the model changes. The page is rebuilt on every release.",
     },
     publishedOn: { es: "Publicado el {date}", en: "Published on {date}" },
-    modelVersion: { es: "Modelo del {date}", en: "Model from {date}" },
+    modelVersion: { es: "Versión del modelo: {date}", en: "Model version: {date}" },
     captures: {
       es: "{count} capturas entre el {first} y el {last}",
       en: "{count} captures between {first} and {last}",
     },
     /** The metadata chips under the heading. */
     chips: {
-      listings: { es: "{count} anuncios de TuCarro", en: "{count} TuCarro listings" },
+      listings: { es: "{count} anuncios en total, de TuCarro", en: "{count} listings in total, from TuCarro" },
       span: { es: "{days} días de capturas", en: "{days} days of captures" },
       rebuilt: {
         es: "Se rehace con cada publicación del sitio",
@@ -698,8 +698,8 @@ export const copy = {
       },
       errorMotoLabel: { es: "Error medio en motos", en: "Average error on motorcycles" },
       errorMotoCaption: {
-        es: "La misma medición en motos, sobre {count} anuncios apartados.",
-        en: "The same measurement on motorcycles, over {count} held-out listings.",
+        es: "La misma medición en motos, sobre {count} anuncios para evaluar.",
+        en: "The same measurement on motorcycles, over {count} listings for evaluation.",
       },
       coverageLabel: { es: "Acierto del rango", en: "Range accuracy" },
       coverageCaption: {
@@ -711,7 +711,7 @@ export const copy = {
         es: "En anuncios más nuevos que los de entrenamiento: {value}.",
         en: "On listings newer than the training data: {value}.",
       },
-      evaluatedLabel: { es: "Anuncios de evaluación", en: "Listings held out" },
+      evaluatedLabel: { es: "Anuncios para evaluar", en: "Listings for evaluation" },
       evaluatedCaption: {
         es: "{car} carros y {motorcycle} motos apartados antes de entrenar.",
         en: "{car} cars and {motorcycle} motorcycles set aside before training.",
@@ -757,7 +757,7 @@ export const copy = {
           es: "En pausa: TuCarro pide verificar una cuenta a los programas que leen anuncios. La última captura es del {date}.",
           en: "Paused: TuCarro asks programs that read listings to verify an account. The last capture is from {date}.",
         },
-        listings: { es: "Anuncios", en: "Listings" },
+        listings: { es: "Anuncios en total", en: "Listings in total" },
         listingsValue: {
           es: "{cars} carros · {motorcycles} motos",
           en: "{cars} cars · {motorcycles} motorcycles",
@@ -840,8 +840,8 @@ export const copy = {
         en: "The same vehicle gets republished under another identifier, so those listings are set aside as a block. Separating them one by one left copies on both sides and improved the result for no reason.",
       },
       tableCaption: {
-        es: "Error y rango de cada tipo de vehículo, medidos sobre los anuncios apartados.",
-        en: "Error and range for each kind of vehicle, measured on the held-out listings.",
+        es: "Error y rango de cada tipo de vehículo, medidos sobre los anuncios para evaluar.",
+        en: "Error and range for each kind of vehicle, measured on the listings for evaluation.",
       },
       columnType: { es: "Tipo", en: "Type" },
       columnError: { es: "Error medio", en: "Average error" },
@@ -880,8 +880,8 @@ export const copy = {
 
       calibrationTitle: { es: "El rango antes y después de calibrarlo", en: "The range before and after calibration" },
       calibrationBody: {
-        es: "Sin calibrar, el rango acierta menos de lo que promete. La calibración lo corrige con lo medido en anuncios apartados.",
-        en: "Uncalibrated, the range is right less often than it promises. Calibration corrects it with what was measured on held-out listings.",
+        es: "Sin calibrar, el rango acierta menos de lo que promete. La calibración lo corrige con lo medido en los anuncios para evaluar.",
+        en: "Uncalibrated, the range is right less often than it promises. Calibration corrects it with what was measured on the listings for evaluation.",
       },
       calibrationUncalibrated: { es: "Sin calibrar", en: "Uncalibrated" },
       calibrationCalibrated: { es: "Calibrado", en: "Calibrated" },
@@ -1098,7 +1098,7 @@ export const copy = {
       },
     },
     heldOut: {
-      term: { es: "anuncios apartados", en: "held-out listings" },
+      term: { es: "anuncios para evaluar", en: "listings for evaluation" },
       definition: {
         es: "Anuncios separados antes de entrenar, que el modelo no vio. Medir sobre ellos es la única forma de saber si acierta en casos nuevos.",
         en: "Listings set aside before training, which the model never saw. Measuring on them is the only way to know whether it works on new cases.",
@@ -1107,8 +1107,8 @@ export const copy = {
     calibration: {
       term: { es: "calibración conformal", en: "Conformal calibration" },
       definition: {
-        es: "Ensanchar el rango por lo que le faltaba para acertar el 80 % de las veces, medido en anuncios apartados.",
-        en: "Widening the range by what it needed to be right 80 % of the time, measured on held-out listings.",
+        es: "Ensanchar el rango por lo que le faltaba para acertar el 80 % de las veces, medido en los anuncios para evaluar.",
+        en: "Widening the range by what it needed to be right 80 % of the time, measured on the listings for evaluation.",
       },
     },
     factors: {

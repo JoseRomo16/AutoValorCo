@@ -80,3 +80,33 @@ describe("copy", () => {
     expect(hits).toEqual([]);
   });
 });
+
+describe("the names the three pages and the API share", () => {
+  // The canonical form of each term, in both languages. A label that says the same thing
+  // another way ("Anuncios analizados", "held-out listings", "Modelo del …") makes a reader
+  // wonder whether two pages are counting two different things.
+  const CANONICAL = [
+    { es: "Anuncios en total", en: "Listings in total", where: [copy.hero.listingsLabel, copy.method.data.facts.listings] },
+    { es: "Anuncios para evaluar", en: "Listings for evaluation", where: [copy.method.cards.evaluatedLabel] },
+    { es: "anuncios para evaluar", en: "listings for evaluation", where: [copy.terms.heldOut.term] },
+    { es: "Error medio", en: "Average error", where: [copy.hero.errorLabel, copy.method.results.columnError] },
+    { es: "versión del modelo", en: "model version", where: [copy.footer.modelLabel] },
+    { es: "Versión del modelo", en: "Model version", where: [copy.result.modelVersion, copy.method.modelVersion] },
+  ];
+
+  it.each(CANONICAL)("says $es / $en the same way everywhere", ({ es, en, where }) => {
+    for (const text of where) {
+      expect(text.es).toContain(es);
+      expect(text.en).toContain(en);
+    }
+  });
+
+  it("no longer uses the retired variants", () => {
+    const retired = [/anuncios analizados/i, /anuncios apartados/i, /anuncios de evaluación/i, /^Modelo del /];
+    const retiredEn = [/listings analysed/i, /held-out listings/i, /listings held out/i, /model from/i];
+    for (const { path, text } of ALL) {
+      for (const pattern of retired) expect(text.es ?? "", path).not.toMatch(pattern);
+      for (const pattern of retiredEn) expect(text.en ?? "", path).not.toMatch(pattern);
+    }
+  });
+});

@@ -11,3 +11,4 @@ public/og.png
 # Playwright
 test-results/
 playwright-report/
+screens-out/

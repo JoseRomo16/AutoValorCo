@@ -5,19 +5,22 @@ _Used car and motorcycle valuation for the Colombian market_
 
 [![CI](https://github.com/JoseRomo16/AutoValorCo/actions/workflows/ci.yml/badge.svg)](https://github.com/JoseRomo16/AutoValorCo/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
-![Status](https://img.shields.io/badge/fase-F4%20producto-blue)
+![Status](https://img.shields.io/badge/F4-cerrada-green)
 
-**Demo: [autovalor-web.onrender.com](https://autovalor-web.onrender.com)** ·
-**API: [autovalor-api.onrender.com/docs](https://autovalor-api.onrender.com/docs)**
+**Sitio · _Site_: [autovalor-web.onrender.com](https://autovalor-web.onrender.com)** ·
+**API: [autovalor-api.onrender.com/docs](https://autovalor-api.onrender.com/docs)** ·
+**Decisiones · _Decisions_: [docs/adr](docs/adr/)**
 
 Primera consulta ~1 min: el plan gratuito de Render duerme el servicio y el arranque en
 frío carga los dos modelos. _First request takes ~1 min: Render's free plan sleeps the
 service and a cold start loads both models._
 
+![Valorar: marca, año, kilometraje y departamento, y el precio con su rango](docs/design/valorar.gif)
+
 | Valorar · _Value_ | Mercado · _Market_ |
 | --- | --- |
-| [![Resultado de una valoración](docs/screenshots/valorar-resultado.png)](https://autovalor-web.onrender.com) | [![Depreciación anual por marca](docs/screenshots/mercado-top.png)](https://autovalor-web.onrender.com/mercado/) |
-| Precio, rango P10–P90, etiqueta cuando la banda la sostiene, y los cinco factores que mueven el estimado. | Depreciación por marca con intervalos, costo del kilometraje y diferencias regionales, cada uno con su lectura económica. |
+| [![Resultado de una valoración](docs/design/screens/readme_valorar-resultado_claro.jpg)](https://autovalor-web.onrender.com) | [![Hallazgos del mercado](docs/design/screens/readme_mercado_claro.jpg)](https://autovalor-web.onrender.com/mercado/) |
+| Precio, rango P10–P90, etiqueta cuando la banda la sostiene, y los factores que mueven el estimado. | Depreciación por marca con intervalos, costo del kilometraje y diferencias regionales, cada uno con su lectura económica. |
 
 ---
 
@@ -152,11 +155,13 @@ En redes que inspeccionan TLS (proxy corporativo, algunos antivirus) hay que pon
 `AUTOVALOR_USE_SYSTEM_CERTS=true` en el `.env` para validar contra el almacén de
 certificados del sistema.
 
-**Captura semanal.** El workflow `.github/workflows/capture.yml` corre los lunes a las
-07:00 UTC (02:00 en Colombia), barre seis departamentos, transforma y valida, y sube el
-resultado como artefacto del run. La retención de artefactos es de 90 días; el paso a
-almacenamiento de objetos está documentado en
-[ADR 0002](docs/adr/0002-weekly-capture-storage.md).
+**Captura semanal, en pausa.** El workflow `.github/workflows/capture.yml` corría los
+lunes a las 07:00 UTC, barría seis departamentos, transformaba, validaba y guardaba el
+histórico en la rama `data` ([ADR 0004](docs/adr/0004-capture-history-storage.md)). Desde
+el 2026-10-26 TuCarro pide verificar una cuenta a los programas que leen anuncios, y la
+captura está en pausa en vez de esquivar esa verificación
+([ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md)). La última captura
+buena es la del 2026-10-19.
 
 Con Docker:
 
@@ -254,13 +259,16 @@ instante y no pueden citar una cifra distinta a la del commit del que salieron. 
 Valorar habla con el servicio, y por eso el aviso del arranque en frío está en pantalla
 antes de que nadie pulse el botón.
 
-| Motos: precio y rango, **sin etiqueta** | En inglés |
-| --- | --- |
-| ![Resultado para una moto](docs/screenshots/valorar-moto.png) | ![El mismo formulario en inglés](docs/screenshots/valorar-english.png) |
+| | Claro | Oscuro |
+| --- | --- | --- |
+| **Valorar** | ![Valorar con resultado, tema claro](docs/design/screens/readme_valorar-resultado_claro.jpg) | ![Valorar con resultado, tema oscuro](docs/design/screens/readme_valorar-resultado_oscuro.jpg) |
+| **Mercado** | ![Mercado, tema claro](docs/design/screens/readme_mercado_claro.jpg) | ![Mercado, tema oscuro](docs/design/screens/readme_mercado_oscuro.jpg) |
+| **Metodología** | ![Metodología, tema claro](docs/design/screens/readme_metodologia_claro.jpg) | ![Metodología, tema oscuro](docs/design/screens/readme_metodologia_oscuro.jpg) |
 
-| Metodología y métricas del modelo servido | En móvil y en tema oscuro |
-| --- | --- |
-| ![Página de metodología](docs/screenshots/metodologia.png) | ![Mercado en móvil](docs/screenshots/movil-mercado.png) ![Mercado en tema oscuro](docs/screenshots/mercado-oscuro.png) |
+Cada página a 1440 y 375 px en los dos temas está en
+[`docs/design/screens/`](docs/design/screens/); el juego completo (cinco vistas, cuatro
+temas, cuatro anchos) lo genera `frontend/screens/` y la CI lo sube como artefacto en cada
+pull request.
 
 En local, contra la API desplegada o contra una local:
 
@@ -272,6 +280,23 @@ make web                                      # http://localhost:3000
 
 Sin `.env.local` el frontend apunta a `https://autovalor-api.onrender.com`.
 
+### Decisiones de ingeniería
+
+Las decisiones que cambian la forma del sistema quedan como ADR en [`docs/adr/`](docs/adr/).
+Dos de ellas explican el estado actual:
+
+- **[ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md), captura en
+  pausa.** Cuando TuCarro empezó a pedir verificación de cuenta, rotar IPs, user-agents o
+  navegadores sin cabeza se descartó por ser evasión. La captura se detiene en la primera
+  verificación, guarda lo que ya tenía y reporta "bloqueado"; el modelo sigue sirviendo
+  con el lago hasta el 2026-10-19.
+- **[ADR 0006](docs/adr/0006-drop-city-feature.md), modelo sin ciudad.** El formulario
+  pide el departamento, no la ciudad, así que el servicio mandaba siempre el mismo valor y
+  cada valoración cargaba el efecto de un grupo que no aparece en la evaluación. Esa
+  variable salió del modelo, y las cifras publicadas se miden con los valores que
+  `/predict` envía de verdad (paridad entrenamiento/servicio), con el error en partición
+  aleatoria y en partición temporal.
+
 ### Roadmap
 
 Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs/STATUS.md)**.
@@ -282,7 +307,7 @@ Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs
 | **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada; el lago de hoy, en las cifras de arriba |
 | **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | cerrada; carros cumplen la meta, motos no (cifras arriba) |
 | **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación y efectos regionales (Fasecolda: fuera de alcance) | cerrada salvo el índice (necesita 6 meses de histórico) |
-| **F4** | Producto    | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | **actual** — API desplegada; frontend en curso |
+| **F4** | Producto    | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | cerrada; siguiente: PWA |
 
 ### Datos y ética
 
@@ -415,11 +440,36 @@ and cannot quote a figure that disagrees with the commit they were built from. O
 valuation form talks to the service, which is why the cold-start notice is on screen before
 anyone presses the button.
 
+| | Light | Dark |
+| --- | --- | --- |
+| **Value** | ![Value with a result, light theme](docs/design/screens/readme_valorar-resultado_claro.jpg) | ![Value with a result, dark theme](docs/design/screens/readme_valorar-resultado_oscuro.jpg) |
+| **Market** | ![Market, light theme](docs/design/screens/readme_mercado_claro.jpg) | ![Market, dark theme](docs/design/screens/readme_mercado_oscuro.jpg) |
+| **Methodology** | ![Methodology, light theme](docs/design/screens/readme_metodologia_claro.jpg) | ![Methodology, dark theme](docs/design/screens/readme_metodologia_oscuro.jpg) |
+
+Every page at 1440 and 375 px in both themes is in
+[`docs/design/screens/`](docs/design/screens/); the full set (five views, four themes,
+four widths) is generated by `frontend/screens/` and uploaded by CI on every pull request.
+
 ```bash
 make serve                                    # optional: the API on :8000
 echo "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > frontend/.env.local
 make web                                      # http://localhost:3000
 ```
+
+### Engineering decisions
+
+Decisions that change the shape of the system are recorded as ADRs in
+[`docs/adr/`](docs/adr/). Two of them explain where things stand:
+
+- **[ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md), capture paused.**
+  When TuCarro began asking for account verification, rotating IPs, user-agents or
+  headless browsers was ruled out as evasion. The capture stops at the first check, keeps
+  what it had and reports "blocked"; the model keeps serving the lake up to 2026-10-19.
+- **[ADR 0006](docs/adr/0006-drop-city-feature.md), a model without city.** The form asks
+  for the department, not the city, so the service always sent the same value and every
+  valuation carried the effect of a group absent from evaluation. That variable left the
+  model, and the published figures are measured with the values `/predict` actually sends
+  (training/serving parity), with the error on a random and on a temporal partition.
 
 ### Roadmap
 
@@ -431,7 +481,7 @@ Detailed status, open decisions and how to resume: **[`docs/STATUS.md`](docs/STA
 | **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed; today's lake is in the figures above |
 | **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | closed; cars meet the target, motorcycles do not (figures above) |
 | **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, regional effects (Fasecolda: out of scope)                  | closed but the index |
-| **F4** | Product     | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment | **current** — API deployed; frontend in progress |
+| **F4** | Product     | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment | closed; next: PWA |
 
 ### Data and ethics
 

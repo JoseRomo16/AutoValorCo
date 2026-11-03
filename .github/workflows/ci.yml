@@ -102,7 +102,7 @@ jobs:
   e2e:
     name: end-to-end over the export
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: frontend
@@ -155,6 +155,22 @@ jobs:
         run: npm run e2e
         env:
           E2E_API_COMMAND: uv run --no-sync uvicorn autovalor.api.main:app --port 8000
+
+      # The full screenshot set (5 views x 4 themes x 4 widths). Only on pull requests,
+      # where a reviewer looks at it; the repository keeps a small selection.
+      - name: Capture every view, theme and width
+        if: github.event_name == 'pull_request'
+        run: npx playwright test --config playwright.screens.config.ts
+        env:
+          E2E_API_COMMAND: uv run --no-sync uvicorn autovalor.api.main:app --port 8000
+
+      - name: Upload the screenshots
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: screens
+          path: frontend/screens-out/
+          retention-days: 90
 
       - name: Keep the traces of a failure
         if: failure()

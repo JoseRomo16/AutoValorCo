@@ -1679,9 +1679,9 @@ token está mal", y esas dos llevan a conclusiones opuestas.
   bajo la pausa ya no es cierto. **Se corrige en el Bloque 8** por una frase que diga la
   fecha de los datos y que la captura está en pausa.
 
-### Dónde quedó esto el 2026-11-03
+### Dónde quedó esto el 2026-11-03 (cierre del Bloque 9)
 
-El trabajo sigue un **plan de Bloques 0 a 9** (lo trae el usuario; no está en el repo), que
+El trabajo sigue un **plan de Bloques 0 a 10** (lo trae el usuario; no está en el repo), que
 absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por bloque.
 
 | Bloque | Qué resolvió | PR |
@@ -1698,13 +1698,57 @@ absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por blo
 | 7 | Mercado con el diseño nuevo: tokens, pestañas Carros/Motos, tarjetas de hallazgos, tooltips, descripciones y tablas accesibles, y la nota que separa el efecto regional hedónico del de Valorar | [#34](https://github.com/JoseRomo16/AutoValorCo/pull/34), [#35](https://github.com/JoseRomo16/AutoValorCo/pull/35) (móvil, letra ≥ 13 px, favicon) |
 | 7b | Comparar marcas en el valor retenido (hasta 5, el resto en gris de fondo) y lecturas por vehículo en cada gráfica | [#36](https://github.com/JoseRomo16/AutoValorCo/pull/36) |
 | 8 | Metodología con el diseño nuevo y ajustes de Valorar: los dos errores del ADR 0006 (c), captura en pausa, índice sticky, términos definidos; enlace compartible, botón visible sin scroll, factores con color y texto | [#37](https://github.com/JoseRomo16/AutoValorCo/pull/37) |
-| **9** | **Verificación final**, en dos PR: 9a (pendientes del #37 y pruebas de regresión e2e y de la API en CI) y 9b | en curso |
-| 10 | PWA | después del 9 |
+| 9a | Pendientes del #37 y pruebas de regresión en CI: e2e sobre el export con la API local, casos medidos en vivo contra el bundle servido, cobertura de cilindrada en `make results` | [#38](https://github.com/JoseRomo16/AutoValorCo/pull/38) |
+| 9b | Cierre: auditoría de legibilidad, contraste, desbordamiento y áreas de toque en CI, comportamiento global, Lighthouse, nombres canónicos, capturas y README | [#39](https://github.com/JoseRomo16/AutoValorCo/pull/39) |
+| **10** | **PWA** | **siguiente** |
 
-El bundle `2026-11-02.12948` del Bloque 4 ya está desplegado. El #37 agregó `mileage_km` a
-`/catalog`, que el formulario usa para el placeholder y la validación del kilometraje, así que
-su deploy es **la API primero y el sitio después**: un sitio nuevo contra una API vieja no
-muestra ni valida el tope de kilometraje.
+**El rediseño y el plan de verificación están cerrados; lo que sigue es el Bloque 10
+(PWA).** El bundle servido es `2026-11-02.12948`. Cuando un PR toca a la vez la API y el
+sitio, el orden de despliegue es **la API primero y el sitio después**: el sitio lee de
+`/catalog` los rangos que valida.
+
+#### Auditoría de QA del sitio en vivo
+
+| # | Hallazgo | Resuelto en |
+| --- | --- | --- |
+| Q1 | El modelo recibía siempre "Ciudad: Desconocida" (−3,8 % en el Corolla) | {link(31)} (ADR 0006: la ciudad sale del modelo) |
+| Q2 | El año se mostraba como "2.024" | {link(26)} |
+| Q3 | Precio pedido sin mínimo ("-5e9" → "$ 59" → Ganga); pegar "45.000.000,00" multiplicaba por 100; caracteres descartados sin aviso | {link(26, 27, 28)} (máscara y aviso; piso en `/catalog`; el formulario lo aplica) |
+| Q4 | Departamentos sin cobertura sin explicación ("nari" → "Nada coincide") | {link(28)} |
+| Q5 | La API aceptaba lo que la interfaz rechazaba (año 2030, mínimo 1950 frente a 1955, `<script>`, "Nariño") | {link(27, 28)} |
+| Q6 | 404 por defecto de Next.js, en inglés y con fondo negro | {link(30)} |
+| Q7 | Dos URL distintas de LinkedIn | {link(30)} |
+| Q8 | Imagen para redes en SVG | {link(30)} |
+| Q9 | Contraste en claro: texto secundario 4,29:1; segmento "Moto" 4,01:1 | {link(30)} |
+| Q10 | Texto dentro de las barras Identidad/Estado a 2,71:1 y 3,65:1, a 11 px | {link(34, 35)} |
+| Q11 | Curvas: naranja 2,87:1, verde y naranja confundibles con daltonismo, leyenda aparte, "59% · 10" poco claro | {link(33, 34, 36)} |
+| Q12 | Curvas desde el año 1 con el eje desde 0 | {link(34)} |
+| Q13 | Etiquetas accesibles genéricas en las gráficas; barra de rango sin texto alternativo | {link(26, 34)} |
+| Q14 | Al enviar con errores el foco se quedaba en el botón | {link(26)} |
+| Q15 | Toda la tarjeta de resultado se leía en voz alta | {link(26)} |
+| Q16 | En inglés quedaban textos en español (título de la pestaña, "60.000 km") | {link(26, 30, 38, 39)} (el enlace "Saltar al contenido" y el parpadeo del export en español, los dos últimos) |
+| Q17 | "Cuánto cuestan 10.000 km" mezclaba Moto y Carro; faltaba el "+" | {link(34)} |
+| Q18 | Marcas ordenadas solo por el valor central, sin marcar los intervalos anchos | {link(34)} |
+| Q19 | Estimado pegado al límite inferior del rango | {link(31)} |
+| Q20 | Enlaces del pie de 18 px; una sola meta descripción; "800–6.400" frente a "800 y 6400" | {link(30, 37, 39)} (metas; mismo formato en placeholder y error; enlaces ≥ 24 px en escritorio y 44 px en móvil) |
+| Q21 | Tema "Auto" con sistema oscuro pintaba Mercado y Metodología en claro | {link(22)} |
+| Q22 | Tarjetas y gráficas que no se distinguían del fondo en claro; textos de 11–12 px | {link(34, 35, 39)} (los últimos 11–12 px, en el pie y los toggles, en el 9b) |
+
+#### Revisión de la API (unas 100 peticiones a los 6 endpoints)
+
+| # | Hallazgo | Resuelto en |
+| --- | --- | --- |
+| A1 | `/predict` no aplicaba los rangos de `/catalog` (1954, 2028, 50 cc en un carro) | {link(27)}; pruebas contra el bundle servido en {link(38)} |
+| A2 | `/catalog` sin rango de precio pedido; 59 pesos devolvía "bargain" | {link(27)} |
+| A3 | La marca distinguía mayúsculas; "Bajaj" se aceptaba en un carro | {link(27)} |
+| A4 | Un modelo inexistente se valoraba sin aviso | {link(27)} (`model_not_covered`) |
+| A5 | Un departamento desconocido caía en la rama por defecto | {link(27, 28)} (`department_not_covered` y promedio ponderado) |
+| A6 | La cilindrada enviada no aparecía en `/explain` | {link(27)} |
+| A7 | `trained_on_rows` valía 6.754 en `/catalog` y 8.443 en `/model-info` | {link(27)} (`train_rows` y `total_rows`); el sitio usa los mismos nombres desde {link(39)} |
+| A8 | Estimado en un borde del rango en 11 de 60 combinaciones | {link(31)} |
+| A9 | Error publicado: partición aleatoria frente a temporal | {link(31, 37)} (ADR 0006 c; Metodología publica los dos) |
+| A10 | El departamento movía el estimado ~1 %, frente al +27 % de `/market` | {link(31, 34)} (el departamento lleva la geografía; nota que separa el efecto hedónico del de Valorar) |
+| A11 | Lo que ya funcionaba: campos extra, decimales en enteros, cuerpo no JSON, marca vacía, kilometraje fuera de rango, `/market` inexistente | {link(38)} (pruebas que lo fijan) |
 
 Los workflows "Weekly capture" y "Enrich motorcycle details" siguen deshabilitados a mano;
 habilitarlos le toca al usuario.

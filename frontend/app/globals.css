@@ -160,7 +160,7 @@
   /* Plate yellow as text on paper is 1.44:1. It stays a fill with dark text on top, and
      anything that has to be read as yellow type uses this ochre instead. */
   --accent-text: #7a5c00;
-  --good: #2d7448;
+  --good: #2a6b43;
   --good-bg: rgba(45, 116, 72, 0.1);
   --neutral: #57534a;
   --bad: #a3452a;
@@ -211,6 +211,38 @@ body {
   outline: 2px solid var(--accent-text);
   outline-offset: 3px;
   border-radius: 2px;
+}
+
+/*
+ * Target sizes, in one place rather than on every control. Unlayered on purpose: it wins
+ * over the `min-h-*` utilities, which live in a layer. `min-height` does nothing to an
+ * inline link inside a sentence, which is exactly the exemption WCAG 2.5.8 makes; a term
+ * button inside a paragraph opts out with `data-inline`.
+ */
+@media (max-width: 639.98px) {
+  :is(a, button, summary, [role="tab"]):not([data-inline], .sr-only) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+@media (min-width: 640px) {
+  a:not([data-inline], .sr-only) {
+    min-height: 24px;
+  }
+}
+
+/* Held until the stored language is rendered; see LANG_SCRIPT in LanguageProvider. */
+html[data-lang-pending] body {
+  visibility: hidden;
+}
+
+/*
+ * Focus moved by script to something Tab never reaches (the result heading, a section a
+ * skip link lands on) is for the screen reader's place, not a control to point at, so it
+ * draws no ring. Every control Tab reaches keeps the one above.
+ */
+[tabindex="-1"]:focus-visible {
+  outline: none;
 }
 
 /* The translucent header. A named variable because the blur has to sit over it. */

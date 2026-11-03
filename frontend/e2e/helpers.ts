@@ -117,3 +117,23 @@ export function bodyLuminance(page: Page): Promise<number> {
     return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
   });
 }
+
+/**
+ * Wait for what moves measurements: web fonts, transitions still running (a toggle caught
+ * half-way through its colour change reads as low contrast) and charts that draw once at
+ * a fallback width before measuring their box.
+ */
+export async function settle(page: Page) {
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForFunction(() =>
+    document
+            .getAnimations()
+            .every((animation) => !(animation instanceof CSSTransition) || animation.playState !== "running"),
+  );
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll<SVGSVGElement>("svg[viewBox]")].every((svg) => {
+      const width = svg.viewBox.baseVal.width;
+      return width === 0 || svg.clientWidth === 0 || Math.abs(svg.clientWidth - width) < 2;
+    }),
+  );
+}

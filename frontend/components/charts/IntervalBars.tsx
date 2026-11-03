@@ -17,6 +17,12 @@
 
 import { useState } from "react";
 
+/**
+ * A wide interval keeps its series' colour as a 2 px outline over the pale fill. It used
+ * to be the solid bar at 55 % opacity, which fell to 1.89:1 against paper (WCAG 1.4.11).
+ */
+const WIDE = "bg-bar-muted border-2 border-bar";
+
 export type BarTone = "data" | "good" | "bad" | "accent";
 
 export type BarItem = {
@@ -86,7 +92,14 @@ export function IntervalBars({ items, signed = false, caption, columns, highligh
   return (
     <figure className="m-0">
       <figcaption className="sr-only">{caption}</figcaption>
-      <ul aria-hidden="true" className="space-y-1">
+      {/* From `sm` up the list is one grid and each row a subgrid of it, so the figure
+          column is as wide as the widest figure in this chart, up to 14 rem: a long note
+          ("pocos anuncios, estimado menos preciso") wraps instead of squeezing the bars
+          at 640-800 px. It was a fixed 12 rem, which left the figures far from the bars. */}
+      <ul
+        aria-hidden="true"
+        className="space-y-1 sm:grid sm:grid-cols-[10rem_minmax(0,1fr)_fit-content(14rem)] sm:gap-x-3 sm:gap-y-1 sm:space-y-0"
+      >
         {items.map((item) => {
           const value = position(item.value);
           const start = Math.min(zero, value);
@@ -119,7 +132,7 @@ export function IntervalBars({ items, signed = false, caption, columns, highligh
                 setOpen(next);
                 onHighlight?.(next);
               }}
-              className={`relative grid cursor-default grid-cols-[minmax(7rem,1fr)_auto] items-center gap-x-3 gap-y-1 rounded px-1 py-1 transition-opacity duration-150 sm:grid-cols-[10rem_minmax(0,1fr)_12rem] sm:gap-y-0 ${
+              className={`relative grid cursor-default grid-cols-[minmax(7rem,1fr)_auto] items-center gap-x-3 gap-y-1 rounded px-1 py-1 transition-opacity duration-150 sm:col-span-3 sm:grid-cols-subgrid sm:gap-y-0 ${
                 dimmed ? "opacity-40" : ""
               } ${lit ? "bg-surface" : ""} ${item.separatorAfter ? "mb-3 after:absolute after:inset-x-0 after:-bottom-2 after:h-px after:bg-line" : ""}`}
             >
@@ -150,7 +163,8 @@ export function IntervalBars({ items, signed = false, caption, columns, highligh
                     style={{ left: `${zero}%` }}
                   />
                   <span
-                    className={`absolute inset-y-1.5 rounded-sm ${fill} ${item.wide ? "opacity-55" : ""} ${
+                    data-mark=""
+                    className={`absolute inset-y-1.5 rounded-sm ${item.wide && !item.muted && !item.reference ? WIDE : fill} ${
                       lit ? "outline-2 outline-offset-1 outline-accent-text" : ""
                     }`}
                     style={{ left: `${start}%`, width: `${width}%` }}
@@ -163,7 +177,7 @@ export function IntervalBars({ items, signed = false, caption, columns, highligh
                         width: `${Math.max(position(item.high) - position(item.low), 0.3)}%`,
                       }}
                     >
-                      <span className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-muted" />
+                      <span data-mark="" className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-muted" />
                     </span>
                   )}
                   {open === item.label && item.tooltip && (

@@ -16,13 +16,22 @@
  * event for free.
  */
 
-import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
+import { createContext, useContext, useLayoutEffect, useMemo, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 
 import type { Lang, Localized } from "@/lib/i18n";
 
 const STORAGE_KEY = "autovalor.lang";
 const DEFAULT_LANG: Lang = "es";
+
+/**
+ * Inlined in `<head>`, before the first paint, like the theme script. The export is
+ * rendered in Spanish, so a visitor who chose English used to see a frame or more of
+ * Spanish before hydration switched it. When English is stored this sets `lang` and holds
+ * the body hidden (`data-lang-pending`, see globals.css) until the provider has rendered
+ * English; a timer releases it after 3 s if the scripts never run.
+ */
+export const LANG_SCRIPT = `try{if(localStorage.getItem(${JSON.stringify(STORAGE_KEY)})==="en"){var d=document.documentElement;d.lang="en";d.dataset.langPending="";setTimeout(function(){delete d.dataset.langPending},3000)}}catch(e){}`;
 
 const listeners = new Set<() => void>();
 
@@ -64,8 +73,16 @@ const LanguageContext = createContext<LanguageState | null>(null);
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const lang = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  useEffect(() => {
-    document.documentElement.lang = lang;
+  // A layout effect, so the body is shown in the same frame as the English text and not
+  // one after it. The first commit during hydration is the server's Spanish; the hold is
+  // only released once the rendered language is the stored one.
+  useLayoutEffect(() => {
+    // Never write the server's Spanish over what LANG_SCRIPT set: `lang` would flip
+    // en -> es -> en during hydration.
+    if (lang !== getSnapshot()) return;
+    const root = document.documentElement;
+    root.lang = lang;
+    delete root.dataset.langPending;
   }, [lang]);
 
   const value = useMemo<LanguageState>(

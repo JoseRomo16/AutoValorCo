@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
-import { LanguageProvider } from "@/components/LanguageProvider";
+import { LANG_SCRIPT, LanguageProvider } from "@/components/LanguageProvider";
 import { SiteFooter, SiteHeader, SkipLink } from "@/components/SiteChrome";
 import { THEME_SCRIPT, ThemeProvider } from "@/components/ThemeProvider";
 import { SITE_URL } from "@/lib/links";
@@ -91,10 +91,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // lang="es" because Spanish is the default; LanguageProvider rewrites it when a visitor
   // switches, so the attribute never disagrees with what is rendered.
   return (
-    <html lang="es" className={`${archivo.variable} ${plex.variable} ${jetbrains.variable}`}>
+    <html
+      lang="es"
+      // LANG_SCRIPT and THEME_SCRIPT write lang and data-theme before React hydrates.
+      suppressHydrationWarning
+      className={`${archivo.variable} ${plex.variable} ${jetbrains.variable}`}>
       <head>
         {/* Before the first paint. React runs after parsing, so a React-based fix flashes. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: LANG_SCRIPT }} />
       </head>
       <body>
         <ThemeProvider>
