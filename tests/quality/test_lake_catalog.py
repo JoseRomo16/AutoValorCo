@@ -257,3 +257,58 @@ def test_the_unknown_bucket_shrank_to_where_the_title_says_nothing(
 def _word_in(alias: str, title: str) -> bool:
     """Whether an alias appears in a title on letter boundaries, as the SQL match does."""
     return re.search(r"(^|[^a-z])" + re.escape(alias) + r"([^a-z]|$)", title) is not None
+
+
+SINGLE_LETTER_NAMES = {("Zeekr", "x")}
+"""Single-letter models that are the maker's whole name for the vehicle, not a prefix.
+
+The Zeekr X is sold as "X"; gluing the next token on would turn trims ("Premium",
+"Flagship") into models. Anything else on one letter is a family read without its number.
+"""
+
+
+def test_no_model_is_a_single_letter(con: duckdb.DuckDBPyConnection) -> None:
+    # Block 4: "BMW R 1250 GS" used to come out as "r" for 101 listings spanning a R 18 to
+    # a R 1300, so the form offered "R" as if it were one motorcycle.
+    offenders = {
+        (brand, model)
+        for brand, model in con.execute(
+            f"select distinct brand, model from {GOLD} "
+            r"where regexp_matches(coalesce(model, ''), '^[a-z]$')"
+        ).fetchall()
+    }
+    assert offenders - SINGLE_LETTER_NAMES == set()
+
+
+def test_a_family_prefix_and_its_number_land_on_the_joined_level(
+    con: duckdb.DuckDBPyConnection,
+) -> None:
+    # "R 1250" and "R1250" are the same motorcycle and must be one level, not two, spelled
+    # with BMW's spaces so the dropdown reads "R 1250".
+    models = {
+        model
+        for (model,) in con.execute(
+            f"select distinct model from {GOLD} where vehicle_type = 'motorcycle' "
+            "and brand in ('BMW', 'Yamaha')"
+        ).fetchall()
+    }
+    assert {"r 1250", "g 310", "mt-15"} <= models
+    assert not {"r", "f", "g", "s"} & models
+    # "mt" survives only where the title follows it with a word or a typo ("Mt Xsr 900",
+    # "Mt O9"): a couple of listings, not the 43 that used to collapse onto it.
+    mt = _scalar(con, f"select count(*) from {GOLD} where brand = 'Yamaha' and model = 'mt'")
+    assert mt <= 5
+
+
+def test_bmw_motorcycles_read_the_way_bmw_writes_them(con: duckdb.DuckDBPyConnection) -> None:
+    from autovalor.features.naming import display_model
+
+    shown = {
+        display_model(model)
+        for (model,) in con.execute(
+            f"select distinct model from {GOLD} where vehicle_type = 'motorcycle' "
+            "and brand = 'BMW' and model is not null"
+        ).fetchall()
+    }
+    assert {"R 1250", "G 310"} <= shown
+    assert not any(name[:1].islower() for name in shown if name[:1].isalpha())

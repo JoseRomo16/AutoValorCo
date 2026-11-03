@@ -193,3 +193,72 @@ unit_tests:
         - {listing_id: "m", brand: "Yamaha", model: "mt-03", is_quad: false, is_cargo: false}
         - {listing_id: "n", brand: "KTM", model: "390", is_quad: false, is_cargo: false}
         - {listing_id: "o", brand: "AKT", model: "carguero", is_quad: false, is_cargo: true}
+
+  - name: title_features_joins_a_family_prefix_to_its_number
+    description: >
+      Block 4. A motorcycle family prefix written apart from its number used to become the
+      model on its own: "BMW R 1250 GS" came out as "r" for 101 listings spanning a R 18 to
+      a R 1300, and "Yamaha MT 15" as "mt". Cars keep single letters to the alias seed,
+      because there a letter is a class ("C 180" is a Clase C) or a whole name (Zeekr X).
+    model: stg_title_features
+    given:
+      - input: ref('silver_listings')
+        rows:
+          - {listing_id: "a", vehicle_type: "motorcycle", title: "Bmw R 1250 Gs 2021", model_year: 2021, last_seen_at: "2026-10-01", price_cop: 1}
+          # A suffix glued to the number stays: it is how the title spells the variant.
+          - {listing_id: "b", vehicle_type: "motorcycle", title: "Bmw F 900r Dynamic", model_year: 2022, last_seen_at: "2026-10-01", price_cop: 1}
+          - {listing_id: "c", vehicle_type: "motorcycle", title: "Bmw G 310 R Negra 2019", model_year: 2019, last_seen_at: "2026-10-01", price_cop: 1}
+          - {listing_id: "d", vehicle_type: "motorcycle", title: "Bmw S 1000 R 2023", model_year: 2023, last_seen_at: "2026-10-01", price_cop: 1}
+          # Two letters and a number, then the alias seed unifies the spelling.
+          - {listing_id: "e", vehicle_type: "motorcycle", title: "Yamaha Mt 15 2022", model_year: 2022, last_seen_at: "2026-10-01", price_cop: 1}
+          # A single letter takes the next token even when it is a word.
+          - {listing_id: "f", vehicle_type: "motorcycle", title: "Yamaha X Max 300", model_year: 2023, last_seen_at: "2026-10-01", price_cop: 1}
+          # Two letters and a word is a name, not a prefix: left alone.
+          - {listing_id: "g", vehicle_type: "motorcycle", title: "Akt Tt Ds 200 2026", model_year: 2026, last_seen_at: "2026-10-01", price_cop: 1}
+          # Already one word: the same level as the spaced title, spelled the BMW way.
+          - {listing_id: "h", vehicle_type: "motorcycle", title: "Bmw R1250 Gs 2020", model_year: 2020, last_seen_at: "2026-10-01", price_cop: 1}
+          # A lone trailing letter is a truncated title, not a model.
+          - {listing_id: "k", vehicle_type: "motorcycle", title: "Moto Automatica Se Vende Con P", model_year: 2020, last_seen_at: "2026-10-01", price_cop: 1}
+          # Cars: the letter goes through the alias seed to the class...
+          - {listing_id: "i", vehicle_type: "car", title: "Mercedes-Benz C 180 2019 Avantgarde", model_year: 2019, last_seen_at: "2026-10-01", price_cop: 1}
+          # ... and a name that is one letter stays one letter.
+          - {listing_id: "j", vehicle_type: "car", title: "Zeekr X 2026 0.0 Premium Rwd", model_year: 2026, last_seen_at: "2026-10-01", price_cop: 1}
+          # The variant glued to the number is spaced out too: "R 1250 GS".
+          - {listing_id: "l", vehicle_type: "motorcycle", title: "Bmw R1250gs Adventure", model_year: 2022, last_seen_at: "2026-10-01", price_cop: 1}
+          # Yamaha writes its names as one word, and keeps them that way.
+          - {listing_id: "m", vehicle_type: "motorcycle", title: "Yamaha R 15 V3", model_year: 2022, last_seen_at: "2026-10-01", price_cop: 1}
+      - input: ref('vehicle_brands')
+        rows:
+          - {alias: "bmw", brand: "BMW", applies_to: "both", alias_kind: "brand", brand_rank: 0}
+          - {alias: "yamaha", brand: "Yamaha", applies_to: "motorcycle", alias_kind: "brand", brand_rank: 0}
+          - {alias: "akt", brand: "AKT", applies_to: "motorcycle", alias_kind: "brand", brand_rank: 1}
+          - {alias: "mercedes-benz", brand: "Mercedes-Benz", applies_to: "car", alias_kind: "brand", brand_rank: 0}
+          - {alias: "zeekr", brand: "Zeekr", applies_to: "car", alias_kind: "brand", brand_rank: 0}
+      - input: ref('model_tokens')
+        rows:
+          - {token: "negra", applies_to: "both", rule: "drop", reason: "color"}
+          - {token: "moto", applies_to: "motorcycle", rule: "drop", reason: "vertical_word"}
+          - {token: "automatica", applies_to: "both", rule: "drop", reason: "spec_word"}
+          - {token: "se", applies_to: "both", rule: "drop", reason: "function_word"}
+          - {token: "vende", applies_to: "both", rule: "drop", reason: "ad_word"}
+          - {token: "con", applies_to: "both", rule: "drop", reason: "function_word"}
+          - {token: "clase", applies_to: "car", rule: "join", reason: "model_family"}
+      - input: ref('model_aliases')
+        rows:
+          - {alias: "mt15", model: "mt-15", brand: "Yamaha", applies_to: "motorcycle"}
+          - {alias: "c", model: "clase c", brand: "Mercedes-Benz", applies_to: "car"}
+    expect:
+      rows:
+        - {listing_id: "a", brand: "BMW", model: "r 1250"}
+        - {listing_id: "b", brand: "BMW", model: "f 900 r"}
+        - {listing_id: "c", brand: "BMW", model: "g 310"}
+        - {listing_id: "d", brand: "BMW", model: "s 1000"}
+        - {listing_id: "e", brand: "Yamaha", model: "mt-15"}
+        - {listing_id: "f", brand: "Yamaha", model: "xmax"}
+        - {listing_id: "g", brand: "AKT", model: "tt"}
+        - {listing_id: "h", brand: "BMW", model: "r 1250"}
+        - {listing_id: "i", brand: "Mercedes-Benz", model: "clase c"}
+        - {listing_id: "j", brand: "Zeekr", model: "x"}
+        - {listing_id: "k", brand: "Desconocida", model: null}
+        - {listing_id: "l", brand: "BMW", model: "r 1250 gs"}
+        - {listing_id: "m", brand: "Yamaha", model: "r15"}

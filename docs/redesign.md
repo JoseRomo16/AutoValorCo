@@ -19,9 +19,13 @@ cada paso, qué se midió y qué decisiones quedaron abiertas**.
 | 1 | Diagnóstico de las tres páginas | **cerrado** | este documento, abajo |
 | 2 | Copy completo de `i18n.ts`, ES y EN | **cerrado** | rama `feat/web-copy` |
 | 3 | Pendientes de API y documentación | **cerrado** | rama `fix/api-and-docs` |
-| 4 | Fundaciones: tokens, fuentes, tema, header y footer | **sin empezar** | — |
-| 5 | Las tres páginas | **sin empezar** | — |
-| 6 | Verificación: capturas, Lighthouse, lint y pruebas | **sin empezar** | — |
+| 4 | Fundaciones: tokens, fuentes, tema, header y footer | **cerrado** | PR [#21](https://github.com/JoseRomo16/AutoValorCo/pull/21); el tema "Auto" se arregló en [#22](https://github.com/JoseRomo16/AutoValorCo/pull/22) |
+| 5 | Las tres páginas | **en curso** | Valorar: rediseñada en #21 y corregida en los Bloques 2a, 2b y 3 ([#26](https://github.com/JoseRomo16/AutoValorCo/pull/26), [#27](https://github.com/JoseRomo16/AutoValorCo/pull/27), [#28](https://github.com/JoseRomo16/AutoValorCo/pull/28), [#30](https://github.com/JoseRomo16/AutoValorCo/pull/30)). Mercado y Metodología siguen con el diseño viejo: **Bloques 7 y 8** |
+| 6 | Verificación: capturas, Lighthouse, lint y pruebas | **sin empezar** | es el **Bloque 9** del plan de bloques |
+
+Desde el 2026-10-31 el trabajo sigue un plan de Bloques 0 a 9 (no está en el repo: lo trae
+el usuario). Los Pasos 5 y 6 de este documento quedaron repartidos en esos bloques; esta
+tabla y la de hallazgos de abajo dicen qué ya está hecho para no rehacerlo.
 
 Las ramas se apilan linealmente, así que `git merge --ff-only` integra en orden.
 
@@ -57,34 +61,35 @@ Pasos 4 y 5.
 
 ### Lo que sigue pendiente, con archivo
 
-Todo esto es maquetación o interacción, es decir Pasos 4 y 5.
+Todo esto era maquetación o interacción, es decir Pasos 4 y 5. La última columna, verificada
+contra `main` el 2026-11-02, dice si ya se resolvió y dónde, o qué bloque lo lleva.
 
-| # | Hallazgo | Archivo |
-| --- | --- | --- |
-| 1 | Aspecto de plantilla: paleta slate + emerald, fuente del sistema, `max-w-5xl` en todo | `app/globals.css`, `app/layout.tsx` |
-| 2 | Sin interruptor de tema: el oscuro solo sigue al sistema | `app/globals.css`, `components/SiteChrome.tsx` |
-| 3 | 61 pares `text-slate-… dark:text-slate-…` y cero tokens | nueve componentes |
-| 4 | Header no sticky, y en móvil la navegación salta a una segunda línea | `components/SiteChrome.tsx` |
-| 5 | Footer sin autoría, sin fecha de datos y sin enlace a metodología | `components/SiteChrome.tsx` |
-| 6 | Título con raya, sin imagen Open Graph, `PageIntro` como componente cliente | `app/layout.tsx`, `components/PageIntro.tsx` |
-| 7 | Formulario como pared de siete campos iguales, sin agrupar | `components/ValuationForm.tsx` |
-| 8 | Marca y modelo son `<select>` nativos, sin búsqueda | `components/ValuationForm.tsx` |
-| 9 | Kilometraje y precio pedido sin separador de miles mientras se escribe | `components/ValuationForm.tsx` |
-| 10 | Sin validación en línea: el navegador bloquea el envío sin explicar | `components/ValuationForm.tsx` |
-| 11 | Sin estado vacío diseñado antes de la primera valoración | `components/ValuationForm.tsx` |
-| 12 | Sin enlace compartible de una valoración | `components/ValuationForm.tsx` |
-| 13 | La barra del rango usa degradado verde→ámbar aunque no haya etiqueta | `components/PriceResult.tsx` |
-| 14 | El rango no tiene el mismo peso visual que el estimado | `components/PriceResult.tsx` |
-| 15 | Mercado sin tarjetas de hallazgos arriba | `components/MarketDashboard.tsx` |
-| 16 | Carros y motos como bloques seguidos en vez de pestañas con la elección recordada | `components/MarketDashboard.tsx` |
-| 17 | La depreciación se pinta en verde, que en el resto del sitio significa "ganga" | `components/charts/IntervalBars.tsx` |
-| 18 | Eje de las curvas de 0 a 100 %, leyenda en vez de etiqueta al final | `components/charts/RetainedCurves.tsx` |
-| 19 | Etiquetas de barra truncadas en móvil y columna de 10 rem desperdiciada | `components/charts/IntervalBars.tsx` |
-| 20 | Metodología sin índice lateral sticky | `components/Methodology.tsx` |
-| 21 | Términos técnicos sin definición a mano (el copy ya tiene `copy.terms`, nadie lo usa) | `components/Methodology.tsx` |
-| 22 | Sin diagrama SVG del flujo (hoy es una lista numerada) | `components/Methodology.tsx` |
-| 23 | Sin gráficas de calibración, de referencia OLS ni de error por marca | `components/Methodology.tsx` |
-| 24 | Comillas de Markdown visibles: el copy ya no las trae, pero conviene revisarlo renderizado | — |
+| # | Hallazgo | Archivo | Estado |
+| --- | --- | --- | --- |
+| 1 | Aspecto de plantilla: paleta slate + emerald, fuente del sistema, `max-w-5xl` en todo | `app/globals.css`, `app/layout.tsx` | Parcial: tokens, fuentes y ancho en #21; Mercado y Metodología siguen en slate → Bloques 7 y 8 |
+| 2 | Sin interruptor de tema: el oscuro solo sigue al sistema | `app/globals.css`, `components/SiteChrome.tsx` | **Resuelto** en #21 (interruptor) y #22 ("Auto" en oscuro) |
+| 3 | 61 pares `text-slate-… dark:text-slate-…` y cero tokens | nueve componentes | Parcial: quedan en `MarketDashboard`, `Methodology` y `charts/*` → Bloques 7 y 8 |
+| 4 | Header no sticky, y en móvil la navegación salta a una segunda línea | `components/SiteChrome.tsx` | **Resuelto** en #21 (sticky, translúcido); el móvil se verifica en el Bloque 9 |
+| 5 | Footer sin autoría, sin fecha de datos y sin enlace a metodología | `components/SiteChrome.tsx` | **Resuelto** en #21 y #30 (autoría, fecha de datos, enlaces de 24/44 px) |
+| 6 | Título con raya, sin imagen Open Graph, `PageIntro` como componente cliente | `app/layout.tsx`, `components/PageIntro.tsx` | Parcial: PNG Open Graph y títulos por página en #30; `PageIntro` sigue siendo cliente |
+| 7 | Formulario como pared de siete campos iguales, sin agrupar | `components/ValuationForm.tsx` | **Resuelto** en #21 (grupos con `fieldset`) |
+| 8 | Marca y modelo son `<select>` nativos, sin búsqueda | `components/ValuationForm.tsx` | **Resuelto** en #21 (`ui/Combobox.tsx`), con tildes y poca base en #28 |
+| 9 | Kilometraje y precio pedido sin separador de miles mientras se escribe | `components/ValuationForm.tsx` | **Resuelto** en #21; pegado y caracteres descartados en #26 |
+| 10 | Sin validación en línea: el navegador bloquea el envío sin explicar | `components/ValuationForm.tsx` | **Resuelto** en #26 y #27 (validación en línea contra `/catalog`, foco al primer error) |
+| 11 | Sin estado vacío diseñado antes de la primera valoración | `components/ValuationForm.tsx` | Parcial: estado vacío en #21; el ejemplo marcado "Ejemplo" → Bloque 8 |
+| 12 | Sin enlace compartible de una valoración | `components/ValuationForm.tsx` | Pendiente: el texto `copyLink` existe pero nada lo usa → Bloque 8 |
+| 13 | La barra del rango usa degradado verde→ámbar aunque no haya etiqueta | `components/PriceResult.tsx` | **Resuelto** en #21 (sin degradado) |
+| 14 | El rango no tiene el mismo peso visual que el estimado | `components/PriceResult.tsx` | En #21; se revisa en el Bloque 8 |
+| 15 | Mercado sin tarjetas de hallazgos arriba | `components/MarketDashboard.tsx` | Pendiente → Bloque 7 |
+| 16 | Carros y motos como bloques seguidos en vez de pestañas con la elección recordada | `components/MarketDashboard.tsx` | Pendiente → Bloque 7 |
+| 17 | La depreciación se pinta en verde, que en el resto del sitio significa "ganga" | `components/charts/IntervalBars.tsx` | Pendiente → Bloque 7 |
+| 18 | Eje de las curvas de 0 a 100 %, leyenda en vez de etiqueta al final | `components/charts/RetainedCurves.tsx` | Pendiente → Bloque 7 |
+| 19 | Etiquetas de barra truncadas en móvil y columna de 10 rem desperdiciada | `components/charts/IntervalBars.tsx` | Pendiente → Bloque 7 |
+| 20 | Metodología sin índice lateral sticky | `components/Methodology.tsx` | Pendiente → Bloque 8 |
+| 21 | Términos técnicos sin definición a mano (el copy ya tiene `copy.terms`, nadie lo usa) | `components/Methodology.tsx` | Pendiente → Bloque 8 |
+| 22 | Sin diagrama SVG del flujo (hoy es una lista numerada) | `components/Methodology.tsx` | Pendiente → Bloque 8 |
+| 23 | Sin gráficas de calibración, de referencia OLS ni de error por marca | `components/Methodology.tsx` | Pendiente → Bloque 8 |
+| 24 | Comillas de Markdown visibles: el copy ya no las trae, pero conviene revisarlo renderizado | — | Pendiente → Bloque 9 |
 
 ### Las cuatro correcciones al prompt
 
@@ -205,15 +210,12 @@ construido:
 Select-String -Path frontend/out/*/index.html -Pattern '\{[a-zA-Z]+\}'
 ```
 
-## El despliegue sigue pendiente
+## El despliegue
 
-El modelo reentrenado está en `main` y **no está desplegado**. El orden importa: **la API
-primero, el sitio después.** El bundle vive dentro de la imagen, así que la API necesita un
-despliegue para servirlo; el sitio lee `model.json` y `docs/results/` en tiempo de
-construcción, así que su despliegue es el que publica las cifras. En ese orden no hay
-ventana en la que la página cite una cifra que el servicio no está sirviendo. Pasos en
+El bundle `2026-10-25.12948` **está desplegado**: `/model-info` lo devuelve en vivo,
+verificado el 2026-11-02. El orden sigue siendo el mismo para el próximo bundle (el del
+Bloque 4): **la API primero, el sitio después.** El bundle vive dentro de la imagen, así que
+la API necesita un despliegue para servirlo; el sitio lee `model.json` y `docs/results/` en
+tiempo de construcción, así que su despliegue es el que publica las cifras. En ese orden no
+hay ventana en la que la página cite una cifra que el servicio no está sirviendo. Pasos en
 [`deploy-render.md`](deploy-render.md); lo hace el usuario.
-
-Tras desplegar la API: que `/model-info` devuelva `version: "2026-10-25.12948"` y los campos
-nuevos (`baseline_mape`, `interval_uncalibrated_coverage`, `metrics_temporal`,
-`label_withheld_codes`), y que una moto siga devolviendo `label: null` con su aviso.

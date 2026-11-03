@@ -177,7 +177,7 @@ asking price), with everything the models consume.
 | `mileage_km`        | bigint    |                                                        |
 | `km_per_year`       | double    | Divides by at least one year, so new vehicles read as  |
 |                     |           | "kilometres so far" instead of exploding               |
-| `city`              | varchar   |                                                        |
+| `city`              | varchar   | Data only: not a model feature since Block 4 (ADR 0006) |
 | `department`        | varchar   |                                                        |
 | `is_official_store` | boolean   |                                                        |
 | `first_seen_at`     | timestamp |                                                        |

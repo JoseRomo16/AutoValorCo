@@ -1,5 +1,5 @@
 {
-  "format": 2,
+  "format": 3,
   "vehicle_type": "car",
   "n_rows": 6754,
   "brands": [
@@ -694,14 +694,14 @@
           "display_name": "Sport"
         },
         {
-          "name": "x",
-          "listings": 1,
-          "display_name": "X"
-        },
-        {
           "name": "xantia",
           "listings": 1,
           "display_name": "Xantia"
+        },
+        {
+          "name": "xsara picasso",
+          "listings": 1,
+          "display_name": "Xsara Picasso"
         }
       ]
     },
@@ -1850,11 +1850,6 @@
           "display_name": "Back"
         },
         {
-          "name": "c",
-          "listings": 5,
-          "display_name": "C"
-        },
-        {
           "name": "c180",
           "listings": 1,
           "display_name": "C180"
@@ -1876,7 +1871,7 @@
         },
         {
           "name": "clase c",
-          "listings": 62,
+          "listings": 67,
           "display_name": "Clase C"
         },
         {
@@ -1901,7 +1896,7 @@
         },
         {
           "name": "clase e",
-          "listings": 13,
+          "listings": 15,
           "display_name": "Clase E"
         },
         {
@@ -1911,7 +1906,7 @@
         },
         {
           "name": "clase g",
-          "listings": 9,
+          "listings": 10,
           "display_name": "Clase G"
         },
         {
@@ -1960,11 +1955,6 @@
           "display_name": "Clase SLK"
         },
         {
-          "name": "e",
-          "listings": 2,
-          "display_name": "E"
-        },
-        {
           "name": "e200",
           "listings": 2,
           "display_name": "E200"
@@ -1973,11 +1963,6 @@
           "name": "e220",
           "listings": 1,
           "display_name": "E220"
-        },
-        {
-          "name": "g",
-          "listings": 1,
-          "display_name": "G"
         },
         {
           "name": "gl500",
@@ -2211,13 +2196,8 @@
           "display_name": "Versa"
         },
         {
-          "name": "x",
-          "listings": 1,
-          "display_name": "X"
-        },
-        {
           "name": "x-trail",
-          "listings": 57,
+          "listings": 58,
           "display_name": "X-Trail"
         }
       ]
@@ -3177,5 +3157,9 @@
   "engine_cc": {
     "min": 800.0,
     "max": 6400.0
+  },
+  "asking_price_cop": {
+    "min": 22382500.0,
+    "max": 850000000.0
   }
 }

@@ -71,6 +71,7 @@ from autovalor.models.bundle import ARTIFACTS_DIR, ServedModel, load_served_mode
 from autovalor.models.catalog import NamedCount, VehicleCatalog
 from autovalor.models.dataset import VehicleType
 from autovalor.models.explain import shap_contributions
+from autovalor.models.serving import SERVING_ASSUMPTIONS
 
 logger = logging.getLogger("autovalor.api")
 
@@ -413,6 +414,7 @@ def explain(request: PredictRequest, models: ModelsDep) -> ExplainResponse:
             value_display=_localized(format_value(str(feature), frame.iloc[0].get(feature))),
             factor=float(np.exp(contribution)),
             direction="raises" if contribution >= 0 else "lowers",
+            assumed=str(feature) in SERVING_ASSUMPTIONS,
         )
         for feature, contribution in ranked.items()
     ]

@@ -24,6 +24,7 @@ from autovalor.analysis.mileage import price_segments
 from autovalor.models.dataset import Dataset
 from autovalor.models.hedonic import TARGET
 from autovalor.models.metrics import regression_report
+from autovalor.models.serving import as_served
 from autovalor.models.train import ModelResult
 
 logger = logging.getLogger("autovalor.analysis")
@@ -74,7 +75,9 @@ def segment_errors(
     test["price_segment"] = price_segments(test)
     # Carried as a column rather than a parallel array: every breakdown below slices rows,
     # and a positional array would have to be re-aligned at each one.
-    test[PREDICTED] = result.model.predict_log_price(test)
+    # Scored as /predict would score it, like the headline MAPE beside it in model.json:
+    # the real is_official_store would flatter a brand sold mostly through official stores.
+    test[PREDICTED] = result.model.predict_log_price(as_served(dataset.test))
 
     rows: list[dict[str, object]] = []
     skipped = 0

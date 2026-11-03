@@ -37,6 +37,7 @@ import pandas as pd
 
 from autovalor.models.dataset import DEFAULT_SEED, VehicleType, split_listings
 from autovalor.models.metrics import IntervalReport
+from autovalor.models.serving import as_served
 from autovalor.models.trees import DEFAULT_PARAMS, FittedTree, fit_tree
 
 logger = logging.getLogger("autovalor.models")
@@ -292,7 +293,11 @@ def fit_interval(
         for quantile in QUANTILES
     }
 
-    raw = _raw_bounds(models, inner.test)
+    # Calibrated on the rows as /predict would send them, not as gold has them: the
+    # widening has to restore the nominal coverage for the band users are actually
+    # served. Fitting stays on the real values, which is where a column like
+    # is_official_store earns its keep as a control.
+    raw = _raw_bounds(models, as_served(inner.test))
     crossing_rate = float(np.mean(np.any(np.diff(raw, axis=1) < 0, axis=1)))
     ordered = np.sort(raw, axis=1)
     widening = conformal_widening(inner.test["log_price"], ordered[:, 0], ordered[:, 2])

@@ -65,6 +65,7 @@ from autovalor.models.quantiles import (
     fit_interval,
     label_policy,
 )
+from autovalor.models.serving import as_served
 from autovalor.models.trees import DEFAULT_PARAMS, FittedTree, TreeModel, fit_tree
 from autovalor.models.tuning import DEFAULT_TRIALS, search, trials_for
 
@@ -260,6 +261,11 @@ def train_model(
     raw_report: IntervalReport | None = None
     band_label: LabelPolicy | None = None
     importance: pd.DataFrame | None = None
+    # The holdout as /predict would score it. Every published figure -- the error, the
+    # band's coverage and width, and so the label gate -- is measured on this frame: a
+    # figure measured with values the API cannot send describes a model nobody is served.
+    # That is how the car gate passed at 80 % while the band served covered 75 %.
+    served_test = as_served(dataset.test)
 
     if model_kind == BASELINE_KIND:
         variant = feature_set
@@ -310,12 +316,12 @@ def train_model(
                 params=best_params,
                 seed=seed,
             )
-            bounds = band.predict_log_bounds(dataset.test)
+            bounds = band.predict_log_bounds(served_test)
             band_report = interval_report(dataset.test[TARGET], bounds[:, 0], bounds[:, 2])
             # The same holdout, scored with the three quantile models used directly. This
             # is the number that justifies the conformal step rather than assuming it: the
             # raw band covered 67 % on cars and 63 % on motorcycles against a nominal 80 %.
-            raw = band.predict_raw_log_bounds(dataset.test)
+            raw = band.predict_raw_log_bounds(served_test)
             raw_report = interval_report(dataset.test[TARGET], raw[:, 0], raw[:, 2])
             # Decided on the holdout the band was just scored on, which is the only split
             # that can answer whether users would see an honest label.
@@ -324,10 +330,10 @@ def train_model(
         if explain and tree_kind == EXPLAINED_KIND:
             # Measured on the holdout, not on train: an importance ranking read off the
             # rows the trees already memorised would overstate whatever they overfitted.
-            importance = global_importance(tree, dataset.test)
+            importance = global_importance(tree, served_test)
 
     train_report = regression_report(dataset.train[TARGET], model.predict_log_price(dataset.train))
-    test_report = regression_report(dataset.test[TARGET], model.predict_log_price(dataset.test))
+    test_report = regression_report(dataset.test[TARGET], model.predict_log_price(served_test))
 
     params: dict[str, object] = {
         **dataset.describe(),

@@ -632,8 +632,8 @@ export const copy = {
         en: "Cars and motorcycles are valued by separate models because their prices behave differently.",
       },
       detail: {
-        es: "Como referencia usamos una regresión de precios (OLS). El modelo publicado, LightGBM, reduce el error medio {car} en carros y {motorcycle} en motos. Casi toda la mejora viene de usar marca, modelo y ciudad tal como aparecen, sin agruparlos antes.",
-        en: "As a reference we use a price regression (OLS). The published model, LightGBM, cuts the average error by {car} on cars and {motorcycle} on motorcycles. Nearly all of the gain comes from using make, model and city as they appear, without grouping them first.",
+        es: "Como referencia usamos una regresión de precios (OLS). El modelo publicado, LightGBM, reduce el error medio {car} en carros y {motorcycle} en motos. Casi toda la mejora viene de usar marca y modelo tal como aparecen, sin agruparlos antes.",
+        en: "As a reference we use a price regression (OLS). The published model, LightGBM, cuts the average error by {car} on cars and {motorcycle} on motorcycles. Nearly all of the gain comes from using make and model as they appear, without grouping them first.",
       },
       stepsTitle: { es: "De un anuncio a un precio", en: "From a listing to a price" },
       steps: {

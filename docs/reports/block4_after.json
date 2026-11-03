@@ -1,0 +1,495 @@
+[
+  {
+    "vehicle_type": "car",
+    "version": "2026-11-02.12948",
+    "n": 1689,
+    "uses_city": false,
+    "published": {
+      "mape": 0.10028585641747767,
+      "interval_coverage": 0.8016577856719953,
+      "interval_mean_relative_width": 0.38537923861531326
+    },
+    "conditions": {
+      "real": {
+        "mape": 0.10016719273684137,
+        "median_ape": 0.0676084016109213,
+        "bias_log": -0.007793582898323612,
+        "p50_mape": 0.1051970170689376,
+        "point_minus_p50_log": {
+          "mean": 0.006765224294054362,
+          "median_abs": 0.032248774912432054
+        },
+        "coverage_calibrated": 0.8028419182948491,
+        "mean_relative_width_calibrated": 0.38441578642116314,
+        "coverage_published": 0.8040260509177027,
+        "mean_relative_width_published": 0.3854386994497783,
+        "position": {
+          "median": 0.49151548037359155,
+          "share_below_0_2": 0.08584961515689757,
+          "share_above_0_8": 0.08584961515689757,
+          "share_at_edge": 0.028419182948490232,
+          "deciles": [
+            0.0,
+            0.2184999334704485,
+            0.32015329215092275,
+            0.39247511053307965,
+            0.44072958268429396,
+            0.49151548037359155,
+            0.5490200642269056,
+            0.6102923978489679,
+            0.6867397923700527,
+            0.7792391644229847,
+            1.0
+          ]
+        },
+        "widened": {
+          "below_p10": 22.0,
+          "above_p90": 26.0,
+          "share": 0.028419182948490232
+        },
+        "width_by_estimate_quartile": [
+          {
+            "quartile": 1.0,
+            "estimate_cop_min": 18158812.969601363,
+            "estimate_cop_max": 59243777.47120155,
+            "mean_relative_width": 0.3973438034277138,
+            "median_p90_over_p10": 1.3279070049921922,
+            "n": 422.0
+          },
+          {
+            "quartile": 2.0,
+            "estimate_cop_min": 59391666.34760925,
+            "estimate_cop_max": 87085687.82066965,
+            "mean_relative_width": 0.315419529415002,
+            "median_p90_over_p10": 1.2834144319856142,
+            "n": 422.0
+          },
+          {
+            "quartile": 3.0,
+            "estimate_cop_min": 87249209.64564401,
+            "estimate_cop_max": 132937385.81288047,
+            "mean_relative_width": 0.3712958963374911,
+            "median_p90_over_p10": 1.368887776221782,
+            "n": 422.0
+          },
+          {
+            "quartile": 4.0,
+            "estimate_cop_min": 133196341.48918612,
+            "estimate_cop_max": 1060897766.0640237,
+            "mean_relative_width": 0.45752474859722975,
+            "median_p90_over_p10": 1.4875098216287306,
+            "n": 423.0
+          }
+        ]
+      },
+      "served": {
+        "mape": 0.10028585641747767,
+        "median_ape": 0.06763413442483912,
+        "bias_log": -0.0076213979842841735,
+        "p50_mape": 0.10518879012420132,
+        "point_minus_p50_log": {
+          "mean": 0.007585795329461091,
+          "median_abs": 0.03223147506382418
+        },
+        "coverage_calibrated": 0.8016577856719953,
+        "mean_relative_width_calibrated": 0.38621742127916103,
+        "coverage_published": 0.8028419182948491,
+        "mean_relative_width_published": 0.3872294644127447,
+        "position": {
+          "median": 0.4919908742873929,
+          "share_below_0_2": 0.08584961515689757,
+          "share_above_0_8": 0.08644168146832445,
+          "share_at_edge": 0.028419182948490232,
+          "deciles": [
+            0.0,
+            0.21943781381588193,
+            0.3184612723908276,
+            0.3890543624052075,
+            0.43786989062035164,
+            0.4919908742873929,
+            0.5483589904218871,
+            0.6102923978489679,
+            0.6864687303724298,
+            0.77912804376545,
+            1.0
+          ]
+        },
+        "widened": {
+          "below_p10": 22.0,
+          "above_p90": 26.0,
+          "share": 0.028419182948490232
+        },
+        "width_by_estimate_quartile": [
+          {
+            "quartile": 1.0,
+            "estimate_cop_min": 18158812.969601363,
+            "estimate_cop_max": 59243777.47120155,
+            "mean_relative_width": 0.39768971966857636,
+            "median_p90_over_p10": 1.3279070049921922,
+            "n": 422.0
+          },
+          {
+            "quartile": 2.0,
+            "estimate_cop_min": 59391666.34760925,
+            "estimate_cop_max": 87085687.82066965,
+            "mean_relative_width": 0.3172046667584871,
+            "median_p90_over_p10": 1.2834144319856142,
+            "n": 422.0
+          },
+          {
+            "quartile": 3.0,
+            "estimate_cop_min": 87249209.64564401,
+            "estimate_cop_max": 133091459.57578237,
+            "mean_relative_width": 0.374047442228282,
+            "median_p90_over_p10": 1.3696177290291494,
+            "n": 422.0
+          },
+          {
+            "quartile": 4.0,
+            "estimate_cop_min": 133196341.48918612,
+            "estimate_cop_max": 1060897766.0640237,
+            "mean_relative_width": 0.45980405130158414,
+            "median_p90_over_p10": 1.4878179372193898,
+            "n": 423.0
+          }
+        ]
+      }
+    },
+    "city_shap": {
+      "real": null,
+      "served": null
+    },
+    "department_effect_served": [
+      {
+        "department": "Antioquia",
+        "listings": 1098.0,
+        "model_pct": -1.3457833907464916,
+        "market_pct": 6.1047,
+        "market_significant": true
+      },
+      {
+        "department": "Atlántico",
+        "listings": 1044.0,
+        "model_pct": -3.2309410430068213,
+        "market_pct": -0.7237,
+        "market_significant": false
+      },
+      {
+        "department": "Bogotá D.C.",
+        "listings": 1251.0,
+        "model_pct": 0.0,
+        "market_pct": 0.0,
+        "market_significant": false
+      },
+      {
+        "department": "Cauca",
+        "listings": 1.0,
+        "model_pct": -1.761665029981201,
+        "market_pct": null,
+        "market_significant": null
+      },
+      {
+        "department": "Cundinamarca",
+        "listings": 1078.0,
+        "model_pct": 0.6618267270601776,
+        "market_pct": 0.255,
+        "market_significant": false
+      },
+      {
+        "department": "Meta",
+        "listings": 2.0,
+        "model_pct": -1.761665029981201,
+        "market_pct": null,
+        "market_significant": null
+      },
+      {
+        "department": "Norte de Santander",
+        "listings": 370.0,
+        "model_pct": 1.5872141219498006,
+        "market_pct": 3.1791,
+        "market_significant": true
+      },
+      {
+        "department": "Quindío",
+        "listings": 12.0,
+        "model_pct": -0.9839351470868297,
+        "market_pct": null,
+        "market_significant": null
+      },
+      {
+        "department": "Santander",
+        "listings": 731.0,
+        "model_pct": 0.4322691707722518,
+        "market_pct": 7.5806,
+        "market_significant": true
+      },
+      {
+        "department": "Valle del Cauca",
+        "listings": 1136.0,
+        "model_pct": -0.5396756504482233,
+        "market_pct": 0.8551,
+        "market_significant": false
+      }
+    ],
+    "uncovered_department": {
+      "real": {
+        "coverage": 0.7998815867377146,
+        "mean_relative_width": 0.3844214382263034,
+        "within_gate": true
+      },
+      "served": {
+        "coverage": 0.7998815867377146,
+        "mean_relative_width": 0.38615596152379766,
+        "within_gate": true
+      }
+    },
+    "gate": {
+      "min_coverage": 0.78,
+      "max_coverage": 0.82,
+      "max_relative_width": 0.6
+    }
+  },
+  {
+    "vehicle_type": "motorcycle",
+    "version": "2026-11-02.12948",
+    "n": 901,
+    "uses_city": false,
+    "published": {
+      "mape": 0.2041821084443692,
+      "interval_coverage": 0.804661487236404,
+      "interval_mean_relative_width": 0.7002474658556521
+    },
+    "conditions": {
+      "real": {
+        "mape": 0.20400275026222753,
+        "median_ape": 0.09616683640139323,
+        "bias_log": 0.0037394142669042456,
+        "p50_mape": 0.22662324964713365,
+        "point_minus_p50_log": {
+          "mean": -0.000417447274918557,
+          "median_abs": 0.05255432304228691
+        },
+        "coverage_calibrated": 0.804661487236404,
+        "mean_relative_width_calibrated": 0.7189539677918146,
+        "coverage_published": 0.806881243063263,
+        "mean_relative_width_published": 0.7211058928143247,
+        "position": {
+          "median": 0.5017108162924216,
+          "share_below_0_2": 0.12319644839067703,
+          "share_above_0_8": 0.11986681465038845,
+          "share_at_edge": 0.03995560488346282,
+          "deciles": [
+            0.0,
+            0.1702098110801645,
+            0.2791470933111961,
+            0.36510955756125113,
+            0.4409796168012022,
+            0.5017108162924216,
+            0.5756609134081868,
+            0.6378473356124266,
+            0.7230614659527688,
+            0.8224895874995134,
+            1.0
+          ]
+        },
+        "widened": {
+          "below_p10": 15.0,
+          "above_p90": 21.0,
+          "share": 0.03995560488346282
+        },
+        "width_by_estimate_quartile": [
+          {
+            "quartile": 1.0,
+            "estimate_cop_min": 2331004.0062339148,
+            "estimate_cop_max": 7795782.807061032,
+            "mean_relative_width": 1.0164136402797006,
+            "median_p90_over_p10": 1.6635920739770553,
+            "n": 225.0
+          },
+          {
+            "quartile": 2.0,
+            "estimate_cop_min": 7806515.080128274,
+            "estimate_cop_max": 14395399.196640853,
+            "mean_relative_width": 0.6653222668752263,
+            "median_p90_over_p10": 1.4703716078406537,
+            "n": 225.0
+          },
+          {
+            "quartile": 3.0,
+            "estimate_cop_min": 14430529.490625007,
+            "estimate_cop_max": 37784679.691997334,
+            "mean_relative_width": 0.6230186876180324,
+            "median_p90_over_p10": 1.6454149829815876,
+            "n": 225.0
+          },
+          {
+            "quartile": 4.0,
+            "estimate_cop_min": 37872384.561397344,
+            "estimate_cop_max": 208507077.42920136,
+            "mean_relative_width": 0.5802948035477467,
+            "median_p90_over_p10": 1.7326625554158357,
+            "n": 226.0
+          }
+        ]
+      },
+      "served": {
+        "mape": 0.2041821084443692,
+        "median_ape": 0.09604405667845939,
+        "bias_log": 0.004681456575712697,
+        "p50_mape": 0.2268478309729065,
+        "point_minus_p50_log": {
+          "mean": -0.0012119062587346784,
+          "median_abs": 0.05255432304228691
+        },
+        "coverage_calibrated": 0.804661487236404,
+        "mean_relative_width_calibrated": 0.7196478010315573,
+        "coverage_published": 0.806881243063263,
+        "mean_relative_width_published": 0.7218221717794601,
+        "position": {
+          "median": 0.502248548675319,
+          "share_below_0_2": 0.12319644839067703,
+          "share_above_0_8": 0.11875693673695893,
+          "share_at_edge": 0.03995560488346282,
+          "deciles": [
+            0.0,
+            0.17137960083536968,
+            0.27811668774947385,
+            0.36701687086641877,
+            0.4391736685697073,
+            0.502248548675319,
+            0.574758966717298,
+            0.638749948160144,
+            0.7225812149052938,
+            0.8283398543832838,
+            1.0
+          ]
+        },
+        "widened": {
+          "below_p10": 15.0,
+          "above_p90": 21.0,
+          "share": 0.03995560488346282
+        },
+        "width_by_estimate_quartile": [
+          {
+            "quartile": 1.0,
+            "estimate_cop_min": 2331004.0062339148,
+            "estimate_cop_max": 7827578.674164844,
+            "mean_relative_width": 1.020840898434557,
+            "median_p90_over_p10": 1.6757777126467568,
+            "n": 225.0
+          },
+          {
+            "quartile": 2.0,
+            "estimate_cop_min": 7921264.154218212,
+            "estimate_cop_max": 14430529.490625007,
+            "mean_relative_width": 0.6647341472078544,
+            "median_p90_over_p10": 1.4659899332217494,
+            "n": 225.0
+          },
+          {
+            "quartile": 3.0,
+            "estimate_cop_min": 14445234.599025216,
+            "estimate_cop_max": 37784679.691997334,
+            "mean_relative_width": 0.6225825151640944,
+            "median_p90_over_p10": 1.646399667773933,
+            "n": 225.0
+          },
+          {
+            "quartile": 4.0,
+            "estimate_cop_min": 37872384.561397344,
+            "estimate_cop_max": 208894178.3890247,
+            "mean_relative_width": 0.5797625026187159,
+            "median_p90_over_p10": 1.7326625554158357,
+            "n": 226.0
+          }
+        ]
+      }
+    },
+    "city_shap": {
+      "real": null,
+      "served": null
+    },
+    "department_effect_served": [
+      {
+        "department": "Antioquia",
+        "listings": 1055.0,
+        "model_pct": 3.170072319767922,
+        "market_pct": 27.0391,
+        "market_significant": true
+      },
+      {
+        "department": "Atlántico",
+        "listings": 99.0,
+        "model_pct": -7.289836759764152,
+        "market_pct": -16.6501,
+        "market_significant": true
+      },
+      {
+        "department": "Bogotá D.C.",
+        "listings": 1204.0,
+        "model_pct": 0.0,
+        "market_pct": 0.0,
+        "market_significant": false
+      },
+      {
+        "department": "Cauca",
+        "listings": 3.0,
+        "model_pct": -1.2309696728656239,
+        "market_pct": null,
+        "market_significant": null
+      },
+      {
+        "department": "Cundinamarca",
+        "listings": 453.0,
+        "model_pct": -3.665364574128031,
+        "market_pct": -13.7468,
+        "market_significant": true
+      },
+      {
+        "department": "Norte de Santander",
+        "listings": 31.0,
+        "model_pct": -3.5542237588355166,
+        "market_pct": -16.311,
+        "market_significant": false
+      },
+      {
+        "department": "Quindío",
+        "listings": 41.0,
+        "model_pct": 2.0977736781434237,
+        "market_pct": -24.6465,
+        "market_significant": true
+      },
+      {
+        "department": "Santander",
+        "listings": 210.0,
+        "model_pct": -2.9700695637875447,
+        "market_pct": -13.2424,
+        "market_significant": true
+      },
+      {
+        "department": "Valle del Cauca",
+        "listings": 507.0,
+        "model_pct": -1.497419653768124,
+        "market_pct": -0.127,
+        "market_significant": false
+      }
+    ],
+    "uncovered_department": {
+      "real": {
+        "coverage": 0.8002219755826859,
+        "mean_relative_width": 0.7227247516857757,
+        "within_gate": true
+      },
+      "served": {
+        "coverage": 0.8035516093229744,
+        "mean_relative_width": 0.7233139279433026,
+        "within_gate": true
+      }
+    },
+    "gate": {
+      "min_coverage": 0.78,
+      "max_coverage": 0.82,
+      "max_relative_width": 0.6
+    }
+  }
+]

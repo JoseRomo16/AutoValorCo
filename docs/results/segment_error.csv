@@ -1,41 +1,41 @@
 vehicle_type,model,segment_kind,segment,n,mape_pct,median_ape_pct,sigma_log,within_10pct
-car,lightgbm,brand,Mercedes-Benz,92,15.3021,12.52,0.2641,43.4783
-car,lightgbm,brand,BMW,62,12.9579,12.5142,0.178,41.9355
-car,lightgbm,brand,Audi,49,11.2194,6.8353,0.1465,57.1429
-car,lightgbm,brand,Toyota,270,10.4584,7.0325,0.2055,62.963
-car,lightgbm,brand,Nissan,93,10.2309,7.3616,0.1384,61.2903
-car,lightgbm,brand,Chevrolet,161,10.2278,7.7902,0.1361,60.8696
-car,lightgbm,brand,Suzuki,43,9.4745,6.8212,0.1283,60.4651
-car,lightgbm,brand,Renault,139,9.0914,5.3251,0.2229,67.6259
-car,lightgbm,brand,Ford,136,8.8183,6.4854,0.1408,69.1176
-car,lightgbm,brand,Kia,94,8.7462,7.0422,0.1092,71.2766
-car,lightgbm,brand,Volkswagen,92,7.8507,5.8283,0.1019,73.913
-car,lightgbm,brand,Mazda,165,5.8698,4.2734,0.0794,86.6667
-car,lightgbm,department,Cundinamarca,242,11.378,8.4379,0.1676,57.8512
-car,lightgbm,department,Bogotá D.C.,339,11.01,7.2127,0.2261,62.8319
-car,lightgbm,department,Antioquia,263,10.9148,8.0868,0.1818,58.1749
-car,lightgbm,department,Santander,193,10.5177,6.1576,0.1635,64.2487
-car,lightgbm,department,Atlántico,284,10.2559,6.8572,0.1654,67.2535
-car,lightgbm,department,Norte de Santander,91,8.8249,7.0394,0.1696,68.1319
-car,lightgbm,department,Valle del Cauca,268,7.7996,5.3887,0.1244,73.1343
-car,lightgbm,price_segment,Q3,422,11.3105,7.9468,0.1828,59.4787
-car,lightgbm,price_segment,Q4,422,11.2157,7.8895,0.2142,59.2417
-car,lightgbm,price_segment,Q1,423,9.652,6.8058,0.1701,66.1939
-car,lightgbm,price_segment,Q2,422,8.8354,6.1382,0.1263,71.327
-motorcycle,lightgbm,brand,Desconocida,80,44.8816,28.9046,0.5472,17.5
-motorcycle,lightgbm,brand,Honda,82,28.8894,10.773,0.4373,46.3415
-motorcycle,lightgbm,brand,AKT,40,20.6986,10.0297,0.2709,50.0
-motorcycle,lightgbm,brand,Yamaha,115,19.6322,9.741,0.2926,51.3043
-motorcycle,lightgbm,brand,KTM,51,16.2434,8.407,0.2801,50.9804
-motorcycle,lightgbm,brand,Suzuki,76,15.5281,8.7067,0.2863,55.2632
-motorcycle,lightgbm,brand,BMW,91,14.4416,10.5088,0.2241,48.3516
-motorcycle,lightgbm,brand,Bajaj,66,10.5767,8.2943,0.1287,57.5758
-motorcycle,lightgbm,department,Santander,66,37.5753,16.9219,0.4391,37.8788
-motorcycle,lightgbm,department,Cundinamarca,120,32.492,12.9928,0.4302,40.0
-motorcycle,lightgbm,department,Valle del Cauca,117,30.4452,13.2396,0.3799,41.0256
-motorcycle,lightgbm,department,Antioquia,261,16.7797,9.5145,0.3013,51.7241
-motorcycle,lightgbm,department,Bogotá D.C.,294,14.6773,9.4459,0.2286,53.4014
-motorcycle,lightgbm,price_segment,Q2,225,31.6516,13.1189,0.4358,41.7778
-motorcycle,lightgbm,price_segment,Q1,226,22.2749,10.1416,0.2937,49.5575
-motorcycle,lightgbm,price_segment,Q3,225,17.1258,9.1425,0.2696,53.3333
-motorcycle,lightgbm,price_segment,Q4,225,17.1228,10.7011,0.2861,45.3333
+car,lightgbm,brand,Mercedes-Benz,92,14.141,8.8674,0.2664,54.3478
+car,lightgbm,brand,BMW,62,12.0695,11.2376,0.1613,41.9355
+car,lightgbm,brand,Toyota,270,10.3026,7.5708,0.2024,65.1852
+car,lightgbm,brand,Chevrolet,161,10.0676,7.2554,0.1386,62.1118
+car,lightgbm,brand,Nissan,93,9.785,5.8917,0.1382,68.8172
+car,lightgbm,brand,Audi,49,9.3599,5.4973,0.1249,61.2245
+car,lightgbm,brand,Renault,139,9.0773,5.8959,0.22,69.7842
+car,lightgbm,brand,Suzuki,43,9.0429,6.6213,0.1238,65.1163
+car,lightgbm,brand,Ford,136,8.7407,5.9182,0.1375,72.0588
+car,lightgbm,brand,Kia,94,8.3462,6.4454,0.1011,72.3404
+car,lightgbm,brand,Volkswagen,92,7.6329,5.8405,0.1007,75.0
+car,lightgbm,brand,Mazda,165,5.8245,4.5236,0.0778,84.8485
+car,lightgbm,department,Cundinamarca,242,11.2815,7.5366,0.1637,62.8099
+car,lightgbm,department,Bogotá D.C.,339,10.7335,6.7933,0.2246,63.4218
+car,lightgbm,department,Antioquia,263,10.6111,8.3968,0.1817,60.8365
+car,lightgbm,department,Atlántico,284,10.2244,6.8965,0.169,65.493
+car,lightgbm,department,Santander,193,9.7391,5.9114,0.1581,70.9845
+car,lightgbm,department,Norte de Santander,91,8.2777,5.7788,0.1562,72.5275
+car,lightgbm,department,Valle del Cauca,268,7.7959,5.2682,0.1239,75.0
+car,lightgbm,price_segment,Q3,422,10.8779,7.458,0.1803,61.8483
+car,lightgbm,price_segment,Q4,422,10.8616,7.6802,0.2105,62.3223
+car,lightgbm,price_segment,Q1,423,9.6047,6.3101,0.1714,67.8487
+car,lightgbm,price_segment,Q2,422,8.7712,5.9242,0.1271,73.2227
+motorcycle,lightgbm,brand,Desconocida,80,41.3497,29.9707,0.5101,15.0
+motorcycle,lightgbm,brand,Honda,82,29.6464,12.7579,0.4084,42.6829
+motorcycle,lightgbm,brand,AKT,40,23.219,8.1516,0.3204,55.0
+motorcycle,lightgbm,brand,Yamaha,115,16.963,7.1633,0.2748,63.4783
+motorcycle,lightgbm,brand,Suzuki,76,13.8546,7.4644,0.2654,57.8947
+motorcycle,lightgbm,brand,KTM,51,13.8097,8.2409,0.2777,64.7059
+motorcycle,lightgbm,brand,BMW,91,12.8096,9.9528,0.227,50.5495
+motorcycle,lightgbm,brand,Bajaj,66,9.79,6.8833,0.1276,59.0909
+motorcycle,lightgbm,department,Santander,66,36.7756,16.9895,0.4351,34.8485
+motorcycle,lightgbm,department,Valle del Cauca,117,29.7744,11.7462,0.3769,41.0256
+motorcycle,lightgbm,department,Cundinamarca,120,29.2351,11.4994,0.3857,45.0
+motorcycle,lightgbm,department,Antioquia,261,14.7178,7.6551,0.2741,56.705
+motorcycle,lightgbm,department,Bogotá D.C.,294,13.7678,8.3122,0.2366,59.5238
+motorcycle,lightgbm,price_segment,Q2,225,31.1117,14.2324,0.4198,40.4444
+motorcycle,lightgbm,price_segment,Q1,226,20.8314,9.6583,0.2854,50.885
+motorcycle,lightgbm,price_segment,Q4,225,15.8762,9.9003,0.2793,51.5556
+motorcycle,lightgbm,price_segment,Q3,225,13.8517,6.5362,0.2274,63.5556

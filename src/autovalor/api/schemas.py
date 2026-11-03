@@ -178,6 +178,14 @@ class Factor(BaseModel):
     direction: Literal["raises", "lowers"] = Field(
         description="Whether the factor pushes the price up or down."
     )
+    assumed: bool = Field(
+        default=False,
+        description=(
+            "True when the value is not one the caller entered but one the service fixes "
+            "because the form never asks for it (e.g. 'official store: no'). A client "
+            "should present it as an assumption of the model, not as a fact about the vehicle."
+        ),
+    )
 
 
 class ExplainResponse(BaseModel):

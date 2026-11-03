@@ -19,6 +19,7 @@ from autovalor.models.quantiles import (
     fit_interval,
     label_policy,
 )
+from autovalor.models.serving import as_served
 
 from .conftest import make_gold_frame
 
@@ -70,13 +71,17 @@ def test_the_widening_rejects_an_empty_calibration_set() -> None:
         conformal_widening([], [], [])
 
 
-def test_the_band_covers_about_the_nominal_share(gold_cars: pd.DataFrame) -> None:
+def test_the_band_covers_about_the_nominal_share() -> None:
     # The whole point of the conformal step. Uncalibrated quantile trees came in at 67 % on
-    # the real car holdout against a nominal 80 %.
-    split = split_listings(gold_cars)
+    # the real car holdout against a nominal 80 %. 2.000 rows rather than the shared
+    # 600-row fixture: with 120 calibration rows the coverage swings by +-4 points from
+    # seed to seed, and the 600-row draw already sat at 89 %, on the edge of the tolerance.
+    split = split_listings(make_gold_frame(2000, vehicle_type="car"))
     band = fit_interval(split.train, vehicle_type="car", params=FAST)
 
-    bounds = band.predict_log_bounds(split.test)
+    # Scored as /predict would score it: the band is calibrated on those values, so that is
+    # the population its nominal coverage is a promise about.
+    bounds = band.predict_log_bounds(as_served(split.test))
     report = interval_report(split.test["log_price"], bounds[:, 0], bounds[:, 2])
 
     assert report.coverage == pytest.approx(NOMINAL_COVERAGE, abs=0.10)

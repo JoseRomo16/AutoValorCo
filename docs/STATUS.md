@@ -1013,6 +1013,94 @@ departamentos reales y sigue decidiendo si la vertical publica etiqueta. Esto es
 **segunda** medición que condicionaría la etiqueta para una clase de entrada; no la
 reemplaza ni la relaja.
 
+#### Paso 1 — la línea base, medida el 2026-11-02
+
+Sobre el bundle publicado `2026-10-25.12948`, con
+`python -m autovalor.models.band_diagnostics`; el detalle completo está en
+[`reports/block4_baseline.json`](reports/block4_baseline.json). El holdout se reproduce
+exacto (1.689 carros, 901 motos). "Real" es el holdout como está en gold, que es como se
+midieron las cifras publicadas; **"servido" es el mismo holdout con los valores que manda
+la API** (`city = "Desconocida"`, tienda oficial, cuadriciclo y carga en `False`).
+
+| | Carros real | **Carros servido** | Motos real | **Motos servido** |
+| --- | --- | --- | --- | --- |
+| MAPE | 10,3 % | 10,4 % | 22,0 % | 21,7 % |
+| Sesgo medio (log) | −0,009 | −0,019 | +0,001 | **−0,058** |
+| Cobertura de la banda del gate | 80,0 % | **75,0 %** | 79,4 % | **69,7 %** |
+| Ancho medio | 39,9 % | 37,5 % | 88,8 % | 84,7 % |
+| Cobertura bajo "Otro departamento" | 80,7 % | **75,7 %** | 79,8 % | **70,4 %** |
+| Estimado: mediana de la posición en la banda | 0,50 | 0,51 | 0,48 | 0,45 |
+| Filas con el estimado fuera de la banda (se ensancha) | 3,5 % | 4,9 % | 4,8 % | 10,5 % |
+| MAPE del P50 de cuantiles (primera vez) | 10,8 % | 10,9 % | 23,2 % | 23,3 % |
+| Tirón SHAP medio de `city` (log) | −0,001 | −0,012 | +0,007 | −0,053 |
+
+**Hallazgo: la etiqueta de carros se publica hoy con una banda que en producción no cumple
+el gate.** El gate se evaluó con la ciudad real de cada anuncio, que la API nunca manda: con
+la que sí manda, la banda cubre **75,0 %**, fuera de 78–82 %. En motos la etiqueta ya estaba
+retenida (por el ancho) y la cobertura servida, 69,7 %, también cae fuera. La causa es una
+sola variable: forzar solo las tres banderas no mueve la cobertura (80,6 % en carros), forzar
+solo la ciudad la lleva a 75,7 %. El nivel `"Desconocida"` **no aparece ni una vez** en el
+holdout, así que cada valoración real carga el efecto de un grupo pequeño y particular —
+el sesgo de −5,8 % en motos es eso.
+
+Tres cosas más que dice la línea base:
+
+- **El departamento no reproduce el efecto regional.** Con el mismo vehículo, cambiar de
+  departamento mueve el estimado entre −0,2 % y +0,2 %, mientras `/market` publica +27 %
+  para motos en Antioquia y +7,6 % para carros en Santander. Lo absorbe la ciudad.
+- **"Otro departamento" no es el problema**: con la ciudad real, promediar sobre los otros
+  departamentos deja la cobertura igual (80,7 % / 79,8 %). Lo que la hunde es la ciudad, y
+  la hunde en toda petición.
+- **El estimado pegado a un borde existe, pero menos de lo que sugería la muestra en
+  vivo.** Sobre el holdout la mediana de la posición está en el centro (0,51 carros, 0,45
+  motos, servido) y la banda se ensancha para contener el estimado en 4,9 % y 10,5 % de las
+  filas. La medición en vivo (0,32 y 0,10) usó 60 combinaciones elegidas a mano en Bogotá,
+  no la distribución real de anuncios; las dos cifras no se contradicen, miden poblaciones
+  distintas. En motos baratas el P90 es ~2× el P10 en mediana (no 5×: ese era el caso
+  Bajaj).
+
+La decisión sobre retener la etiqueta para "Otro departamento" espera a la misma medición
+sobre el modelo sin ciudad (paso 4). La prueba de paridad entrenamiento/servicio que entra
+en este bloque es la que impide que vuelva a pasar.
+
+#### Paso 4 — el modelo sin ciudad, medido el 2026-11-02
+
+Bundle **`2026-11-02.12948`**: misma partición, misma búsqueda (40 ensayos) y misma
+calibración conformal, sin `city` y con los prefijos de familia de motos corregidos (BMW
+`r`/`f`/`g`/`s`, Yamaha `mt`). Desde este bundle **toda cifra publicada se mide sobre el
+holdout tal como lo puntúa la API** (`models/serving.py`), así que "publicado" y "servido"
+son la misma cifra. Detalle en [`reports/block4_after.json`](reports/block4_after.json) y la
+decisión en [ADR 0006](adr/0006-drop-city-feature.md).
+
+| | Carros antes (servido) | **Carros después** | Motos antes (servido) | **Motos después** |
+| --- | --- | --- | --- | --- |
+| MAPE | 10,4 % | **10,0 %** | 21,7 % | **20,4 %** |
+| MAPE partición temporal | 11,6 % | 11,4 % | 23,5 % | 21,9 % |
+| Hedónico OLS | 12,9 % | 12,9 % | 34,6 % | 33,2 % |
+| Cobertura de la banda | 75,0 % | **80,2 %** | 69,7 % | **80,5 %** |
+| Ancho medio | 37,5 % | 38,5 % | 84,7 % | **70,0 %** |
+| Etiqueta | publicada (sin cumplir el gate) | **publicada** | retenida | **retenida**, solo por ancho |
+| Cobertura bajo "Otro departamento" | 75,7 % | **80,0 %** | 70,4 % | **80,4 %** |
+| Filas donde la banda se ensancha | 4,9 % | 2,8 % | 10,5 % | 4,0 % |
+
+**Por qué cambiaron las cifras publicadas:** se retiró la ciudad, se corrigieron los
+modelos de una letra y las cifras pasaron a medirse con los valores que manda la API. Ningún
+umbral se tocó. La meta de carros se mantiene (10,0 % contra 15 %) y las dos verticales
+siguen ganándole al OLS.
+
+- **"Otro departamento" queda dentro de la ventana** en las dos verticales, así que la
+  etiqueta no necesita retenerse para ese caso (punto (a) del ADR, pendiente de que el dueño
+  lo confirme).
+- **El departamento ahora mueve el estimado** (−3,2 % a +1,6 % en carros, −7,3 % a +3,2 %
+  en motos), casi siempre en la dirección de `/market`, pero mucho menos que el efecto
+  hedónico. Ver el ADR: son dos modelos contestando preguntas distintas.
+- **El estimado pegado al borde casi desaparece en el holdout** (mediana 0,49 / 0,50). En la
+  grilla de la auditoría en vivo, motos pasa de 0,11 a 0,30. La recomendación es no cambiar
+  la banda (opción g), y la decisión es del dueño.
+- **Tres decisiones abiertas en el ADR 0006**: (a) retención para "Otro departamento" (no
+  hace falta), (b) la banda (g recomendada), (c) qué error publicar en Metodología (ambos
+  recomendados).
+
 ### F2 — cerrada
 
 Los cinco pasos estaban hechos desde el 2026-10-05; lo que faltaba era el criterio de
@@ -1589,19 +1677,26 @@ token está mal", y esas dos llevan a conclusiones opuestas.
   bajo la pausa ya no es cierto. **Se corrige en el Bloque 8** por una frase que diga la
   fecha de los datos y que la captura está en pausa.
 
-### Dónde quedó esto el 2026-10-26
+### Dónde quedó esto el 2026-11-02
 
-El trabajo en curso es el **rediseño del sitio**, que tiene su propio documento de
-seguimiento: [`redesign.md`](redesign.md) dice en qué estado está cada paso, guarda el
-diagnóstico de las tres páginas y lista las decisiones abiertas. **Empezar por ahí.**
+El trabajo sigue un **plan de Bloques 0 a 9** (lo trae el usuario; no está en el repo), que
+absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por bloque.
 
-De los siete pasos, **seis están cerrados** —limpieza del catálogo, reentrenamiento, los
-cuatro datos del lago que faltaban exportar, el diagnóstico, el copy y los pendientes de API
-y documentación— y faltan los tres de maquetación: fundaciones visuales, las páginas y la
-verificación.
+| Bloque | Qué resolvió | PR |
+| --- | --- | --- |
+| 0 | El tema "Auto" no pintaba el oscuro | [#22](https://github.com/JoseRomo16/AutoValorCo/pull/22) |
+| 1 | La captura se detiene ante la verificación de TuCarro; [ADR 0005](adr/0005-capture-source-after-verification-wall.md): captura en pausa | [#23](https://github.com/JoseRomo16/AutoValorCo/pull/23), [#25](https://github.com/JoseRomo16/AutoValorCo/pull/25) |
+| 2a | Formulario de Valorar: año, máscaras, foco, lectura en voz alta, idioma | [#26](https://github.com/JoseRomo16/AutoValorCo/pull/26) |
+| 2b | `/predict` valida contra `/catalog`; `warnings`; "Otro departamento" como promedio ponderado | [#27](https://github.com/JoseRomo16/AutoValorCo/pull/27), [#28](https://github.com/JoseRomo16/AutoValorCo/pull/28) |
+| 3 | 404, imagen para redes, LinkedIn, metas por página, contraste de tokens | [#30](https://github.com/JoseRomo16/AutoValorCo/pull/30) |
+| — | Especificación de la medición del Bloque 4 | [#29](https://github.com/JoseRomo16/AutoValorCo/pull/29) |
+| **4** | **Reentrenar sin ciudad y revisar la banda**: bundle `2026-11-02.12948`, [ADR 0006](adr/0006-drop-city-feature.md) con tres decisiones abiertas | rama `fix/city-and-band`, PR abierto |
+| 5–9 | Tooling, copy, Mercado, Metodología, verificación final | sin empezar |
 
-El bundle publicado es **2026-10-25.12948**, con las capturas del 12 y el 19 de octubre
-dentro, y **no está desplegado todavía**.
+El bundle desplegado es `2026-10-25.12948` (verificado en `/model-info` el 2026-11-02); el
+del Bloque 4, `2026-11-02.12948`, entra con su PR y se despliega API primero, sitio después.
+Los workflows "Weekly capture" y "Enrich motorcycle details" siguen deshabilitados a mano;
+habilitarlos le toca al usuario.
 
 ### Las cifras ya no se teclean en ningún documento
 
@@ -1622,13 +1717,9 @@ el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el
 
 **Lo que sigue:**
 
-1. **Desplegar el modelo nuevo: la API primero, el sitio después.** El bundle vive dentro
-   de la imagen, así que la API necesita un deploy para servirlo; el sitio lee
-   `model.json` y `docs/results/` en tiempo de construcción, así que su deploy es el que
-   publica las cifras nuevas. En ese orden no hay ventana en la que la página cite una
-   cifra que el servicio no está sirviendo. Pasos en [`deploy-render.md`](deploy-render.md);
-   el despliegue no se automatiza desde aquí.
-2. **Los pasos 4 a 6 del rediseño**, en [`redesign.md`](redesign.md).
+1. **El Bloque 4** (modelo sin ciudad), y su despliegue: la API primero, el sitio después.
+   Pasos en [`deploy-render.md`](deploy-render.md); el despliegue no se automatiza desde aquí.
+2. **Los Bloques 5 a 9**; lo que queda del rediseño está en [`redesign.md`](redesign.md).
 3. **La captura semanal está caída y no es culpa del código.** Desde el run del 2026-10-26
    TuCarro responde a las IP de GitHub Actions con un `302` a la verificación de cuenta de
    MercadoLibre, así que el scraper parsea esa página y captura 0 anuncios en las seis

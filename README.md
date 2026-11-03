@@ -30,8 +30,8 @@ entrega, además del valor puntual, un intervalo de predicción **P10–P90**. C
 
 - **Clasifica anuncios** como _ganga_, _justo_ o _caro_ según dónde cae el precio pedido
   dentro del intervalo.
-- **Explica cada predicción** con SHAP: cuánto aporta el año, el kilometraje, la versión,
-  la ciudad o la transmisión al precio estimado.
+- **Explica cada predicción** con SHAP: cuánto aportan el año, el kilometraje, la marca,
+  el modelo o el departamento al precio estimado.
 - **Publica curvas de depreciación** por marca y segmento, y un **índice mensual** de
   precios de usados.
 
@@ -181,22 +181,22 @@ manifiesto de sobre qué lago se midieron, están en
 | Anuncios en total | 8.443 | 4.505 |
 | Para entrenar | 6.754 | 3.604 |
 | Para evaluar | 1.689 | 901 |
-| Error medio (MAPE) | **10,3 %** | **22,0 %** |
-| Error medio, partición temporal | 11,6 % | 23,5 % |
-| Referencia OLS | 12,9 % | 34,6 % |
-| Lo que gana el modelo sobre la referencia | 2,6 puntos | 12,5 puntos |
-| Cobertura del rango (objetivo 80 %) | 80,0 % | 79,4 % |
-| Ancho medio del rango | 40 % | 84 % |
+| Error medio (MAPE) | **10,0 %** | **20,4 %** |
+| Error medio, partición temporal | 11,4 % | 21,9 % |
+| Referencia OLS | 12,9 % | 33,2 % |
+| Lo que gana el modelo sobre la referencia | 2,9 puntos | 12,8 puntos |
+| Cobertura del rango (objetivo 80 %) | 80,2 % | 80,5 % |
+| Ancho medio del rango | 39 % | 70 % |
 | Etiqueta ganga/justo/caro | publicada | retenida, solo por el ancho |
 
 #### Lo que dicen los datos del mercado
 
 - **Depreciación anual.** En motos va de 0,9 % (Yamaha) a 6,4 % (Bajaj); en carros, de 5,1 % (Volkswagen) a 9,5 % (Ford).
 - **Costo del kilometraje.** Cada 10.000 km restan $ 231.000 en el carro mediano ($ 88 millones, 53.600 km) y $ 121.000 en la moto mediana ($ 15 millones, 17.000 km).
-- **Diferencias regionales.** El mismo carro se pide 7,6 % más caro en Santander que en Bogotá D.C.; en motos la brecha va de 27,0 % (Antioquia) a −24,6 % (Quindío).
-- **Dónde falla más el modelo de carros.** Mercedes-Benz, con 15,3 % de error medio sobre 92 anuncios.
+- **Diferencias regionales.** El mismo carro se pide 7,6 % más caro en Santander que en Bogotá D.C.; en motos la brecha va de 27,5 % (Antioquia) a −24,5 % (Quindío).
+- **Dónde falla más el modelo de carros.** Mercedes-Benz, con 14,1 % de error medio sobre 92 anuncios.
 
-Generado por `make readme` desde `artifacts/models/*/model.json` y `docs/results/`. Modelo `2026-10-25.12948`, con 4 capturas entre 2026-09-30 y 2026-10-19 (19,5 días).
+Generado por `make readme` desde `artifacts/models/*/model.json` y `docs/results/`. Modelo `2026-11-02.12948`, con 4 capturas entre 2026-09-30 y 2026-10-19 (19,5 días).
 
 <!-- results:end:es -->
 
@@ -305,8 +305,8 @@ returns, besides the point estimate, a **P10–P90** prediction interval. On top
 
 - **Classifies listings** as _bargain_, _fair_ or _overpriced_, depending on where the
   asking price falls inside the interval.
-- **Explains every prediction** with SHAP: how much the model year, mileage, trim, city
-  or transmission contribute to the estimate.
+- **Explains every prediction** with SHAP: how much the model year, mileage, make, model
+  or department contribute to the estimate.
 - **Publishes depreciation curves** by brand and segment, plus a **monthly used-price
   index**.
 
@@ -357,22 +357,22 @@ regenerates them.
 | Listings in total | 8,443 | 4,505 |
 | Used for training | 6,754 | 3,604 |
 | Used for evaluation | 1,689 | 901 |
-| Mean error (MAPE) | **10.3 %** | **22.0 %** |
-| Mean error, time-ordered split | 11.6 % | 23.5 % |
-| OLS reference | 12.9 % | 34.6 % |
-| What the model gains over the reference | 2.6 points | 12.5 points |
-| Range coverage (80 % target) | 80.0 % | 79.4 % |
-| Mean range width | 40 % | 84 % |
+| Mean error (MAPE) | **10.0 %** | **20.4 %** |
+| Mean error, time-ordered split | 11.4 % | 21.9 % |
+| OLS reference | 12.9 % | 33.2 % |
+| What the model gains over the reference | 2.9 points | 12.8 points |
+| Range coverage (80 % target) | 80.2 % | 80.5 % |
+| Mean range width | 39 % | 70 % |
 | Bargain/fair/expensive label | published | withheld, on width alone |
 
 #### What the market data says
 
 - **Annual depreciation.** Motorcycles run from 0.9 % (Yamaha) to 6.4 % (Bajaj); cars from 5.1 % (Volkswagen) to 9.5 % (Ford).
 - **What mileage costs.** Every 10,000 km take COP 231,000 off the median car (COP 88M, 53,600 km) and COP 121,000 off the median motorcycle (COP 15M, 17,000 km).
-- **Regional spread.** The same car is asked 7.6 % dearer in Santander than in Bogotá D.C.; for motorcycles the gap runs from 27.0 % (Antioquia) to −24.6 % (Quindío).
-- **Where the car model is weakest.** Mercedes-Benz, at 15.3 % mean error over 92 listings.
+- **Regional spread.** The same car is asked 7.6 % dearer in Santander than in Bogotá D.C.; for motorcycles the gap runs from 27.5 % (Antioquia) to −24.5 % (Quindío).
+- **Where the car model is weakest.** Mercedes-Benz, at 14.1 % mean error over 92 listings.
 
-Generated by `make readme` from `artifacts/models/*/model.json` and `docs/results/`. Model `2026-10-25.12948`, from 4 captures between 2026-09-30 and 2026-10-19 (19.5 days).
+Generated by `make readme` from `artifacts/models/*/model.json` and `docs/results/`. Model `2026-11-02.12948`, from 4 captures between 2026-09-30 and 2026-10-19 (19.5 days).
 
 <!-- results:end:en -->
 

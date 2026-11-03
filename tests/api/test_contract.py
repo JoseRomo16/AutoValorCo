@@ -25,6 +25,7 @@ from autovalor.api.schemas import MAX_MILEAGE_KM
 from autovalor.config import get_settings
 from autovalor.models.bundle import ServedModel, load_served_models
 from autovalor.models.quantiles import LABEL_GATE
+from autovalor.models.serving import SERVING_ASSUMPTIONS
 
 CAR = {
     "vehicle_type": "car",
@@ -676,3 +677,42 @@ def _count_scored_rows(monkeypatch: pytest.MonkeyPatch) -> list[int]:
 
     monkeypatch.setattr(ServedModel, "predict_published_band", counted)
     return scored
+
+
+REQUEST_DERIVED = frozenset(
+    {"brand", "model", "department", "vehicle_age_years", "mileage_km", "engine_cc", "km_per_year"}
+)
+"""Model columns whose value comes from what the caller typed, directly or derived."""
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        CAR,
+        {**CAR, "engine_cc": 1400},
+        {**CAR, "model": None},
+        {**CAR, "department": "Nariño"},
+        # The synthetic lake reuses the car makes for motorcycles; what matters here is
+        # that the motorcycle model reads is_quad and is_cargo, which the API assumes.
+        {**CAR, "vehicle_type": "motorcycle", "engine_cc": 1000},
+    ],
+    ids=["car", "car-with-engine", "car-without-model", "uncovered-department", "motorcycle"],
+)
+def test_explain_never_shows_a_value_the_caller_did_not_enter(
+    client: TestClient, body: dict[str, Any]
+) -> None:
+    # Block 4: "Ciudad: Desconocida" lowered every estimate by a few percent and the card
+    # showed it as a fact about the vehicle, though nobody typed a city. A factor now either
+    # comes from the request, or is flagged as an assumption of the model, or is the region
+    # stated as the average of departments.
+    factors = client.post("/explain", json=body).json()["factors"]
+    for factor in factors:
+        feature = factor["feature"]
+        if feature in SERVING_ASSUMPTIONS:
+            assert factor["assumed"] is True, feature
+            continue
+        assert factor["assumed"] is False, feature
+        assert feature in REQUEST_DERIVED, f"{feature} is neither typed by the caller nor assumed"
+        if feature == "department" and body["department"] == "Nariño":
+            assert factor["value"] is None
+            assert factor["value_display"]["es"] == "promedio de departamentos"

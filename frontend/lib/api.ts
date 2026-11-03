@@ -121,6 +121,9 @@ export type Factor = {
   value_display: LocalizedText;
   factor: number;
   direction: "raises" | "lowers";
+  /** The value is one the service fixes (the form never asks), not one the caller typed.
+   * Optional: an API deployed before Block 4 does not send it. */
+  assumed?: boolean;
 };
 
 export type ExplainResponse = {

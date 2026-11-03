@@ -63,8 +63,8 @@ def test_a_model_token_is_spelled_the_way_the_catalogue_spells_it() -> None:
 
 def test_the_unknown_bucket_is_translated() -> None:
     # "Desconocida" is a level in the lake, not a word to print at an English reader.
-    assert format_value("city", "Desconocida").en == "Unknown"
-    assert format_value("city", "Desconocida").es == "Desconocida"
+    assert format_value("brand", "Desconocida").en == "Unknown"
+    assert format_value("brand", "Desconocida").es == "Desconocida"
 
 
 @pytest.mark.parametrize("missing", [None, float("nan"), np.nan])
