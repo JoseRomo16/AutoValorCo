@@ -95,6 +95,75 @@ jobs:
           done
           echo "::notice title=Static export::$(du -sh out | cut -f1) in $(find out -name '*.html' | wc -l) pages"
 
+  # End-to-end regressions: the static export, served as Render serves it, against the
+  # API started here with the bundle committed in artifacts/models/. Its own job so a
+  # browser failure reads as one, and in parallel so it adds wall time only beyond the
+  # longest of the others.
+  e2e:
+    name: end-to-end over the export
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install Python 3.12
+        run: uv python install 3.12
+
+      # The runtime only, as in Dockerfile.api: the API needs no training stack.
+      - name: Install the API runtime
+        run: uv sync --no-default-groups
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache the Playwright browser
+        id: browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Chromium
+        if: steps.browsers.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Chromium's system libraries
+        if: steps.browsers.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Build the static export against the local API
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+
+      - name: Run the end-to-end suite
+        run: npm run e2e
+        env:
+          E2E_API_COMMAND: uv run --no-sync uvicorn autovalor.api.main:app --port 8000
+
+      - name: Keep the traces of a failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces
+          path: frontend/test-results/
+          retention-days: 7
+
   docker:
     name: api image builds
     runs-on: ubuntu-24.04
