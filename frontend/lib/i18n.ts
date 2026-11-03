@@ -975,6 +975,14 @@ export const copy = {
           es: "En {pct} de los anuncios de motos el título no dice qué moto es.",
           en: "In {pct} of motorcycle listings the title does not say which motorcycle it is.",
         },
+        engineWhat: {
+          es: "La cilindrada solo la conocemos cuando el título la dice: pasa en el {car} de los carros y el {moto} de las motos.",
+          en: "We only know the displacement when the title states it, which happens for {car} of cars and {moto} of motorcycles.",
+        },
+        engineEffect: {
+          es: "Por eso el formulario la deja opcional. Sin ella, el estimado se apoya en la marca, el modelo y el año; si la escribes, lo afina.",
+          en: "That is why the form leaves it optional. Without it, the estimate leans on the make, the model and the year; entering it sharpens it.",
+        },
         motoBrandEffect: {
           es: "Esos anuncios acumulan el error más alto de su tipo, porque el modelo estima sin saber la identidad del vehículo.",
           en: "Those listings carry the highest error of their type, because the model estimates without knowing the vehicle's identity.",

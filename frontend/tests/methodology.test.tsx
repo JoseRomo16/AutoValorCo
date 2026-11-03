@@ -4,9 +4,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { Methodology } from "@/components/Methodology";
 import { decimal, isoDay, percent } from "@/lib/format";
-import { copy } from "@/lib/i18n";
+import { copy, fill } from "@/lib/i18n";
 import { isThin } from "@/lib/listings";
-import { labelGate, manifest, segmentError, servedModels } from "@/lib/results";
+import { featureCoverage, labelGate, manifest, segmentError, servedModels } from "@/lib/results";
 
 /**
  * The methodology page on the committed bundles and results, the files the static export
@@ -21,7 +21,13 @@ const results = manifest();
 function show() {
   return render(
     <LanguageProvider>
-      <Methodology models={models} manifest={results} segments={segmentError()} gate={labelGate()} />
+      <Methodology
+        models={models}
+        manifest={results}
+        segments={segmentError()}
+        gate={labelGate()}
+        coverage={featureCoverage()}
+      />
     </LanguageProvider>,
   );
 }
@@ -89,6 +95,20 @@ describe("table of contents", () => {
 });
 
 describe("scope", () => {
+  it("quotes the displacement coverage from make results, per vehicle type", () => {
+    const share = (vertical: string) =>
+      featureCoverage().find((row) => row.vehicle_type === vertical && row.feature === "engine_cc")!
+        .coverage_pct;
+    show();
+    const section = document.getElementById("alcance")!;
+    expect(section.textContent).toContain(
+      fill(copy.method.scope.items.engineWhat, "es", {
+        car: percent(share("car"), "es"),
+        moto: percent(share("motorcycle"), "es"),
+      }),
+    );
+  });
+
   it("lists every covered department and names the thin ones", () => {
     show();
     const scope = document.getElementById("alcance")!.textContent ?? "";

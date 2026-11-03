@@ -217,6 +217,19 @@ export function regionalEffect(): RegionalRow[] {
   return readJson<RegionalRow[]>(path.join(RESULTS_DIR, "regional_effect.json"));
 }
 
+/** How many gold rows carry an optional input, per vertical, from `make results`. */
+export type FeatureCoverageRow = {
+  vehicle_type: VehicleType;
+  feature: string;
+  rows: number;
+  covered: number;
+  coverage_pct: number;
+};
+
+export function featureCoverage(): FeatureCoverageRow[] {
+  return readJson<FeatureCoverageRow[]>(path.join(RESULTS_DIR, "feature_coverage.json"));
+}
+
 export function catalogueContrast(): CatalogueContrastRow[] {
   return readJson<CatalogueContrastRow[]>(path.join(RESULTS_DIR, "catalogue_contrast.json"));
 }

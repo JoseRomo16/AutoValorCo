@@ -20,7 +20,13 @@ import { useEffect, useState } from "react";
 import { useLang } from "./LanguageProvider";
 import { Term, fillNodes } from "./Term";
 import { IntervalBars } from "./charts/IntervalBars";
-import type { LabelGate, Manifest, SegmentErrorRow, ServedModelInfo } from "@/lib/results";
+import type {
+  FeatureCoverageRow,
+  LabelGate,
+  Manifest,
+  SegmentErrorRow,
+  ServedModelInfo,
+} from "@/lib/results";
 import {
   API_DOCS_URL,
   DATA_BRANCH_URL,
@@ -253,11 +259,13 @@ export function Methodology({
   manifest,
   segments,
   gate,
+  coverage,
 }: {
   models: ServedModelInfo[];
   manifest: Manifest;
   segments: SegmentErrorRow[];
   gate: LabelGate;
+  coverage: FeatureCoverageRow[];
 }) {
   const { lang, t } = useLang();
   const current = useCurrentSection(SECTIONS.map((section) => section.id));
@@ -272,6 +280,10 @@ export function Methodology({
   const spanDays = car?.temporal?.span_days ?? manifest.capture_span_days;
   const heldOutShare = car ? percent((car.n_test / car.trained_on_rows) * 100, lang, 0) : "";
   const nominal = (gate.min_coverage + gate.max_coverage) / 2;
+  const engineCoverage = (vertical: string) =>
+    coverage.find((row) => row.vehicle_type === vertical && row.feature === "engine_cc");
+  const carEngine = engineCoverage("car");
+  const motoEngine = engineCoverage("motorcycle");
 
   // The worst car segment, which turns the missing-trim limitation from an assertion into
   // a measurement.
@@ -872,6 +884,15 @@ export function Methodology({
                 effect={t(copy.method.scope.items.motoBrandEffect)}
                 plan={t(copy.method.scope.noPlan)}
               />
+              {carEngine && motoEngine && (
+                <ScopeCard
+                  what={fill(copy.method.scope.items.engineWhat, lang, {
+                    car: percent(carEngine.coverage_pct, lang),
+                    moto: percent(motoEngine.coverage_pct, lang),
+                  })}
+                  effect={t(copy.method.scope.items.engineEffect)}
+                />
+              )}
               <ScopeCard
                 what={t(copy.method.scope.items.departmentWhat)}
                 effect={t(copy.method.scope.items.departmentEffect)}
