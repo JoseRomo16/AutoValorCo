@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { MarketDashboard } from "@/components/MarketDashboard";
@@ -89,6 +89,29 @@ describe("the vehicle tabs", () => {
     expect(
       within(section("kilometraje")).getByRole("tab", { name: copy.form.motorcycles.es }),
     ).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("keep the tapped tabs still while the sections above change height", () => {
+    // jsdom has no layout, so the move is staged: the tablist sits at 400 px before the
+    // switch and at 100 px after it, as when depreciation above loses six rows.
+    show();
+    const tablist = within(section("kilometraje")).getByRole("tablist");
+    const tops = [400, 100];
+    tablist.getBoundingClientRect = () => ({ top: tops.shift() ?? 100 }) as DOMRect;
+    const scrollBy = vi.spyOn(window, "scrollBy").mockImplementation(() => {});
+    chooseMotorcycles("kilometraje");
+    expect(scrollBy).toHaveBeenCalledWith({ top: -300, behavior: "instant" });
+    scrollBy.mockRestore();
+  });
+
+  it("do not scroll when nothing moved", () => {
+    show();
+    const tablist = within(section("depreciacion")).getByRole("tablist");
+    tablist.getBoundingClientRect = () => ({ top: 200 }) as DOMRect;
+    const scrollBy = vi.spyOn(window, "scrollBy").mockImplementation(() => {});
+    chooseMotorcycles("depreciacion");
+    expect(scrollBy).not.toHaveBeenCalled();
+    scrollBy.mockRestore();
   });
 
   it("move with the arrow keys", () => {
