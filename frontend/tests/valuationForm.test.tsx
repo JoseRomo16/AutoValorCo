@@ -474,6 +474,31 @@ describe("the field ranges", () => {
     expect(screen.getByLabelText(/Cilindrada/)).toHaveAttribute("placeholder", "50–2.491");
   });
 
+  it("refuse a 1930 car when the field is left", async () => {
+    show();
+    await ready();
+    const year = screen.getByLabelText(/Año del modelo/);
+    fireEvent.change(year, { target: { value: "1930" } });
+    fireEvent.blur(year);
+    expect(screen.getByText("El año tiene que estar entre 1955 y 2027.")).toBeInTheDocument();
+    expect(year).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("refuse a 1930 car on submit, without calling the service", async () => {
+    show();
+    await ready();
+    await choose(/Marca/, "Toyota", /Toyota/);
+    fireEvent.change(screen.getByLabelText(/Año del modelo/), { target: { value: "1930" } });
+    fireEvent.change(screen.getByLabelText(/Kilometraje/), { target: { value: "60000" } });
+    await choose(/Departamento/, "Bogot", /Bogot/);
+    fireEvent.click(screen.getByRole("button", { name: "Calcular el precio" }));
+    expect(screen.getByText("El año tiene que estar entre 1955 y 2027.")).toBeInTheDocument();
+    const predicted = vi
+      .mocked(fetch)
+      .mock.calls.filter(([url]) => String(url).endsWith("/predict"));
+    expect(predicted).toHaveLength(0);
+  });
+
   it("share their range with the placeholder and the error message", async () => {
     show();
     await ready();
