@@ -668,7 +668,6 @@ export function MarketDashboard({
         <VehicleTabs id={IDS.retained}>
           {(vertical) => {
             const selected = selectedBrands(vertical);
-            const flat = flatBrands(vertical);
             const curves = retainedCurves(vertical);
             return (
               <>
@@ -676,7 +675,6 @@ export function MarketDashboard({
                   brands={retainedAtOldest(vertical).map((row) => ({
                     label: row.brand,
                     valueText: percent(row.retained_value_pct, lang, 0),
-                    note: flat.has(row.brand) ? notSignificant : undefined,
                   }))}
                   selected={selected}
                   max={MAX_COMPARED}
