@@ -34,7 +34,7 @@ export default function ValuePage() {
       <PageTitle title={copy.titles.value} />
       <ValueHero
         facts={{
-          listings: car.trained_on_rows + motorcycle.trained_on_rows,
+          listings: car.total_rows + motorcycle.total_rows,
           carMape: car.mape,
           motorcycleMape: motorcycle.mape,
           lastCapture: captures.at(-1) ?? "",

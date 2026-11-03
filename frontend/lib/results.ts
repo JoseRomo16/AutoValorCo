@@ -162,8 +162,10 @@ export type ServedModelInfo = {
   /** The thresholds `publishes_label` was decided against. The same for both verticals. */
   label_gate: LabelGate;
   temporal: TemporalMetrics;
-  trained_on_rows: number;
-  n_train: number;
+  /** Listings in the lake before any split: "anuncios en total", `total_rows` in the API. */
+  total_rows: number;
+  /** Listings the model was fitted on: "anuncios para entrenar", `train_rows` in the API. */
+  train_rows: number;
   catalogue_makes: number;
   /** The departments the model knows, with their training listings, from the catalogue. */
   departments: { name: string; listings: number }[];
@@ -278,8 +280,8 @@ export function servedModels(): ServedModelInfo[] {
       label_failure_codes: bundle.label.failure_codes ?? [],
       label_gate: bundle.label.gate,
       temporal: bundle.metrics_temporal ?? null,
-      trained_on_rows: bundle.lake.rows,
-      n_train: bundle.lake.n_train,
+      total_rows: bundle.lake.rows,
+      train_rows: bundle.lake.n_train,
       catalogue_makes: catalog.brands.length,
       departments: catalog.departments ?? [],
     };

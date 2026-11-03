@@ -276,9 +276,9 @@ export function Methodology({
   const firstCapture = manifest.capture_dates.at(0);
   const lastCapture = manifest.capture_dates.at(-1);
   const lastCaptureText = lastCapture ? isoDay(lastCapture, lang) : "—";
-  const listings = models.reduce((sum, model) => sum + model.trained_on_rows, 0);
+  const listings = models.reduce((sum, model) => sum + model.total_rows, 0);
   const spanDays = car?.temporal?.span_days ?? manifest.capture_span_days;
-  const heldOutShare = car ? percent((car.n_test / car.trained_on_rows) * 100, lang, 0) : "";
+  const heldOutShare = car ? percent((car.n_test / car.total_rows) * 100, lang, 0) : "";
   const nominal = (gate.min_coverage + gate.max_coverage) / 2;
   const engineCoverage = (vertical: string) =>
     coverage.find((row) => row.vehicle_type === vertical && row.feature === "engine_cc");
@@ -467,8 +467,8 @@ export function Methodology({
                 {
                   term: copy.method.data.facts.listings,
                   value: fill(copy.method.data.facts.listingsValue, lang, {
-                    cars: integer(car?.trained_on_rows ?? 0, lang),
-                    motorcycles: integer(moto?.trained_on_rows ?? 0, lang),
+                    cars: integer(car?.total_rows ?? 0, lang),
+                    motorcycles: integer(moto?.total_rows ?? 0, lang),
                   }),
                 },
               ].map((fact) => (
