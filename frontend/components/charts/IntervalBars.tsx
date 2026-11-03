@@ -178,24 +178,28 @@ export function IntervalBars({ items, signed = false, caption, columns, highligh
         })}
       </ul>
 
-      <table className="sr-only">
-        <thead>
-          <tr>
-            <th scope="col">{columns.label}</th>
-            <th scope="col">{columns.value}</th>
-            <th scope="col">{columns.interval}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => (
-            <tr key={item.label}>
-              <th scope="row">{item.label}</th>
-              <td>{item.note ? `${item.valueText} (${item.note})` : item.valueText}</td>
-              <td>{item.intervalText ?? "—"}</td>
+      {/* The wrapper is what hides: a table ignores the 1 px width of `sr-only` and
+          grows to its content, which put a horizontal scroll on phones. */}
+      <div className="sr-only">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{columns.label}</th>
+              <th scope="col">{columns.value}</th>
+              <th scope="col">{columns.interval}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.label}>
+                <th scope="row">{item.label}</th>
+                <td>{item.note ? `${item.valueText} (${item.note})` : item.valueText}</td>
+                <td>{item.intervalText ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

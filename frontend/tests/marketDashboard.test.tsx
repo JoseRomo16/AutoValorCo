@@ -179,7 +179,7 @@ describe("the depreciation chart", () => {
 describe("the retained-value chart", () => {
   it("starts every curve at 100 % at age 0", () => {
     show();
-    const table = section("valor-retenido").querySelector("table.sr-only");
+    const table = section("valor-retenido").querySelector(".sr-only table");
     expect(table).not.toBeNull();
     const headers = [...table!.querySelectorAll("thead th")].map((th) => th.textContent);
     expect(headers[1]).toBe("A los 0 años");
@@ -210,9 +210,12 @@ describe("chart descriptions", () => {
   });
 
   it("come with a hidden table of every value under each chart", () => {
-    show();
+    const { container } = show();
+    // Hidden through a wrapper: `sr-only` on the table itself does not shrink it, and its
+    // full width scrolled the page sideways on a phone.
+    expect(container.querySelectorAll("table.sr-only")).toHaveLength(0);
     for (const id of ["depreciacion", "valor-retenido", "kilometraje", "regiones"]) {
-      expect(section(id).querySelector("table.sr-only tbody tr")).not.toBeNull();
+      expect(section(id).querySelector(".sr-only table tbody tr")).not.toBeNull();
       expect(section(id).querySelector("figcaption.sr-only")?.textContent).not.toBe("");
     }
   });

@@ -106,7 +106,8 @@ export function RetainedCurves({
     top: 14,
     right: Math.min(longest * 8 + 30, width * 0.34),
     bottom: 46,
-    left: 46,
+    // Room for "100%" right-aligned against the plot and the rotated axis title beside it.
+    left: 64,
   };
   const ages = curves.flatMap((curve) => curve.points.map((point) => point.age));
   const maxAge = Math.max(...ages, 1);
@@ -302,29 +303,33 @@ export function RetainedCurves({
         })}
       </ul>
 
-      <table className="sr-only">
-        <thead>
-          <tr>
-            <th scope="col">{brandColumn}</th>
-            {allAges.map((age) => (
-              <th key={age} scope="col">
-                {formatAge(age)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {curves.map((curve) => (
-            <tr key={curve.label}>
-              <th scope="row">{curve.label}</th>
-              {allAges.map((age) => {
-                const point = curve.points.find((candidate) => candidate.age === age);
-                return <td key={age}>{point ? formatValue(point.retained) : "—"}</td>;
-              })}
+      {/* The wrapper is what hides: a table ignores the 1 px width of `sr-only` and
+          grows to its content, which put a horizontal scroll on phones. */}
+      <div className="sr-only">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{brandColumn}</th>
+              {allAges.map((age) => (
+                <th key={age} scope="col">
+                  {formatAge(age)}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {curves.map((curve) => (
+              <tr key={curve.label}>
+                <th scope="row">{curve.label}</th>
+                {allAges.map((age) => {
+                  const point = curve.points.find((candidate) => candidate.age === age);
+                  return <td key={age}>{point ? formatValue(point.retained) : "—"}</td>;
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }
