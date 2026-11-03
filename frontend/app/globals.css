@@ -160,7 +160,7 @@
   /* Plate yellow as text on paper is 1.44:1. It stays a fill with dark text on top, and
      anything that has to be read as yellow type uses this ochre instead. */
   --accent-text: #7a5c00;
-  --good: #2d7448;
+  --good: #2a6b43;
   --good-bg: rgba(45, 116, 72, 0.1);
   --neutral: #57534a;
   --bad: #a3452a;
