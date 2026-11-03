@@ -16,6 +16,7 @@ const ROOT = process.cwd();
 const FILES = [
   "components/MarketDashboard.tsx",
   "components/VehicleTabs.tsx",
+  "components/charts/BrandPicker.tsx",
   "components/charts/IntervalBars.tsx",
   "components/charts/RetainedCurves.tsx",
   "components/charts/ShareBar.tsx",
