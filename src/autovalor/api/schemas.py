@@ -144,7 +144,9 @@ class PredictResponse(BaseModel):
             "which explains a withheld label and carries a measured value and limit."
         ),
     )
-    model_version: str = Field(description="Served model version; matches /model-info.")
+    model_version: str = Field(
+        description="Model version ('versión del modelo' on the site); matches /model-info."
+    )
 
 
 class LocalizedText(BaseModel):
@@ -211,9 +213,16 @@ class VerticalInfo(BaseModel):
     """What the service can say about one vertical."""
 
     vehicle_type: VehicleType
-    model_version: str
-    mape: float = Field(description="Held-out mean absolute percentage error, as a fraction.")
-    interval_coverage: float = Field(description="Share of held-out prices inside the band.")
+    model_version: str = Field(description="Model version ('versión del modelo' on the site).")
+    mape: float = Field(
+        description=(
+            "Average error ('error medio' on the site): mean absolute percentage error on "
+            "the listings for evaluation, as a fraction."
+        )
+    )
+    interval_coverage: float = Field(
+        description="Share of the listings for evaluation whose price falls inside the range."
+    )
     interval_mean_relative_width: float
     publishes_label: bool = Field(description="Whether this vertical shows bargain/fair/expensive.")
     label_withheld_because: list[str] = Field(
@@ -246,12 +255,18 @@ class VerticalInfo(BaseModel):
             "when the lake does not span enough days for that partition."
         ),
     )
-    total_rows: int = Field(description="Listings in the lake for this vertical, before any split.")
+    total_rows: int = Field(
+        description=(
+            "Listings in total ('anuncios en total' on the site): the lake for this "
+            "vertical, before any split."
+        )
+    )
     train_rows: int | None = Field(
         default=None,
         description=(
-            "Listings the served model was actually fitted on. Null on a bundle with no "
-            "catalogue, which is where the count comes from."
+            "Listings for training ('anuncios para entrenar'): what the served model was "
+            "fitted on. Null on a bundle with no catalogue, which is where the count comes "
+            "from."
         ),
     )
     trained_on_rows: int = Field(
@@ -350,12 +365,20 @@ class VerticalCatalog(BaseModel):
     """
 
     vehicle_type: VehicleType
-    model_version: str = Field(description="Served model these lists came from; matches /predict.")
-    train_rows: int = Field(description="Listings the lists and the model were derived from.")
+    model_version: str = Field(
+        description="Model version these lists came from; matches /predict and /model-info."
+    )
+    train_rows: int = Field(
+        description=(
+            "Listings for training ('anuncios para entrenar'): what the lists and the "
+            "model were derived from."
+        )
+    )
     total_rows: int | None = Field(
         default=None,
         description=(
-            "Listings in the lake for this vertical, before any split. The same number "
+            "Listings in total ('anuncios en total'): the lake for this vertical, before "
+            "any split. The same number "
             "`/model-info` reports as `total_rows`, so the two routes can be compared."
         ),
     )
