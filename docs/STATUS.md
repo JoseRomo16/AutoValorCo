@@ -1695,7 +1695,8 @@ absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por blo
 | 4 | Reentrenar sin ciudad y revisar la banda: bundle `2026-11-02.12948`, [ADR 0006](adr/0006-drop-city-feature.md), aceptado | [#31](https://github.com/JoseRomo16/AutoValorCo/pull/31) |
 | 5 | Tooling: skill duplicada fuera, plugins declarados en `.claude/settings.json`, [`CONTRIBUTING.md`](../CONTRIBUTING.md) | [#32](https://github.com/JoseRomo16/AutoValorCo/pull/32) |
 | 6 | Copy ES/EN: textos corregidos, departamentos con pocos anuncios al final de la gráfica regional, pruebas de claves y de textos retirados | [#33](https://github.com/JoseRomo16/AutoValorCo/pull/33) |
-| **7** | **Mercado con el diseño nuevo**: tokens, pestañas Carros/Motos, tarjetas de hallazgos, tooltips, descripciones y tablas accesibles, y la nota que separa el efecto regional hedónico del de Valorar | rama `feat/market-redesign`, PR abierto |
+| 7 | Mercado con el diseño nuevo: tokens, pestañas Carros/Motos, tarjetas de hallazgos, tooltips, descripciones y tablas accesibles, y la nota que separa el efecto regional hedónico del de Valorar | [#34](https://github.com/JoseRomo16/AutoValorCo/pull/34), [#35](https://github.com/JoseRomo16/AutoValorCo/pull/35) (móvil, letra ≥ 13 px, favicon) |
+| **7b** | **Comparar marcas en el valor retenido** (hasta 5, el resto en gris de fondo) y lecturas por vehículo en cada gráfica | rama `feat/market-brand-compare`, PR abierto |
 | 8–9 | Metodología, verificación final | sin empezar |
 
 El bundle desplegado es `2026-10-25.12948` (verificado en `/model-info` el 2026-11-02); el

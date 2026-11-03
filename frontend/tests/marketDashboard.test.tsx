@@ -15,6 +15,8 @@ import {
   regionalEffect,
   retainedValue,
 } from "@/lib/results";
+import { resetBrands } from "@/lib/brandSelection";
+import { MAX_COMPARED } from "@/lib/market";
 import { chooseVehicle } from "@/lib/vehicleChoice";
 
 /**
@@ -59,14 +61,27 @@ function rows(id: string): string[] {
   return [...section(id).querySelectorAll("ul[aria-hidden] > li")].map((li) => li.textContent ?? "");
 }
 
+/** The "Reading" card of a section, which lives inside the active tab panel. */
 function reading(id: string): string {
-  return section(id).querySelector(":scope > div:last-child p:last-child")?.textContent ?? "";
+  return section(id).querySelector("[data-reading] p:last-child")?.textContent ?? "";
+}
+
+function chip(name: string): HTMLElement {
+  return within(section("valor-retenido")).getByRole("button", { name: new RegExp(`^${name}`) });
+}
+
+/** Makes drawn in colour on the retained-value chart, in slot order. */
+function coloured(): string[] {
+  return [...section("valor-retenido").querySelectorAll("svg g[data-curve]")].map(
+    (node) => node.getAttribute("data-curve") ?? "",
+  );
 }
 
 beforeEach(() => {
   // The choice lives in memory as well as in storage, so a test that picked motorcycles
   // would otherwise leave the next one on them.
   chooseVehicle("car");
+  resetBrands();
   window.localStorage.clear();
 });
 
@@ -154,10 +169,16 @@ describe("the regional chart", () => {
   });
 
   it("never quotes a thin department as an extreme in the reading", () => {
+    // The motorcycle reading names the thin departments in its few-listings note, so the
+    // check is on the extremes sentence: the cheapest region it quotes is a covered one.
+    const covered = regional
+      .filter((row) => row.vehicle_type === "motorcycle" && !isThin(row.listings))
+      .sort((a, b) => a.pct_change - b.pct_change);
     show();
+    chooseMotorcycles("regiones");
     const text = reading("regiones");
-    expect(text).not.toBe("");
-    for (const row of thinMoto) expect(text).not.toContain(row.department);
+    expect(text).toContain(`por debajo en ${covered[0]!.department}`);
+    for (const row of thinMoto) expect(text).not.toContain(`por debajo en ${row.department}`);
   });
 
   it("says the regression's figure is not the valuation model's", () => {
@@ -211,11 +232,148 @@ describe("the retained-value chart", () => {
     }
   });
 
-  it("reads the last point as a share at an age", () => {
-    const oldest = Math.max(...retainedValue().map((row) => row.age_years));
+  it("never prints the old 'pct · age' legend", () => {
     show();
-    expect(screen.getAllByText(new RegExp(`a los ${oldest} años$`)).length).toBeGreaterThan(0);
     expect(screen.queryByText(/% · \d+$/)).toBeNull();
+  });
+});
+
+const carsAtOldest = (() => {
+  const cars = retainedValue().filter((row) => row.vehicle_type === "car");
+  const oldest = Math.max(...cars.map((row) => row.age_years));
+  return cars
+    .filter((row) => row.age_years === oldest)
+    .sort((a, b) => b.retained_value_pct - a.retained_value_pct);
+})();
+
+describe("comparing makes on the retained-value chart", () => {
+  const reference = depreciation().find((row) => row.vehicle_type === "car" && row.is_reference)!;
+  const defaults = [
+    ...new Set([carsAtOldest[0]!.brand, carsAtOldest.at(-1)!.brand, reference.brand]),
+  ];
+
+  it("opens with the make that keeps most, the one that keeps least and the reference", () => {
+    show();
+    expect(coloured()).toEqual(defaults);
+    for (const brand of defaults) expect(chip(brand)).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("offers every make as a chip, with what it keeps", () => {
+    show();
+    for (const row of carsAtOldest) {
+      expect(chip(row.brand).textContent).toContain(percent(row.retained_value_pct, "es", 0));
+    }
+  });
+
+  it("keeps the makes nobody picked as background lines", () => {
+    show();
+    const background = section("valor-retenido").querySelectorAll("polyline[data-background]");
+    expect(background).toHaveLength(carsAtOldest.length - defaults.length);
+  });
+
+  it("adds and removes a make", () => {
+    show();
+    const extra = carsAtOldest.find((row) => !defaults.includes(row.brand))!.brand;
+    act(() => fireEvent.click(chip(extra)));
+    expect(coloured()).toEqual([...defaults, extra]);
+    expect(reading("valor-retenido")).toContain(extra);
+    act(() => fireEvent.click(chip(extra)));
+    expect(coloured()).toEqual(defaults);
+  });
+
+  it(`stops at ${MAX_COMPARED} and says why`, () => {
+    show();
+    for (const row of carsAtOldest) {
+      const button = chip(row.brand);
+      if (button.getAttribute("aria-pressed") === "false" && !button.hasAttribute("disabled")) {
+        act(() => fireEvent.click(button));
+      }
+    }
+    expect(coloured()).toHaveLength(MAX_COMPARED);
+    const free = carsAtOldest.filter((row) => !coloured().includes(row.brand));
+    for (const row of free) expect(chip(row.brand)).toBeDisabled();
+    expect(section("valor-retenido").textContent).toContain(
+      `Llegaste a ${MAX_COMPARED} marcas`,
+    );
+  });
+
+  it("counts every tap when several land before a re-render", () => {
+    show();
+    const free = carsAtOldest.filter((row) => !defaults.includes(row.brand)).map((row) => row.brand);
+    const buttons = free.slice(0, MAX_COMPARED - defaults.length).map(chip);
+    // One act for all of them: React renders once at the end, as with quick taps.
+    act(() => buttons.forEach((button) => fireEvent.click(button)));
+    expect(coloured()).toHaveLength(MAX_COMPARED);
+  });
+
+  it("clears and resets", () => {
+    show();
+    act(() => fireEvent.click(within(section("valor-retenido")).getByRole("button", { name: "Quitar todas" })));
+    expect(coloured()).toEqual([]);
+    expect(reading("valor-retenido")).toContain(copy.market.retained.compareNone.es);
+    act(() => fireEvent.click(within(section("valor-retenido")).getByRole("button", { name: "Restablecer" })));
+    expect(coloured()).toEqual(defaults);
+  });
+
+  it("remembers each vertical's choice apart", () => {
+    const first = show();
+    act(() => fireEvent.click(within(section("valor-retenido")).getByRole("button", { name: "Quitar todas" })));
+    chooseMotorcycles("valor-retenido");
+    const motoChoice = coloured();
+    expect(motoChoice.length).toBeGreaterThan(0);
+    first.unmount();
+    show();
+    // Still on motorcycles from the shared tab choice: their defaults survived the car clear.
+    expect(coloured()).toEqual(motoChoice);
+    act(() => {
+      fireEvent.click(within(section("valor-retenido")).getByRole("tab", { name: copy.form.cars.es }));
+    });
+    expect(coloured()).toEqual([]);
+  });
+
+  it("flags a make whose depreciation is indistinguishable from zero", () => {
+    const flat = depreciation().filter((row) => row.vehicle_type === "motorcycle" && !row.significant);
+    expect(flat.length).toBeGreaterThan(0);
+    show();
+    chooseMotorcycles("valor-retenido");
+    for (const row of flat) {
+      expect(chip(row.brand).textContent).toContain(copy.market.notSignificant.es);
+    }
+  });
+});
+
+describe("readings follow the tab", () => {
+  const fastest = (vertical: "car" | "motorcycle") =>
+    depreciation()
+      .filter((row) => row.vehicle_type === vertical && row.significant)
+      .sort((a, b) => b.annual_depreciation_pct - a.annual_depreciation_pct)[0]!.brand;
+
+  it("talks about cars on the car tab and motorcycles on the motorcycle tab", () => {
+    show();
+    const car = reading("depreciacion");
+    expect(car).toContain(fastest("car"));
+    expect(car).not.toContain(fastest("motorcycle"));
+    chooseMotorcycles("depreciacion");
+    const moto = reading("depreciacion");
+    expect(moto).toContain(fastest("motorcycle"));
+    expect(moto).not.toBe(car);
+  });
+
+  it("switches every tabbed section's reading", () => {
+    show();
+    const ids = ["depreciacion", "valor-retenido", "kilometraje", "regiones"];
+    const before = ids.map(reading);
+    chooseMotorcycles("kilometraje");
+    ids.forEach((id, index) => {
+      expect(reading(id)).not.toBe("");
+      expect(reading(id)).not.toBe(before[index]);
+    });
+  });
+
+  it("names the thin departments on the motorcycle regional reading", () => {
+    show();
+    chooseMotorcycles("regiones");
+    for (const row of thinMoto) expect(reading("regiones")).toContain(row.department);
   });
 });
 
@@ -229,7 +387,7 @@ describe("chart descriptions", () => {
     show();
     const caption = section("valor-retenido").querySelector("figcaption")?.textContent ?? "";
     expect(caption).toContain(best.brand);
-    expect(caption).toContain(`a los ${oldest} años`);
+    expect(caption.toLowerCase()).toContain(`a los ${oldest} años`);
   });
 
   it("come with a hidden table of every value under each chart", () => {

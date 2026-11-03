@@ -16,7 +16,8 @@ import { useState } from "react";
 import { useLang } from "./LanguageProvider";
 import { VehicleTabs } from "./VehicleTabs";
 import { IntervalBars, type BarItem } from "./charts/IntervalBars";
-import { RetainedCurves, type Curve, type CurveRole } from "./charts/RetainedCurves";
+import { BrandPicker } from "./charts/BrandPicker";
+import { RetainedCurves, axisFloor, type Curve } from "./charts/RetainedCurves";
 import { ShareBar, type Share } from "./charts/ShareBar";
 import type {
   CatalogueContrastRow,
@@ -29,7 +30,14 @@ import type {
 } from "@/lib/results";
 import { copy, fill, type Localized } from "@/lib/i18n";
 import { isThin, orderRegions } from "@/lib/listings";
-import { isWideInterval, mileageByQuartile, withOrigin, type CurvePoint } from "@/lib/market";
+import { currentBrands, setBrands, useBrandSelection } from "@/lib/brandSelection";
+import {
+  MAX_COMPARED,
+  isWideInterval,
+  mileageByQuartile,
+  toggleBrand,
+  withOrigin,
+} from "@/lib/market";
 import {
   cop,
   copMillions,
@@ -61,6 +69,24 @@ const IDS = {
   catalogue: "marca-o-estado",
 } as const;
 
+/** The bordered "Reading" card: what a chart means, in one paragraph. */
+function Reading({ label, text }: { label: string; text: string }) {
+  if (!text) return null;
+  return (
+    <div data-reading className="mt-6 max-w-3xl rounded-lg border border-line p-4 sm:p-5">
+      <p className="mb-1.5 font-mono text-caption uppercase tracking-[0.1em] text-accent-text">
+        {label}
+      </p>
+      <p className="leading-relaxed text-ink">{text}</p>
+    </div>
+  );
+}
+
+/**
+ * One finding. A section with Cars/Motorcycles tabs puts its reading inside the tab panel,
+ * so the paragraph follows the vertical on screen; only the catalogue section, which
+ * compares both verticals in one chart, passes its reading here.
+ */
 function Section({
   id,
   title,
@@ -72,7 +98,7 @@ function Section({
   id: string;
   title: string;
   help: string;
-  reading: string;
+  reading?: string;
   readingLabel: string;
   children: React.ReactNode;
 }) {
@@ -92,14 +118,7 @@ function Section({
         <p className="mt-2 text-muted">{help}</p>
       </div>
       {children}
-      {reading && (
-        <div className="max-w-3xl rounded-lg border border-line p-4 sm:p-5">
-          <p className="mb-1.5 font-mono text-caption uppercase tracking-[0.1em] text-accent-text">
-            {readingLabel}
-          </p>
-          <p className="leading-relaxed text-ink">{reading}</p>
-        </div>
-      )}
+      {reading !== undefined && <Reading label={readingLabel} text={reading} />}
     </section>
   );
 }
@@ -215,61 +234,102 @@ export function MarketDashboard({
       .sort((a, b) => b.retained_value_pct - a.retained_value_pct);
   };
 
+  const retainedOf = (vertical: VehicleType, brand: string) =>
+    withOrigin(
+      retained
+        .filter((row) => row.vehicle_type === vertical && row.brand === brand)
+        .sort((a, b) => a.age_years - b.age_years)
+        .map((row) => ({ age: row.age_years, retained: row.retained_value_pct })),
+    );
+
   /**
-   * Three curves, not the first five in the file: the make that holds most, the one that
-   * holds least and the regression's reference. Those carry the shape; more lines only
-   * crowd it. When the reference is also an extreme it keeps the extreme's role.
+   * What the chart opens with: the make that holds most, the one that holds least and the
+   * regression's reference. Those carry the shape; the reader adds or removes from there.
    */
-  function retainedCurves(vertical: VehicleType): Curve[] {
+  function defaultBrands(vertical: VehicleType): string[] {
     const ranked = retainedAtOldest(vertical);
     const reference = depreciation.find(
       (row) => row.vehicle_type === vertical && row.is_reference,
     )?.brand;
-    const roles: [string | undefined, CurveRole][] = [
-      [ranked.at(0)?.brand, "best"],
-      [ranked.at(-1)?.brand, "worst"],
-      [reference, "reference"],
-    ];
-    const seen = new Set<string>();
-    return roles
-      .filter((entry): entry is [string, CurveRole] => {
-        const [brand] = entry;
-        if (brand === undefined || seen.has(brand)) return false;
-        seen.add(brand);
-        return true;
-      })
-      .map(([brand, role]) => ({
-        label: brand,
-        role,
-        points: withOrigin(
-          retained
-            .filter((row) => row.vehicle_type === vertical && row.brand === brand)
-            .sort((a, b) => a.age_years - b.age_years)
-            .map((row) => ({ age: row.age_years, retained: row.retained_value_pct })),
-        ),
-      }));
+    const picks = [ranked.at(0)?.brand, ranked.at(-1)?.brand, reference];
+    return [...new Set(picks.filter((brand): brand is string => brand !== undefined))];
   }
 
-  function retainedCaption(vertical: VehicleType): string {
-    const ranked = retainedAtOldest(vertical);
-    const best = ranked.at(0);
-    const worst = ranked.at(-1);
-    return best && worst
-      ? fill(copy.market.retained.caption, lang, {
-          bestBrand: best.brand,
-          bestPct: percent(best.retained_value_pct, lang, 0),
-          worstBrand: worst.brand,
-          worstPct: percent(worst.retained_value_pct, lang, 0),
-          age: best.age_years,
-        })
-      : "";
+  const brandSelection = useBrandSelection();
+
+  /** A stored choice, or the defaults, minus any make the data no longer has. */
+  function cleanBrands(vertical: VehicleType, stored: string[] | null): string[] {
+    const known = new Set(retainedAtOldest(vertical).map((row) => row.brand));
+    const chosen = stored ?? defaultBrands(vertical);
+    return chosen.filter((brand) => known.has(brand)).slice(0, MAX_COMPARED);
   }
 
-  const retainedLegend = (point: CurvePoint): string =>
-    fill(copy.market.retained.legendPoint, lang, {
-      pct: percent(point.retained, lang, 0),
-      age: point.age,
+  const selectedBrands = (vertical: VehicleType) => cleanBrands(vertical, brandSelection[vertical]);
+
+  function retainedCurves(vertical: VehicleType): Curve[] {
+    const selected = selectedBrands(vertical);
+    return retainedAtOldest(vertical).map((row) => {
+      const slot = selected.indexOf(row.brand);
+      return {
+        label: row.brand,
+        points: retainedOf(vertical, row.brand),
+        slot: slot === -1 ? null : slot,
+      };
     });
+  }
+
+  const flatBrands = (vertical: VehicleType) =>
+    new Set(
+      depreciation
+        .filter((row) => row.vehicle_type === vertical && !row.significant)
+        .map((row) => row.brand),
+    );
+
+  const listFormat = new Intl.ListFormat(lang === "es" ? "es" : "en", { type: "conjunction" });
+
+  /** The comparison sentence for the chosen makes, highest first, from the data. */
+  function retainedComparison(vertical: VehicleType): string {
+    const selected = new Set(selectedBrands(vertical));
+    const rows = retainedAtOldest(vertical).filter((row) => selected.has(row.brand));
+    const first = rows.at(0);
+    const last = rows.at(-1);
+    if (!first || !last) return t(copy.market.retained.compareNone);
+    const parts = [
+      fill(copy.market.retained.compare, lang, {
+        age: first.age_years,
+        list: listFormat.format(
+          rows.map((row) =>
+            fill(copy.market.retained.compareItem, lang, {
+              brand: row.brand,
+              pct: percent(row.retained_value_pct, lang, 0),
+            }),
+          ),
+        ),
+      }),
+    ];
+    if (rows.length > 1) {
+      parts.push(
+        fill(copy.market.retained.compareSpread, lang, {
+          // From the rounded shares the sentence prints, so "59 % … 37 %" reads as 22 points.
+          spread: points(
+            Math.round(first.retained_value_pct) - Math.round(last.retained_value_pct),
+            lang,
+            0,
+          ),
+        }),
+      );
+    }
+    const flat = rows.filter((row) => flatBrands(vertical).has(row.brand));
+    for (const row of flat) {
+      parts.push(fill(copy.market.retained.flatNote, lang, { brand: row.brand }));
+    }
+    return parts.join(" ");
+  }
+
+  function retainedReading(vertical: VehicleType): string {
+    const shape = vertical === "car" ? copy.market.retained.shapeCar : copy.market.retained.shapeMoto;
+    return `${t(shape)} ${retainedComparison(vertical)}`;
+  }
 
   // --- Mileage ------------------------------------------------------------------------
 
@@ -399,88 +459,115 @@ export function MarketDashboard({
 
   // --- Readings -----------------------------------------------------------------------
   /*
-   * Every figure the readings quote, derived from the same tables the charts draw. These
-   * sentences used to carry the numbers as text, and a retrain made nine of them false at
-   * once. A reading that reads its own chart cannot drift from it.
+   * One reading per vertical, shown inside its tab: the paragraph under a chart talks
+   * about the vehicles the chart is showing, instead of folding cars and motorcycles into
+   * one sentence. Every figure is derived from the same tables the charts draw; these
+   * sentences once carried numbers as text, and a retrain made nine of them false at once.
    */
   const significantOf = (vertical: VehicleType) =>
     depreciationOf(vertical).filter((row) => row.significant);
-  const carSlowest = significantOf("car").at(0);
-  const carFastest = significantOf("car").at(-1);
-  const motoFastest = significantOf("motorcycle").at(-1);
   const motoSlowest = depreciationOf("motorcycle").at(0);
-  const motoReference = depreciation.find(
-    (row) => row.vehicle_type === "motorcycle" && row.is_reference,
-  );
-  const carMedian =
-    mileage.find((row) => row.vehicle_type === "car" && row.segment === "all")?.median_price_cop ??
-    0;
+  const medianPrice = (vertical: VehicleType) =>
+    mileage.find((row) => row.vehicle_type === vertical && row.segment === "all")
+      ?.median_price_cop ?? 0;
+  const yearlyGap = (low: DepreciationRow, high: DepreciationRow, median: number) =>
+    copMillions(((high.annual_depreciation_pct - low.annual_depreciation_pct) / 100) * median, lang);
 
-  const depreciationReading = [
-    carSlowest && carFastest
-      ? fill(copy.market.depreciation.insightCar, lang, {
-          lowBrand: carSlowest.brand,
-          lowPct: percent(carSlowest.annual_depreciation_pct, lang),
-          highBrand: carFastest.brand,
-          highPct: percent(carFastest.annual_depreciation_pct, lang),
-          median: copMillions(carMedian, lang),
-          gap: copMillions(
-            ((carFastest.annual_depreciation_pct - carSlowest.annual_depreciation_pct) / 100) *
-              carMedian,
+  function depreciationReading(vertical: VehicleType): string {
+    const slowest = significantOf(vertical).at(0);
+    const fastest = significantOf(vertical).at(-1);
+    if (!slowest || !fastest) return "";
+    const median = medianPrice(vertical);
+    if (vertical === "car") {
+      return fill(copy.market.depreciation.insightCar, lang, {
+        lowBrand: slowest.brand,
+        lowPct: percent(slowest.annual_depreciation_pct, lang),
+        highBrand: fastest.brand,
+        highPct: percent(fastest.annual_depreciation_pct, lang),
+        median: copMillions(median, lang),
+        gap: yearlyGap(slowest, fastest, median),
+      });
+    }
+    const reference = depreciation.find(
+      (row) => row.vehicle_type === "motorcycle" && row.is_reference,
+    );
+    return [
+      reference
+        ? fill(copy.market.depreciation.insightMoto, lang, {
+            refBrand: reference.brand,
+            refPct: percent(reference.annual_depreciation_pct, lang),
+            highBrand: fastest.brand,
+            highPct: percent(fastest.annual_depreciation_pct, lang),
+          })
+        : "",
+      fill(copy.market.depreciation.insightMotoGap, lang, {
+        median: copMillions(median, lang),
+        lowBrand: slowest.brand,
+        lowPct: percent(slowest.annual_depreciation_pct, lang),
+        highBrand: fastest.brand,
+        highPct: percent(fastest.annual_depreciation_pct, lang),
+        gap: yearlyGap(slowest, fastest, median),
+      }),
+    ]
+      .filter((sentence) => sentence !== "")
+      .join(" ");
+  }
+
+  function mileageReading(vertical: VehicleType): string {
+    const { all, quartiles } = mileageByQuartile(mileage, vertical);
+    const top = quartiles.at(-1);
+    if (!all || !top) return "";
+    return fill(
+      vertical === "car" ? copy.market.mileage.insightCar : copy.market.mileage.insightMoto,
+      lang,
+      {
+        price: copMillions(all.median_price_cop, lang),
+        median: cop(Math.abs(all.cop_per_step), lang),
+        top: cop(Math.abs(top.cop_per_step), lang),
+        flatCount: quartiles.filter((row) => !row.significant).length,
+      },
+    );
+  }
+
+  function regionalReading(vertical: VehicleType): string {
+    const rows = covered(vertical);
+    const highest = rows.at(0);
+    const cheapest = rows.at(-1);
+    if (!highest || !cheapest) return "";
+    const spread = highest.pct_change - cheapest.pct_change;
+    const main =
+      vertical === "car"
+        ? fill(copy.market.regional.insightCar, lang, {
+            spread: points(spread, lang),
+            median: copMillions(medianPrice("car"), lang),
+            amount: copMillions((spread / 100) * medianPrice("car"), lang),
+          })
+        : fill(copy.market.regional.insightMoto, lang, {
+            spread: points(spread, lang),
+            high: percent(highest.pct_change, lang),
+            highDept: highest.department,
+            low: percent(Math.abs(cheapest.pct_change), lang),
+            lowDept: cheapest.department,
+          });
+    const thin = regional
+      .filter((row) => row.vehicle_type === vertical && isThin(row.listings))
+      .map((row) => row.department);
+    const note =
+      thin.length === 0
+        ? ""
+        : fill(
+            thin.length === 1 ? copy.market.regional.thinOne : copy.market.regional.thinMany,
             lang,
-          ),
-        })
-      : "",
-    motoReference && motoFastest
-      ? fill(copy.market.depreciation.insightMoto, lang, {
-          refBrand: motoReference.brand,
-          refPct: percent(motoReference.annual_depreciation_pct, lang),
-          highBrand: motoFastest.brand,
-          highPct: percent(motoFastest.annual_depreciation_pct, lang),
-        })
-      : "",
-  ]
-    .filter((sentence) => sentence !== "")
-    .join(" ");
+            { departments: listFormat.format(thin) },
+          );
+    return [main, note].filter((sentence) => sentence !== "").join(" ");
+  }
 
-  const carRetained = retainedAtOldest("car")[0];
-  const motoRetained = retainedAtOldest("motorcycle")[0];
-
-  const { all: carMileageAll, quartiles: carQuartiles } = mileageByQuartile(mileage, "car");
-  const topQuartile = carQuartiles.at(-1);
-
-  const carRegions = covered("car");
-  const motoRegions = covered("motorcycle");
-  const carHighest = carRegions.at(0);
-  const carCheapest = carRegions.at(-1);
-  const motoHighest = motoRegions.at(0);
-  const motoCheapest = motoRegions.at(-1);
-
-  const regionalReading = [
-    carHighest && carCheapest
-      ? fill(copy.market.regional.insightCar, lang, {
-          spread: points(carHighest.pct_change - carCheapest.pct_change, lang),
-          median: copMillions(carMedian, lang),
-          amount: copMillions(
-            ((carHighest.pct_change - carCheapest.pct_change) / 100) * carMedian,
-            lang,
-          ),
-        })
-      : "",
-    motoHighest && motoCheapest
-      ? fill(copy.market.regional.insightMoto, lang, {
-          spread: points(motoHighest.pct_change - motoCheapest.pct_change, lang),
-          high: percent(motoHighest.pct_change, lang),
-          highDept: motoHighest.department,
-          low: percent(Math.abs(motoCheapest.pct_change), lang),
-          lowDept: motoCheapest.department,
-        })
-      : "",
-  ]
-    .filter((sentence) => sentence !== "")
-    .join(" ");
+  const { all: carMileageAll } = mileageByQuartile(mileage, "car");
+  const motoHighest = covered("motorcycle").at(0);
 
   const dataDate = manifest.capture_dates.at(-1);
+  const readingLabel = t(copy.market.insightLabel);
   const findings = copy.market.findings;
   const sections = copy.market.sections;
 
@@ -551,19 +638,21 @@ export function MarketDashboard({
         id={IDS.depreciation}
         title={t(copy.market.depreciation.title)}
         help={`${t(copy.market.depreciation.lead)} ${t(copy.market.depreciation.orderNote)}`}
-        reading={depreciationReading}
-        readingLabel={t(copy.market.insightLabel)}
+        readingLabel={readingLabel}
       >
         <VehicleTabs id={IDS.depreciation}>
           {(vertical) => (
-            <IntervalBars
-              items={depreciationBars(vertical)}
-              signed={vertical === "motorcycle"}
-              caption={depreciationCaption(vertical)}
-              columns={columns(copy.market.columnBrand)}
-              highlight={highlight}
-              onHighlight={setHighlight}
-            />
+            <>
+              <IntervalBars
+                items={depreciationBars(vertical)}
+                signed={vertical === "motorcycle"}
+                caption={depreciationCaption(vertical)}
+                columns={columns(copy.market.columnBrand)}
+                highlight={highlight}
+                onHighlight={setHighlight}
+              />
+              <Reading label={readingLabel} text={depreciationReading(vertical)} />
+            </>
           )}
         </VehicleTabs>
       </Section>
@@ -572,36 +661,67 @@ export function MarketDashboard({
         id={IDS.retained}
         title={t(copy.market.retained.title)}
         help={`${fill(copy.market.retained.lead, lang, { age: oldestAge })} ${t(
-          copy.market.retained.curveNote,
-        )} ${t(copy.market.retained.originNote)}`}
-        reading={
-          carRetained && motoRetained
-            ? fill(copy.market.retained.insight, lang, {
-                carBrand: carRetained.brand,
-                carPct: percent(carRetained.retained_value_pct, lang, 0),
-                motoBrand: motoRetained.brand,
-                motoPct: percent(motoRetained.retained_value_pct, lang, 0),
-                age: oldestAge,
-              })
-            : ""
-        }
-        readingLabel={t(copy.market.insightLabel)}
+          copy.market.retained.originNote,
+        )}`}
+        readingLabel={readingLabel}
       >
         <VehicleTabs id={IDS.retained}>
-          {(vertical) => (
-            <RetainedCurves
-              curves={retainedCurves(vertical)}
-              axisLabelX={t(copy.market.retained.axisAge)}
-              axisLabelY={t(copy.market.retained.axisRetained)}
-              formatLastPoint={retainedLegend}
-              formatValue={(value) => percent(value, lang, 0)}
-              formatAge={(age) => fill(copy.market.retained.atAge, lang, { age })}
-              caption={retainedCaption(vertical)}
-              brandColumn={t(copy.market.columnBrand)}
-              highlight={highlight}
-              onHighlight={setHighlight}
-            />
-          )}
+          {(vertical) => {
+            const selected = selectedBrands(vertical);
+            const flat = flatBrands(vertical);
+            const curves = retainedCurves(vertical);
+            return (
+              <>
+                <BrandPicker
+                  brands={retainedAtOldest(vertical).map((row) => ({
+                    label: row.brand,
+                    valueText: percent(row.retained_value_pct, lang, 0),
+                    note: flat.has(row.brand) ? notSignificant : undefined,
+                  }))}
+                  selected={selected}
+                  max={MAX_COMPARED}
+                  onToggle={(brand) =>
+                    setBrands(
+                      vertical,
+                      toggleBrand(cleanBrands(vertical, currentBrands(vertical)), brand),
+                    )
+                  }
+                  onReset={() => setBrands(vertical, null)}
+                  onClear={() => setBrands(vertical, [])}
+                  onHighlight={setHighlight}
+                  text={{
+                    group: t(copy.market.retained.picker.group),
+                    help: fill(copy.market.retained.picker.help, lang, { max: MAX_COMPARED }),
+                    status: fill(copy.market.retained.picker.status, lang, {
+                      count: selected.length,
+                      max: MAX_COMPARED,
+                    }),
+                    full: fill(copy.market.retained.picker.full, lang, { max: MAX_COMPARED }),
+                    reset: t(copy.market.retained.picker.reset),
+                    clear: t(copy.market.retained.picker.clear),
+                  }}
+                />
+                <div className="mt-5">
+                  <RetainedCurves
+                    curves={curves}
+                    axisLabelX={t(copy.market.retained.axisAge)}
+                    axisLabelY={t(copy.market.retained.axisRetained)}
+                    formatValue={(value) => percent(value, lang, 0)}
+                    formatAge={(age) => fill(copy.market.retained.atAge, lang, { age })}
+                    caption={retainedComparison(vertical)}
+                    brandColumn={t(copy.market.columnBrand)}
+                    highlight={highlight}
+                  />
+                  {axisFloor(curves) > 0 && (
+                    <p className="mt-2 text-caption text-muted">
+                      {fill(copy.market.retained.axisNote, lang, { floor: axisFloor(curves) })}
+                    </p>
+                  )}
+                </div>
+                <Reading label={readingLabel} text={retainedReading(vertical)} />
+              </>
+            );
+          }}
         </VehicleTabs>
       </Section>
 
@@ -609,25 +729,19 @@ export function MarketDashboard({
         id={IDS.mileage}
         title={t(copy.market.mileage.title)}
         help={`${t(copy.market.mileage.lead)} ${t(copy.market.mileage.leadDetail)}`}
-        reading={
-          carMileageAll && topQuartile
-            ? fill(copy.market.mileage.insight, lang, {
-                median: cop(Math.abs(carMileageAll.cop_per_step), lang),
-                top: cop(Math.abs(topQuartile.cop_per_step), lang),
-                flatCount: carQuartiles.filter((row) => !row.significant).length,
-              })
-            : ""
-        }
-        readingLabel={t(copy.market.insightLabel)}
+        readingLabel={readingLabel}
       >
         <VehicleTabs id={IDS.mileage}>
           {(vertical) => (
-            <IntervalBars
-              items={mileageBars(vertical)}
-              signed
-              caption={mileageCaption(vertical)}
-              columns={columns(copy.market.columnGroup)}
-            />
+            <>
+              <IntervalBars
+                items={mileageBars(vertical)}
+                signed
+                caption={mileageCaption(vertical)}
+                columns={columns(copy.market.columnGroup)}
+              />
+              <Reading label={readingLabel} text={mileageReading(vertical)} />
+            </>
           )}
         </VehicleTabs>
       </Section>
@@ -636,17 +750,19 @@ export function MarketDashboard({
         id={IDS.regional}
         title={t(copy.market.regional.title)}
         help={`${t(copy.market.regional.lead)} ${t(copy.market.regional.caveat)}`}
-        reading={regionalReading}
-        readingLabel={t(copy.market.insightLabel)}
+        readingLabel={readingLabel}
       >
         <VehicleTabs id={IDS.regional}>
           {(vertical) => (
-            <IntervalBars
-              items={regionalBars(vertical)}
-              signed
-              caption={regionalCaption(vertical)}
-              columns={columns(copy.market.columnDepartment)}
-            />
+            <>
+              <IntervalBars
+                items={regionalBars(vertical)}
+                signed
+                caption={regionalCaption(vertical)}
+                columns={columns(copy.market.columnDepartment)}
+              />
+              <Reading label={readingLabel} text={regionalReading(vertical)} />
+            </>
           )}
         </VehicleTabs>
         <p className="max-w-3xl text-detail text-muted">
@@ -662,7 +778,7 @@ export function MarketDashboard({
           motoRatio: decimal(ratioOf("motorcycle"), lang),
           carRatio: decimal(ratioOf("car"), lang),
         })}
-        readingLabel={t(copy.market.insightLabel)}
+        readingLabel={readingLabel}
       >
         <ShareBar shares={shares} />
       </Section>

@@ -503,6 +503,10 @@ export const copy = {
         es: "{refBrand} pierde {refPct} al año y su margen pasa por el cero, así que estos datos no la distinguen de no perder nada. {highBrand} pierde {highPct}. En las marcas que más conservan su valor, la diferencia de precio entre años es pequeña.",
         en: "{refBrand} loses {refPct} a year and its margin crosses zero, so this data cannot tell it apart from losing nothing. {highBrand} loses {highPct}. For the makes that hold their value best, the price gap between model years is small.",
       },
+      insightMotoGap: {
+        es: "Sobre una moto de {median}, la diferencia entre {lowBrand} ({lowPct}) y {highBrand} ({highPct}) son {gap} cada año.",
+        en: "On a {median} motorcycle, the gap between {lowBrand} ({lowPct}) and {highBrand} ({highPct}) is {gap} every year.",
+      },
     },
 
     retained: {
@@ -514,25 +518,55 @@ export const copy = {
         es: "La misma estimación vista como curva, del año 0 al año {age}.",
         en: "The same estimate seen as a curve, from year 0 to year {age}.",
       },
-      insight: {
-        es: "A los {age} años un {carBrand} conserva {carPct} y una {motoBrand}, {motoPct}. Las curvas de las motos son casi planas y las de los carros bajan.",
-        en: "At {age} years a {carBrand} keeps {carPct} and a {motoBrand}, {motoPct}. The motorcycle curves are nearly flat and the car curves fall.",
+      /** The reading opens with the vertical's shape, then compares the chosen makes. */
+      shapeCar: {
+        es: "En carros las curvas bajan con claridad: cada año de edad pesa en el precio pedido, y la marca decide cuánto.",
+        en: "For cars the curves fall clearly: every year of age weighs on the asking price, and the make decides how much.",
       },
-      curveNote: {
-        es: "Mostramos la marca que más conserva, la que menos y la de referencia.",
-        en: "We show the make that holds most, the one that holds least, and the reference.",
+      shapeMoto: {
+        es: "En motos las curvas son casi planas: en varias marcas el precio pedido baja poco con los años.",
+        en: "For motorcycles the curves are nearly flat: for several makes the asking price drops little with age.",
+      },
+      compare: {
+        es: "A los {age} años, {list}.",
+        en: "At {age} years, {list}.",
+      },
+      compareItem: { es: "{brand} conserva {pct}", en: "{brand} keeps {pct}" },
+      compareSpread: {
+        es: "Entre la que más y la que menos conserva de las elegidas hay {spread}.",
+        en: "Between the chosen make that keeps most and the one that keeps least there are {spread}.",
+      },
+      compareNone: {
+        es: "Elige una o más marcas arriba para comparar sus curvas.",
+        en: "Pick one or more makes above to compare their curves.",
+      },
+      flatNote: {
+        es: "La curva de {brand} sale de una depreciación que no se distingue de cero.",
+        en: "{brand}'s curve comes from a depreciation that cannot be told apart from zero.",
+      },
+      picker: {
+        group: { es: "Marcas para comparar", en: "Makes to compare" },
+        help: {
+          es: "Elige hasta {max} marcas para compararlas; las demás quedan en gris de fondo. Al abrir mostramos la que más conserva, la que menos y la de referencia.",
+          en: "Pick up to {max} makes to compare; the rest stay in grey behind them. We open with the make that keeps most, the one that keeps least and the reference.",
+        },
+        status: { es: "{count} de {max} marcas elegidas", en: "{count} of {max} makes chosen" },
+        full: {
+          es: "Llegaste a {max} marcas: quita una para agregar otra.",
+          en: "That is {max} makes: remove one to add another.",
+        },
+        reset: { es: "Restablecer", en: "Reset" },
+        clear: { es: "Quitar todas", en: "Clear all" },
       },
       originNote: {
         es: "Cada curva empieza en 100 % a los 0 años: es el punto de partida de la curva, no un precio medido de vehículos nuevos.",
         en: "Every curve starts at 100 % at age 0: that is the curve's starting point, not a measured price of new vehicles.",
       },
-      atAge: { es: "A los {age} años", en: "At {age} years" },
-      caption: {
-        es: "{bestBrand} conserva {bestPct} a los {age} años; {worstBrand}, {worstPct}.",
-        en: "{bestBrand} keeps {bestPct} at {age} years; {worstBrand}, {worstPct}.",
+      axisNote: {
+        es: "El eje vertical empieza en {floor} % y no en cero, para que se vean las diferencias entre marcas.",
+        en: "The vertical axis starts at {floor} %, not at zero, so the gaps between makes show.",
       },
-      /** The legend's value at the oldest age drawn, so the number reads with its unit. */
-      legendPoint: { es: "{pct} a los {age} años", en: "{pct} at {age} years" },
+      atAge: { es: "A los {age} años", en: "At {age} years" },
       axisAge: { es: "Edad (años)", en: "Age (years)" },
       axisRetained: { es: "Valor que queda", en: "Value left" },
     },
@@ -547,9 +581,13 @@ export const copy = {
         es: "Los grupos se cortan por la clase de precio del vehículo, que sale de su marca y su modelo. Cortarlos por el precio del propio anuncio produciría un efecto falso.",
         en: "The groups are cut by the vehicle's price class, which comes from its make and model. Cutting them by the listing's own price would produce a false effect.",
       },
-      insight: {
-        es: "En el carro de precio medio 10.000 km valen {median}, y en el cuartil más caro {top}. En {flatCount} de los cuatro cuartiles de carros el efecto no se distingue de cero, así que el kilometraje no explica el precio por sí solo.",
-        en: "On the mid-priced car 10,000 km are worth {median}, and in the most expensive quartile {top}. In {flatCount} of the four car quartiles the effect is indistinguishable from zero, so mileage does not explain the price on its own.",
+      insightCar: {
+        es: "En el carro de precio medio, de {price}, 10.000 km más bajan el precio pedido {median}; en el cuartil más caro, {top}. En {flatCount} de los cuatro cuartiles de carros el efecto no se distingue de cero, así que el kilometraje no explica el precio por sí solo: pesa según la clase de vehículo.",
+        en: "On the mid-priced car, at {price}, 10,000 more km take {median} off the asking price; in the most expensive quartile, {top}. In {flatCount} of the four car quartiles the effect is indistinguishable from zero, so mileage does not explain the price on its own: it weighs according to the class of vehicle.",
+      },
+      insightMoto: {
+        es: "En la moto de precio medio, de {price}, 10.000 km más bajan el precio pedido {median}. En {flatCount} de los cuatro cuartiles de motos el efecto no se distingue de cero: en motos el kilometraje pesa poco frente a la marca y el modelo.",
+        en: "On the mid-priced motorcycle, at {price}, 10,000 more km take {median} off the asking price. In {flatCount} of the four motorcycle quartiles the effect is indistinguishable from zero: for motorcycles mileage weighs little next to make and model.",
       },
       segmentAll: { es: "Todo el grupo", en: "The whole group" },
       caption: {
@@ -576,6 +614,14 @@ export const copy = {
       insightMoto: {
         es: "En motos la diferencia llega a {spread}. La misma moto se pide {high} por encima de Bogotá en {highDept} y {low} por debajo en {lowDept}.",
         en: "For motorcycles the difference reaches {spread}. The same motorcycle is asked {high} above Bogotá in {highDept} and {low} below it in {lowDept}.",
+      },
+      thinOne: {
+        es: "{departments} tiene pocos anuncios: va al final de la gráfica y su estimado es menos preciso.",
+        en: "{departments} has few listings: it sits at the end of the chart and its estimate is less precise.",
+      },
+      thinMany: {
+        es: "{departments} tienen pocos anuncios: van al final de la gráfica y su estimado es menos preciso.",
+        en: "{departments} have few listings: they sit at the end of the chart and their estimates are less precise.",
       },
       /** Departments under the catalogue's low-data line go last, with this instead of a figure note. */
       fewListings: {
