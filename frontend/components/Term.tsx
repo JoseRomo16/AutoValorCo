@@ -28,6 +28,9 @@ export function Term({ term, definition }: { term: Localized; definition: Locali
         onMouseLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
+        // Inline in running text: exempt from the 44 px touch floor (WCAG 2.5.8), which
+        // would otherwise pull every line that carries a term apart.
+        data-inline=""
         className="cursor-help border-b border-dotted border-muted text-inherit"
       >
         {t(term)}

@@ -213,6 +213,24 @@ body {
   border-radius: 2px;
 }
 
+/*
+ * Target sizes, in one place rather than on every control. Unlayered on purpose: it wins
+ * over the `min-h-*` utilities, which live in a layer. `min-height` does nothing to an
+ * inline link inside a sentence, which is exactly the exemption WCAG 2.5.8 makes; a term
+ * button inside a paragraph opts out with `data-inline`.
+ */
+@media (max-width: 639.98px) {
+  :is(a, button, summary, [role="tab"]):not([data-inline], .sr-only) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+@media (min-width: 640px) {
+  a:not([data-inline], .sr-only) {
+    min-height: 24px;
+  }
+}
+
 /* The translucent header. A named variable because the blur has to sit over it. */
 .veil {
   background: var(--veil);
