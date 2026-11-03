@@ -46,6 +46,14 @@ services:
     buildCommand: cd frontend && npm ci && npm run build
     staticPublishPath: frontend/out
     autoDeploy: true
+    # Next puts a content hash in every file under /_next/static, so a changed file gets
+    # a new name and these can be cached for good. Without this Render served them with
+    # max-age=0 and every visit downloaded ~775 kB again (Lighthouse "Cache", Block 9b).
+    # The HTML keeps Render's default, so a deploy is visible on the next load.
+    headers:
+      - path: /_next/static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
     envVars:
       # Baked into the bundle at build time by Next, so it is a build input and not a
       # runtime setting: changing it requires a redeploy, which is what `autoDeploy` does.
