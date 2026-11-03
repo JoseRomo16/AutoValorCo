@@ -1,12 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
 import { LANG_SCRIPT, LanguageProvider } from "@/components/LanguageProvider";
 import { SiteFooter, SiteHeader, SkipLink } from "@/components/SiteChrome";
+import { ServiceWorker } from "@/components/Pwa";
 import { THEME_SCRIPT, ThemeProvider } from "@/components/ThemeProvider";
 import { SITE_URL } from "@/lib/links";
 import { manifest, servedModels } from "@/lib/results";
+import { readThemeTokens } from "@/scripts/tokens.mjs";
+
+const tokens = readThemeTokens();
 
 /*
  * Three families with fixed jobs, self-hosted by `next/font` so there is no request to
@@ -79,6 +83,19 @@ export const metadata: Metadata = {
     images: ["/og.png"],
   },
   robots: { index: true, follow: true },
+  // The installable app (ADR 0007). Manifest and icons are written by
+  // scripts/pwa-assets.mjs before every build, from the same tokens as below.
+  manifest: "/manifest.webmanifest",
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "AutoValor", statusBarStyle: "black-translucent" },
+};
+
+/** The browser chrome's colour per system theme, from the stylesheet's own grounds. */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: tokens.light.ground ?? "" },
+    { media: "(prefers-color-scheme: dark)", color: tokens.dark.ground ?? "" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -100,6 +117,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Before the first paint. React runs after parsing, so a React-based fix flashes. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: LANG_SCRIPT }} />
+        {/* "off" only in the emergency build (NEXT_PUBLIC_SW_KILL=1, ADR 0007). */}
+        <meta name="autovalor-sw" content={process.env.NEXT_PUBLIC_SW_KILL === "1" ? "off" : "on"} />
       </head>
       <body>
         <ThemeProvider>
@@ -108,6 +127,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SiteHeader />
             <main id="content">{children}</main>
             <SiteFooter dataDate={dataDate} modelVersion={modelVersion} />
+            <ServiceWorker />
           </LanguageProvider>
         </ThemeProvider>
       </body>

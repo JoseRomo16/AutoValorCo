@@ -20,6 +20,7 @@ import type { Theme } from "./ThemeProvider";
 import { isoDay, modelDate } from "@/lib/format";
 import { LANGS, copy, fill } from "@/lib/i18n";
 import type { Lang, Localized } from "@/lib/i18n";
+import { InstallButton } from "@/components/Pwa";
 import { API_DOCS_URL, LINKEDIN_URL, REPO_URL } from "@/lib/links";
 
 
@@ -293,6 +294,9 @@ export function SiteFooter({
             <FooterLink href={REPO_URL}>{t(copy.footer.repo)}</FooterLink>
             <FooterLink href={API_DOCS_URL}>{t(copy.footer.api)}</FooterLink>
             <FooterLink href={LINKEDIN_URL}>{t(copy.footer.linkedin)}</FooterLink>
+            <li>
+              <InstallButton />
+            </li>
           </FooterColumn>
         </div>
 
