@@ -1690,11 +1690,12 @@ absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por blo
 | 2b | `/predict` valida contra `/catalog`; `warnings`; "Otro departamento" como promedio ponderado | [#27](https://github.com/JoseRomo16/AutoValorCo/pull/27), [#28](https://github.com/JoseRomo16/AutoValorCo/pull/28) |
 | 3 | 404, imagen para redes, LinkedIn, metas por página, contraste de tokens | [#30](https://github.com/JoseRomo16/AutoValorCo/pull/30) |
 | — | Especificación de la medición del Bloque 4 | [#29](https://github.com/JoseRomo16/AutoValorCo/pull/29) |
-| **4** | **Reentrenar sin ciudad y revisar la banda**: bundle `2026-11-02.12948`, [ADR 0006](adr/0006-drop-city-feature.md) con tres decisiones abiertas | rama `fix/city-and-band`, PR abierto |
-| 5–9 | Tooling, copy, Mercado, Metodología, verificación final | sin empezar |
+| 4 | Reentrenar sin ciudad y revisar la banda: bundle `2026-11-02.12948`, [ADR 0006](adr/0006-drop-city-feature.md) con tres decisiones abiertas | [#31](https://github.com/JoseRomo16/AutoValorCo/pull/31) |
+| **5** | **Tooling**: skill duplicada fuera, plugins declarados en `.claude/settings.json`, [`CONTRIBUTING.md`](../CONTRIBUTING.md) | rama `chore/dev-tooling-cleanup`, PR abierto |
+| 6–9 | Copy, Mercado, Metodología, verificación final | sin empezar |
 
 El bundle desplegado es `2026-10-25.12948` (verificado en `/model-info` el 2026-11-02); el
-del Bloque 4, `2026-11-02.12948`, entra con su PR y se despliega API primero, sitio después.
+del Bloque 4, `2026-11-02.12948`, está en `main` y se despliega API primero, sitio después.
 Los workflows "Weekly capture" y "Enrich motorcycle details" siguen deshabilitados a mano;
 habilitarlos le toca al usuario.
 
@@ -1719,7 +1720,7 @@ el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el
 
 1. **El Bloque 4** (modelo sin ciudad), y su despliegue: la API primero, el sitio después.
    Pasos en [`deploy-render.md`](deploy-render.md); el despliegue no se automatiza desde aquí.
-2. **Los Bloques 5 a 9**; lo que queda del rediseño está en [`redesign.md`](redesign.md).
+2. **Los Bloques 5 a 9** (el 5 en PR); lo que queda del rediseño está en [`redesign.md`](redesign.md).
 3. **La captura semanal está caída y no es culpa del código.** Desde el run del 2026-10-26
    TuCarro responde a las IP de GitHub Actions con un `302` a la verificación de cuenta de
    MercadoLibre, así que el scraper parsea esa página y captura 0 anuncios en las seis
