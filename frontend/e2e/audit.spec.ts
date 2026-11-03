@@ -13,7 +13,7 @@ import { carCatalog, DEPARTMENT, estimate, MAKE, remember, requireListed, settle
 // 640 is the first `sm` width, where the bars and the figure column first share a row.
 const WIDTHS = [1440, 768, 640, 375, 320] as const;
 const THEMES = ["light", "dark"] as const;
-const ROUTES = ["valorar", "/mercado/", "/metodologia/", "/esta-pagina-no-existe/"] as const;
+const ROUTES = ["valorar", "/mercado/", "/metodologia/", "/esta-pagina-no-existe/", "/offline/"] as const;
 
 async function open(page: Page, route: (typeof ROUTES)[number]) {
   if (route !== "valorar") {

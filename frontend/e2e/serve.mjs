@@ -16,6 +16,7 @@ const TYPES = {
   ".js": "text/javascript",
   ".css": "text/css",
   ".json": "application/json",
+  ".webmanifest": "application/manifest+json",
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
@@ -37,6 +38,8 @@ createServer((request, response) => {
   const file = found ?? path.join(ROOT, "404.html");
   response.writeHead(found ? 200 : 404, {
     "content-type": TYPES[path.extname(file)] ?? "application/octet-stream",
+    // As render.yaml asks of Render: the worker script is always revalidated.
+    ...(path.basename(file) === "sw.js" ? { "cache-control": "no-cache" } : {}),
   });
   createReadStream(file).pipe(response);
 }).listen(PORT, () => console.log(`serving ${ROOT} on http://localhost:${PORT}`));
