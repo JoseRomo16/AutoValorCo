@@ -93,7 +93,20 @@ describe("the colour tokens", () => {
    * chart can sit on, which is WCAG's 3:1 for non-text graphics. The audit's orange curve
    * was 2.87:1 on paper.
    */
-  const MARKS = ["bar", "bar-edge", "good", "bad", "accent-text", "line-strong", "muted"] as const;
+  const MARKS = [
+    "bar",
+    "bar-edge",
+    "good",
+    "bad",
+    "accent-text",
+    "line-strong",
+    "muted",
+    "series-1",
+    "series-2",
+    "series-3",
+    "series-4",
+    "series-5",
+  ] as const;
   const CHART_SURFACES = ["ground", "band", "surface"] as const;
   const GRAPHIC = 3;
 
