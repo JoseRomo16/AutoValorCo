@@ -177,6 +177,9 @@ def test_predict_without_a_model_says_so(empty_client: TestClient) -> None:
         ("asking_price_cop", 0),
         ("brand", ""),
         ("department", ""),
+        # Decimals in integer fields: 2018.5 is not a model year a listing can have.
+        ("model_year", 2018.5),
+        ("mileage_km", 60_000.5),
     ],
 )
 def test_bad_input_is_rejected_at_the_edge(client: TestClient, field: str, value: object) -> None:
@@ -190,6 +193,14 @@ def test_bad_input_is_rejected_at_the_edge(client: TestClient, field: str, value
 def test_an_unknown_field_is_rejected_rather_than_ignored(client: TestClient) -> None:
     # Silently dropping "colour" would let a caller believe it influenced the estimate.
     response = client.post("/predict", json={**CAR, "colour": "rojo"})
+
+    assert response.status_code == 422
+
+
+def test_a_body_that_is_not_json_is_rejected(client: TestClient) -> None:
+    response = client.post(
+        "/predict", content=b"marca=Toyota", headers={"content-type": "application/json"}
+    )
 
     assert response.status_code == 422
 
