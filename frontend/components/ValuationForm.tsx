@@ -44,7 +44,7 @@ import {
   type VehicleType,
   type VerticalCatalog,
 } from "@/lib/api";
-import { cop, integer, kilometres } from "@/lib/format";
+import { cop, integer, isoDay, kilometres } from "@/lib/format";
 import { copy, fill } from "@/lib/i18n";
 import type { Localized } from "@/lib/i18n";
 /*
@@ -148,6 +148,8 @@ export function ValuationForm() {
   const { lang, t } = useLang();
 
   const [catalogs, setCatalogs] = useState<VerticalCatalog[]>([]);
+  /** When the lists came from the service worker's saved copy: the date it was saved. */
+  const [catalogCachedAt, setCatalogCachedAt] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("loading-catalog");
   const [error, setError] = useState<string | null>(null);
 
@@ -188,6 +190,7 @@ export function ValuationForm() {
       .then((response) => {
         if (!live) return;
         setCatalogs(response.verticals);
+        setCatalogCachedAt(response.cachedAt);
         setStatus("ready");
       })
       .catch((cause: unknown) => {
@@ -706,8 +709,15 @@ export function ValuationForm() {
               role="status"
               className="inline-flex items-center gap-2 font-mono text-caption text-muted"
             >
-              <i aria-hidden className={`size-2 rounded-full ${loading ? "bg-faint" : "bg-good"}`} />
-              {loading ? t(copy.status.connecting) : t(copy.status.ready)}
+              <i
+                aria-hidden
+                className={`size-2 rounded-full ${loading || catalogCachedAt ? "bg-faint" : "bg-good"}`}
+              />
+              {loading
+                ? t(copy.status.connecting)
+                : catalogCachedAt
+                  ? fill(copy.status.cached, lang, { date: isoDay(catalogCachedAt.slice(0, 10), lang) })
+                  : t(copy.status.ready)}
             </span>
           )}
 

@@ -67,7 +67,7 @@ const explanation: ExplainResponse = {
 /** One handler for all three endpoints, routed by path. */
 function stubFetch() {
   const json = (body: unknown) =>
-    Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) } as Response);
+    Promise.resolve({ ok: true, status: 200, headers: new Headers(), json: () => Promise.resolve(body) } as Response);
   return vi.fn((input: RequestInfo | URL) => {
     const url = String(input);
     if (url.endsWith("/catalog")) return json(catalog);
@@ -524,7 +524,7 @@ describe("the field ranges", () => {
       "fetch",
       vi.fn((input: RequestInfo | URL) =>
         String(input).endsWith("/catalog")
-          ? Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(withoutMileage) } as Response)
+          ? Promise.resolve({ ok: true, status: 200, headers: new Headers(), json: () => Promise.resolve(withoutMileage) } as Response)
           : base(input),
       ),
     );
@@ -535,5 +535,30 @@ describe("the field ranges", () => {
     fireEvent.change(km, { target: { value: "9000000" } });
     fireEvent.blur(km);
     expect(screen.queryByText(/Escribe un kilometraje entre/)).toBeNull();
+  });
+});
+
+describe("lists answered from the service worker's saved copy", () => {
+  it("say they are saved and may be out of date, instead of 'Modelo listo'", async () => {
+    const base = stubFetch();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) =>
+        String(input).endsWith("/catalog")
+          ? Promise.resolve({
+              ok: true,
+              status: 200,
+              headers: new Headers({ "x-autovalor-cached-at": "2026-11-01T10:00:00.000Z" }),
+              json: () => Promise.resolve(catalog),
+            } as Response)
+          : base(input),
+      ),
+    );
+    show();
+    // Not `ready()`: that waits for the very "Modelo listo" this case replaces.
+    expect(
+      await screen.findByText(/^Sin conexión: listas guardadas el 1 de noviembre de 2026/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Modelo listo")).toBeNull();
   });
 });
