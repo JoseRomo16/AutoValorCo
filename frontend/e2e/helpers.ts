@@ -126,7 +126,9 @@ export function bodyLuminance(page: Page): Promise<number> {
 export async function settle(page: Page) {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForFunction(() =>
-    document.getAnimations().every((animation) => animation.playState !== "running"),
+    document
+            .getAnimations()
+            .every((animation) => !(animation instanceof CSSTransition) || animation.playState !== "running"),
   );
   await page.waitForFunction(() =>
     [...document.querySelectorAll<SVGSVGElement>("svg[viewBox]")].every((svg) => {
