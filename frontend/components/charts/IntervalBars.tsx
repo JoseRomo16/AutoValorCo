@@ -93,11 +93,12 @@ export function IntervalBars({ items, signed = false, caption, columns, highligh
     <figure className="m-0">
       <figcaption className="sr-only">{caption}</figcaption>
       {/* From `sm` up the list is one grid and each row a subgrid of it, so the figure
-          column is as wide as the widest figure in this chart and no wider. It was a
-          fixed 12 rem, which left the figures far from the bars they belong to. */}
+          column is as wide as the widest figure in this chart, up to 14 rem: a long note
+          ("pocos anuncios, estimado menos preciso") wraps instead of squeezing the bars
+          at 640-800 px. It was a fixed 12 rem, which left the figures far from the bars. */}
       <ul
         aria-hidden="true"
-        className="space-y-1 sm:grid sm:grid-cols-[10rem_minmax(0,1fr)_max-content] sm:gap-x-3 sm:gap-y-1 sm:space-y-0"
+        className="space-y-1 sm:grid sm:grid-cols-[10rem_minmax(0,1fr)_fit-content(14rem)] sm:gap-x-3 sm:gap-y-1 sm:space-y-0"
       >
         {items.map((item) => {
           const value = position(item.value);
