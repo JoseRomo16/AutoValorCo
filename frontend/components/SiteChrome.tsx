@@ -47,6 +47,10 @@ function Wordmark({ className = "" }: { className?: string }) {
       <span className="font-display text-[1.1875rem] font-extrabold tracking-[-0.01em] [font-stretch:112%]">
         AutoValor
       </span>
+      {/* The name is read from the text itself, so it has to carry the space the gap
+          draws: "AutoValor CO", not "AutoValorCO". An aria-label over it disagreed with
+          the visible text (axe label-content-name-mismatch). */}
+      <span className="sr-only"> </span>
       <Plate />
     </span>
   );
@@ -159,7 +163,7 @@ export function SiteHeader() {
       }`}
     >
       <div className={`${WRAP} flex min-h-[60px] flex-wrap items-center gap-x-8`}>
-        <Link href="/" prefetch={false} aria-label="AutoValor CO" className="py-2">
+        <Link href="/" prefetch={false} className="py-2">
           <Wordmark />
         </Link>
 
@@ -271,7 +275,7 @@ export function SiteFooter({
       <div className={WRAP}>
         <div className="grid gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            <Link href="/" prefetch={false} aria-label="AutoValor CO">
+            <Link href="/" prefetch={false}>
               <Wordmark />
             </Link>
             <p className="mt-4 max-w-[46ch] text-sm text-muted">{t(copy.footer.disclaimer)}</p>
