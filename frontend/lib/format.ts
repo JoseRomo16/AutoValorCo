@@ -146,6 +146,17 @@ export function signedPercent(value: number, lang: Lang, digits = 1): string {
   return `${sign}${percent(Math.abs(value), lang, digits)}`;
 }
 
+/**
+ * A peso amount that always carries its sign: "+$ 28.971" / "−$ 108.807".
+ *
+ * The mileage chart printed positive effects with no "+", so Q2 and Q3 on cars read as
+ * costs of the same direction as the negative ones beside them.
+ */
+export function signedCop(value: number, lang: Lang): string {
+  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+  return `${sign}${cop(Math.abs(value), lang)}`;
+}
+
 /** A multiplicative SHAP factor as the percentage it moves the price: 1.15 -> "+15 %". */
 export function factorAsPercent(factor: number, lang: Lang): string {
   return signedPercent((factor - 1) * 100, lang, 1);
