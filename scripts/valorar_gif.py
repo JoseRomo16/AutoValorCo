@@ -36,7 +36,9 @@ def main(frames_dir: str, output: str) -> int:
         image = Image.open(path).convert("RGB")
         height = round(image.height * WIDTH / image.width)
         frames.append(image.resize((WIDTH, height), Image.Resampling.LANCZOS))
-    palette = frames[len(frames) // 2].quantize(colors=128, method=Image.Quantize.MEDIANCUT)
+    # The palette comes from the last frame, the result, which holds every colour the
+    # earlier frames use plus the factor bars they do not.
+    palette = frames[-1].quantize(colors=128, method=Image.Quantize.MEDIANCUT)
     quantised = [frame.quantize(palette=palette, dither=Image.Dither.NONE) for frame in frames]
     out = Path(output)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -55,4 +57,7 @@ def main(frames_dir: str, output: str) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(*sys.argv[1:3]))
+    if len(sys.argv) != 3:
+        sys.stderr.write("usage: python scripts/valorar_gif.py FRAMES_DIR OUTPUT.gif" + chr(10))
+        sys.exit(64)
+    sys.exit(main(sys.argv[1], sys.argv[2]))
