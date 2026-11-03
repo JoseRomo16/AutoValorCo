@@ -10,7 +10,8 @@ import { carCatalog, DEPARTMENT, estimate, MAKE, remember, requireListed, settle
  * small print; it gets there through a shared link, which runs the valuation on load.
  */
 
-const WIDTHS = [1440, 768, 375, 320] as const;
+// 640 is the first `sm` width, where the bars and the figure column first share a row.
+const WIDTHS = [1440, 768, 640, 375, 320] as const;
 const THEMES = ["light", "dark"] as const;
 const ROUTES = ["valorar", "/mercado/", "/metodologia/", "/esta-pagina-no-existe/"] as const;
 

@@ -77,7 +77,11 @@ async function recordFrames(page: Page) {
         text: document.querySelector("h1")?.textContent ?? "",
         hidden: document.body ? getComputedStyle(document.body).visibility === "hidden" : true,
       });
-      if (frames.length < 30) requestAnimationFrame(log);
+      // Until the page has been visible for a few frames, bounded by LANG_SCRIPT's 3 s
+      // release: a slow runner must not turn a late hydration into "never shown".
+      const visible = frames.filter((frame) => !frame.hidden).length;
+      if (visible < 5 && frames.length < 600) requestAnimationFrame(log);
+      else (window as unknown as { __framesDone: boolean }).__framesDone = true;
     };
     requestAnimationFrame(log);
   });
@@ -92,7 +96,7 @@ test("language and theme are remembered across pages and never flash", async ({ 
   for (const route of ["/mercado/", "/metodologia/", "/"]) {
     await page.goto(route);
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
-    await page.waitForFunction(() => (window as unknown as { __frames: unknown[] }).__frames.length >= 30);
+    await page.waitForFunction(() => (window as unknown as { __framesDone?: boolean }).__framesDone === true);
     const frames = await page.evaluate(
       () => (window as unknown as { __frames: { theme?: string; text: string; hidden: boolean }[] }).__frames,
     );
