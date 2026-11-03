@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 
 import { copy } from "../lib/i18n";
 import { LINKEDIN_URL } from "../lib/links";
-import { bodyLuminance, estimate, fillToyota, openValorar, PAGES, remember, submit } from "./helpers";
+import { bodyLuminance, estimate, fillCar, openValorar, PAGES, remember, submit } from "./helpers";
 
 type Leaf = { es: string; en: string };
 
@@ -37,7 +37,7 @@ test.describe("in English", () => {
     test(`${route} keeps no Spanish in the tab title, the text or the numbers`, async ({ page }) => {
       if (route === "/") {
         await openValorar(page);
-        await fillToyota(page);
+        await fillCar(page);
         await page.locator("#asking").fill("45000000");
         await submit(page);
         await estimate(page);

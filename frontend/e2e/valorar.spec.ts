@@ -6,13 +6,18 @@ import {
   choose,
   countPredictions,
   estimate,
-  fillToyota,
+  fillCar,
+  MAKE,
+  requireListed,
+  validYear,
   openValorar,
   submit,
 } from "./helpers";
 
 test("a typed year reads 2024, without a thousands separator", async ({ page }) => {
   await openValorar(page);
+  // The case measured live. Grouping does not depend on the range, so 2024 stays a
+  // literal: if it ever falls outside the catalogue the field still has to show "2024".
   await page.locator("#year").pressSequentially("2024");
   await expect(page.locator("#year")).toHaveValue("2024");
 });
@@ -24,7 +29,9 @@ test("a price with junk says what it dropped, and one under the floor is refused
   const floor = Math.floor((await carCatalog(request)).asking_price_cop!.min);
   const predictions = countPredictions(page);
   await openValorar(page);
-  await fillToyota(page);
+  await fillCar(page);
+  // Typed digits are 5 and 9: the case only means something while 59 is under the floor.
+  expect(59).toBeLessThan(floor);
   const asking = page.locator("#asking");
   await asking.focus();
   // As one input event, the way it arrives when pasted. Typed key by key, each keystroke
@@ -32,7 +39,6 @@ test("a price with junk says what it dropped, and one under the floor is refused
   await page.keyboard.insertText("-5e9");
   await expect(page.getByText(fill(copy.form.discarded, "es", { chars: "-e" }))).toBeVisible();
   await expect(asking).toHaveValue("59");
-  expect(59).toBeLessThan(floor);
 
   await asking.blur();
   await expect(page.getByText(/^El precio más bajo que el modelo vio es /)).toBeVisible();
@@ -43,7 +49,7 @@ test("a price with junk says what it dropped, and one under the floor is refused
 
 test("a pasted 45.000.000,00 is 45 million, not 4.500 million", async ({ page }) => {
   await openValorar(page);
-  await fillToyota(page);
+  await fillCar(page);
   await page.locator("#asking").focus();
   // One input event carrying the whole string, which is what a paste is.
   await page.keyboard.insertText("45.000.000,00");
@@ -71,10 +77,12 @@ test("a year outside /catalog shows the inline error with the published range", 
 
 test("an uncovered department offers another department and the result says it averaged", async ({
   page,
+  request,
 }) => {
+  await requireListed(request);
   await openValorar(page);
-  await choose(page, "brand", "Toyota", /^Toyota/);
-  await page.locator("#year").fill("2018");
+  await choose(page, "brand", MAKE, new RegExp(`^${MAKE}`));
+  await page.locator("#year").fill(await validYear(page));
   await page.locator("#mileage").fill("60000");
   await page.locator("#department").click();
   await page.locator("#department").fill("nari");
@@ -96,10 +104,10 @@ test("an empty submit puts the focus on the first field in error", async ({ page
 
 test("the shareable link re-runs the same valuation", async ({ page, context }) => {
   await openValorar(page);
-  await fillToyota(page);
+  await fillCar(page);
   await submit(page);
   const first = await estimate(page);
-  await expect(page).toHaveURL(/\?.*marca=Toyota/);
+  await expect(page).toHaveURL(new RegExp(`[?].*marca=${MAKE}`));
 
   const shared = await context.newPage();
   const recalculated = shared.waitForRequest((call) => call.url().endsWith("/predict"));

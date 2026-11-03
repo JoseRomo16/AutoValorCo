@@ -1,4 +1,4 @@
-import { expect, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
 export const API = "http://localhost:8000";
 export const PAGES = ["/", "/mercado/", "/metodologia/"] as const;
@@ -6,6 +6,8 @@ export const PAGES = ["/", "/mercado/", "/metodologia/"] as const;
 type Range = { min: number; max: number };
 export type Catalog = {
   vehicle_type: string;
+  brands: { name: string }[];
+  departments: { name: string }[];
   model_year: Range;
   engine_cc: Range | null;
   asking_price_cop: Range | null;
@@ -44,12 +46,38 @@ export async function choose(page: Page, id: string, typed: string, option: RegE
   await page.getByRole("option", { name: option }).first().click();
 }
 
-/** A complete, valid Toyota 2018, so a test only changes the field it is about. */
-export async function fillToyota(page: Page) {
-  await choose(page, "brand", "Toyota", /^Toyota/);
-  await page.locator("#year").fill("2018");
+/** The make and department the valuation cases use; a test skips if either disappears. */
+export const MAKE = "Toyota";
+export const DEPARTMENT = "Antioquia";
+
+/** Skip, saying why, when the catalogue no longer lists the make or department used here. */
+export async function requireListed(request: APIRequestContext) {
+  const car = await carCatalog(request);
+  test.skip(!car.brands.some((brand) => brand.name === MAKE), `/catalog no longer lists ${MAKE}`);
+  test.skip(
+    !car.departments.some((department) => department.name === DEPARTMENT),
+    `/catalog no longer lists ${DEPARTMENT}`,
+  );
+}
+
+/**
+ * A year inside the published range, read from the field's placeholder ("1955–2027"),
+ * which the form fills from /catalog. Never a literal: the top year moves every January.
+ */
+export async function validYear(page: Page): Promise<string> {
+  const placeholder = (await page.locator("#year").getAttribute("placeholder")) ?? "";
+  const [min, max] = placeholder.split("–").map(Number);
+  if (!min || !max) throw new Error(`no year range in the placeholder: "${placeholder}"`);
+  return String(Math.floor((min + max) / 2));
+}
+
+/** A complete, valid car, so a test only changes the field it is about. */
+export async function fillCar(page: Page) {
+  await requireListed(page.request);
+  await choose(page, "brand", MAKE, new RegExp(`^${MAKE}`));
+  await page.locator("#year").fill(await validYear(page));
   await page.locator("#mileage").fill("60000");
-  await choose(page, "department", "Antioquia", /^Antioquia/);
+  await choose(page, "department", DEPARTMENT, new RegExp(`^${DEPARTMENT}`));
 }
 
 export function submit(page: Page) {
