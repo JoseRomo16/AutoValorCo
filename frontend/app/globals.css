@@ -236,6 +236,15 @@ html[data-lang-pending] body {
   visibility: hidden;
 }
 
+/*
+ * Focus moved by script to something Tab never reaches (the result heading, a section a
+ * skip link lands on) is for the screen reader's place, not a control to point at, so it
+ * draws no ring. Every control Tab reaches keeps the one above.
+ */
+[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
 /* The translucent header. A named variable because the blur has to sit over it. */
 .veil {
   background: var(--veil);
