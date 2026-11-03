@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import { signedCop } from "@/lib/format";
-import { isWideInterval, mileageByQuartile, spreadLabels, withOrigin } from "@/lib/market";
+import {
+  MAX_COMPARED,
+  isWideInterval,
+  mileageByQuartile,
+  spreadLabels,
+  toggleBrand,
+  withOrigin,
+} from "@/lib/market";
+import { axisFloor, axisTicks } from "@/components/charts/RetainedCurves";
 import { mileageEffect } from "@/lib/results";
 
 describe("isWideInterval", () => {
@@ -70,5 +78,35 @@ describe("signedCop", () => {
   it("always carries the sign", () => {
     expect(signedCop(28971, "es").startsWith("+")).toBe(true);
     expect(signedCop(-108807, "es").startsWith("−")).toBe(true);
+  });
+});
+
+describe("toggleBrand", () => {
+  it("adds in the order picked and removes", () => {
+    expect(toggleBrand(["Kia"], "Ford")).toEqual(["Kia", "Ford"]);
+    expect(toggleBrand(["Kia", "Ford"], "Kia")).toEqual(["Ford"]);
+  });
+
+  it("stops at the cap", () => {
+    const full = ["A", "B", "C", "D", "E"];
+    expect(full).toHaveLength(MAX_COMPARED);
+    expect(toggleBrand(full, "F")).toBe(full);
+    expect(toggleBrand(full, "C")).toEqual(["A", "B", "D", "E"]);
+  });
+});
+
+describe("the retained-value axis", () => {
+  it("starts ten points under the lowest value, on a round number", () => {
+    expect(axisFloor([{ points: [{ age: 0, retained: 100 }, { age: 10, retained: 36.6 }] }])).toBe(20);
+    expect(axisFloor([{ points: [{ age: 10, retained: 91.8 }] }])).toBe(80);
+  });
+
+  it("never goes under zero", () => {
+    expect(axisFloor([{ points: [{ age: 10, retained: 4 }] }])).toBe(0);
+  });
+
+  it("ticks from the floor to 100", () => {
+    expect(axisTicks(80)).toEqual([80, 90, 100]);
+    expect(axisTicks(0)).toEqual([0, 25, 50, 75, 100]);
   });
 });

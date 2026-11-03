@@ -78,3 +78,18 @@ export function spreadLabels(wanted: number[], gap: number, top: number, bottom:
   });
   return result;
 }
+
+/**
+ * How many makes the retained-value chart colours at once.
+ *
+ * Five because that is where distinct colours and dash patterns run out before legibility
+ * does; the rest of the makes stay on the chart as faint context lines.
+ */
+export const MAX_COMPARED = 5;
+
+/** Add or remove one make, keeping the order the reader picked them in and the cap. */
+export function toggleBrand(selected: string[], brand: string, max = MAX_COMPARED): string[] {
+  if (selected.includes(brand)) return selected.filter((entry) => entry !== brand);
+  if (selected.length >= max) return selected;
+  return [...selected, brand];
+}
