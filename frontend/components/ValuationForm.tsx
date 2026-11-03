@@ -86,7 +86,7 @@ type FieldName = "brand" | "year" | "mileage" | "department" | "engine" | "askin
  * field — make or year — off the top of the screen, so the form looked like it had simply
  * refused. Focus follows this list to the first field with a problem.
  */
-const FIELD_ORDER: FieldName[] = ["brand", "year", "engine", "mileage", "department", "asking"];
+const FIELD_ORDER: FieldName[] = ["brand", "year", "mileage", "engine", "department", "asking"];
 
 /**
  * What was priced, kept as values rather than as a finished sentence.
@@ -136,11 +136,11 @@ function Fieldset({
   disabled: boolean;
 }) {
   return (
-    <fieldset disabled={disabled} className="mb-7 min-w-0 border-0 p-0 last:mb-0">
-      <legend className="mb-3.5 p-0 font-mono text-caption uppercase tracking-[0.1em] text-accent-text">
+    <fieldset disabled={disabled} className="mb-7 min-w-0 border-0 p-0 last:mb-0 min-[960px]:mb-5">
+      <legend className="mb-3.5 min-[960px]:mb-2.5 p-0 font-mono text-caption uppercase tracking-[0.1em] text-accent-text">
         {legend}
       </legend>
-      <div className="grid gap-[18px] sm:grid-cols-2">{children}</div>
+      <div className="grid gap-[18px] sm:grid-cols-2 min-[960px]:gap-x-5 min-[960px]:gap-y-3.5">{children}</div>
     </fieldset>
   );
 }
@@ -528,14 +528,14 @@ export function ValuationForm() {
       <form
         onSubmit={submit}
         noValidate
-        className="rounded-lg border border-line bg-surface p-5 sm:p-7"
+        className="rounded-lg border border-line bg-surface p-5 sm:max-[959px]:p-7 min-[960px]:p-6"
       >
         {/* The first decision, and the largest control on the page: everything below it
             depends on which vertical answers. */}
         <div
           role="group"
           aria-label={t(copy.form.vehicleType)}
-          className="mb-7 grid grid-cols-2 rounded-lg border border-line p-[3px]"
+          className="mb-7 grid grid-cols-2 rounded-lg border border-line p-[3px] min-[960px]:mb-5"
         >
           {(["car", "motorcycle"] as const).map((candidate) => (
             <button
@@ -543,7 +543,7 @@ export function ValuationForm() {
               type="button"
               onClick={() => chooseVehicleType(candidate)}
               aria-pressed={vehicleType === candidate}
-              className={`min-h-13 rounded-md font-display text-lg font-bold transition-colors duration-200 [font-stretch:112%] ${
+              className={`min-h-13 rounded-md font-display text-lg font-bold min-[960px]:min-h-11 transition-colors duration-200 [font-stretch:112%] ${
                 vehicleType === candidate ? "bg-ink text-ground" : "text-muted hover:text-ink"
               }`}
             >
@@ -584,56 +584,61 @@ export function ValuationForm() {
             countLabel={listingCount}
           />
 
-          <NumberField
-            id="year"
-            lang={lang}
-            label={t(copy.form.year)}
-            value={year}
-            onChange={setYear}
-            onBlur={() => touch("year")}
-            grouping={false}
-            discardedLabel={discardedNotice}
-            placeholder={
-              yearRange
-                ? `${Math.round(yearRange.min)}–${Math.round(yearRange.max)}`
-                : undefined
-            }
-            error={shown("year")}
-          />
+          {/* Three numbers about the vehicle in one row from `sm` up: the odometer is
+              part of the vehicle, and one row instead of two is what lets "Calcular el
+              precio" sit above the fold on a laptop. */}
+          <div className="grid gap-[18px] sm:col-span-2 sm:grid-cols-3 min-[960px]:gap-x-5">
+            <NumberField
+              id="year"
+              lang={lang}
+              label={t(copy.form.year)}
+              value={year}
+              onChange={setYear}
+              onBlur={() => touch("year")}
+              grouping={false}
+              discardedLabel={discardedNotice}
+              placeholder={
+                yearRange
+                  ? `${Math.round(yearRange.min)}–${Math.round(yearRange.max)}`
+                  : undefined
+              }
+              error={shown("year")}
+            />
 
-          <NumberField
-            id="engine"
-            lang={lang}
-            label={t(copy.form.engine)}
-            optionalLabel={t(copy.form.optional)}
-            unit={t(copy.form.engineUnit)}
-            value={engineCc}
-            onChange={setEngineCc}
-            onBlur={() => touch("engine")}
-            discardedLabel={discardedNotice}
-            placeholder={
-              engineRange
-                ? `${integer(engineRange.min, lang)}–${integer(engineRange.max, lang)}`
-                : undefined
-            }
-            hint={t(copy.form.engineHint)}
-            error={shown("engine")}
-          />
+            <NumberField
+              id="mileage"
+              lang={lang}
+              label={t(copy.form.mileage)}
+              unit={t(copy.form.mileageUnit)}
+              value={mileage}
+              onChange={setMileage}
+              onBlur={() => touch("mileage")}
+              discardedLabel={discardedNotice}
+              error={shown("mileage")}
+            />
+
+            <NumberField
+              id="engine"
+              lang={lang}
+              label={t(copy.form.engine)}
+              optionalLabel={t(copy.form.optional)}
+              unit={t(copy.form.engineUnit)}
+              value={engineCc}
+              onChange={setEngineCc}
+              onBlur={() => touch("engine")}
+              discardedLabel={discardedNotice}
+              placeholder={
+                engineRange
+                  ? `${integer(engineRange.min, lang)}–${integer(engineRange.max, lang)}`
+                  : undefined
+              }
+              hint={t(copy.form.engineHint)}
+              error={shown("engine")}
+            />
+          </div>
         </Fieldset>
 
         <Fieldset legend={t(copy.form.groupListing)} disabled={loading || busy}>
-          <NumberField
-            id="mileage"
-            lang={lang}
-            label={t(copy.form.mileage)}
-            unit={t(copy.form.mileageUnit)}
-            value={mileage}
-            onChange={setMileage}
-            onBlur={() => touch("mileage")}
-            discardedLabel={discardedNotice}
-            error={shown("mileage")}
-          />
-
           <Combobox
             id="department"
             required
@@ -658,7 +663,7 @@ export function ValuationForm() {
             error={shown("department")}
           />
 
-          <div className="sm:col-span-2">
+          <div>
             <NumberField
               id="asking"
               lang={lang}
@@ -675,7 +680,7 @@ export function ValuationForm() {
           </div>
         </Fieldset>
 
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-6">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-6 min-[960px]:pt-5">
           <button
             type="submit"
             disabled={busy || loading}

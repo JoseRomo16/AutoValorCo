@@ -418,3 +418,18 @@ describe("the waking notice", () => {
     }
   });
 });
+
+describe("the field groups", () => {
+  it("keeps the odometer with the vehicle and the listing to department and price", async () => {
+    show();
+    await ready();
+    const vehicle = screen.getByRole("group", { name: "El vehículo" });
+    const listing = screen.getByRole("group", { name: "El anuncio" });
+    for (const label of [/Marca/, /Año del modelo/, /Kilometraje/, /Cilindrada/]) {
+      expect(vehicle.contains(screen.getByLabelText(label))).toBe(true);
+    }
+    for (const label of [/Departamento/, /Precio pedido/]) {
+      expect(listing.contains(screen.getByLabelText(label))).toBe(true);
+    }
+  });
+});

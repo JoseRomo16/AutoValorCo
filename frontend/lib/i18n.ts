@@ -183,9 +183,10 @@ export const copy = {
     year: { es: "Año del modelo", en: "Model year" },
     engine: { es: "Cilindrada", en: "Displacement" },
     engineUnit: { es: "cc", en: "cc" },
+    // Short on purpose: it sits under a third-width field on desktop.
     engineHint: {
-      es: "Si no la sabes, déjala vacía: el modelo trabaja con el dato ausente.",
-      en: "Leave it empty if you do not know it: the model works with the value missing.",
+      es: "Si no la sabes, déjala vacía.",
+      en: "Leave it empty if you do not know it.",
     },
     mileage: { es: "Kilometraje", en: "Mileage" },
     mileageUnit: { es: "km", en: "km" },
@@ -698,6 +699,7 @@ export const copy = {
     },
 
     cards: {
+      groupLabel: { es: "Cifras clave", en: "Key figures" },
       errorCarLabel: { es: "Error medio en carros", en: "Average error on cars" },
       errorCarCaption: {
         es: "Cuánto se desvía el estimado del precio pedido, en promedio, sobre {count} anuncios que el modelo no vio.",
