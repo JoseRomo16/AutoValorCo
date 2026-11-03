@@ -140,8 +140,8 @@ export const copy = {
     ready: { es: "Modelo listo", en: "Model ready" },
     wakingTitle: { es: "El servicio está arrancando", en: "The service is starting up" },
     wakingBody: {
-      es: "El servidor se estaba despertando. Seguimos esperando su respuesta: la primera consulta puede tardar cerca de un minuto y las siguientes responden al instante.",
-      en: "The server was waking up. We are still waiting for its answer: the first request can take about a minute, and the rest answer instantly.",
+      es: "La primera consulta puede tardar cerca de un minuto y las siguientes responden al instante.",
+      en: "The first request can take about a minute, and the rest answer instantly.",
     },
   },
 
