@@ -421,6 +421,25 @@ export const copy = {
     notSignificant: { es: "no se distingue de cero", en: "indistinguishable from zero" },
     reference: { es: "referencia", en: "reference" },
     insightLabel: { es: "Lectura", en: "Reading" },
+    /** Column headings of the visually hidden table under every bar chart. */
+    columnValue: { es: "Estimado", en: "Estimate" },
+    columnInterval: { es: "Intervalo al 95 %", en: "95 % interval" },
+    columnBrand: { es: "Marca", en: "Make" },
+    columnGroup: { es: "Grupo", en: "Group" },
+    columnDepartment: { es: "Departamento", en: "Department" },
+    tooltip: {
+      es: "{label}: {value} (intervalo al 95 %: {interval})",
+      en: "{label}: {value} (95 % interval: {interval})",
+    },
+    tooltipNoInterval: { es: "{label}: {value}", en: "{label}: {value}" },
+    wideInterval: { es: "intervalo amplio", en: "wide interval" },
+    /** Short names for the sections, used by the finding cards' links. */
+    sections: {
+      depreciation: { es: "Depreciación", en: "Depreciation" },
+      mileage: { es: "Kilometraje", en: "Mileage" },
+      regional: { es: "Regiones", en: "Regions" },
+      catalogue: { es: "Marca o estado", en: "Make or condition" },
+    },
 
     findingsTitle: { es: "Lo que encontramos", en: "What we found" },
     findings: {
@@ -431,6 +450,10 @@ export const copy = {
       flatMotoBody: {
         es: "Una {brand} pierde {pct} al año, y la medición no la distingue de no perder nada.",
         en: "A {brand} loses {pct} a year, and the measurement cannot tell it apart from losing nothing.",
+      },
+      flatMotoBodySignificant: {
+        es: "Es lo que pierde al año una {brand}, la marca de motos que menos pierde.",
+        en: "That is what a {brand} loses a year, the motorcycle make that loses least.",
       },
       mileageTitle: {
         es: "10.000 km en un carro de precio medio",
@@ -445,13 +468,16 @@ export const copy = {
         en: "The same motorcycle is listed higher in {department}",
       },
       regionalBody: {
-        es: "{pct} por encima de Bogotá, con el mismo modelo, la misma edad y el mismo kilometraje.",
-        en: "{pct} above Bogotá, at the same model, age and mileage.",
+        es: "Frente a Bogotá, con el mismo modelo, la misma edad y el mismo kilometraje, según la regresión de precios.",
+        en: "Against Bogotá, at the same model, age and mileage, according to the price regression.",
       },
-      tenYearsTitle: { es: "A los {age} años", en: "At {age} years" },
-      tenYearsBody: {
-        es: "Un {carBrand} conserva {carPct} de su valor y una {motoBrand}, {motoPct}.",
-        en: "A {carBrand} keeps {carPct} of its value and a {motoBrand}, {motoPct}.",
+      catalogueTitle: {
+        es: "La marca y el modelo pesan más en motos",
+        en: "Make and model weigh more for motorcycles",
+      },
+      catalogueBody: {
+        es: "En el modelo de motos, marca, modelo y cilindrada pesan {ratio} veces lo que pesan la edad y el kilometraje.",
+        en: "In the motorcycle model, make, model and displacement weigh {ratio} times what age and mileage do.",
       },
     },
 
@@ -464,6 +490,14 @@ export const copy = {
       insightCar: {
         es: "{lowBrand} pierde {lowPct} al año y {highBrand} pierde {highPct}, casi el doble. Sobre un carro de {median}, esa diferencia son {gap} cada año.",
         en: "{lowBrand} loses {lowPct} a year and {highBrand} loses {highPct}, nearly twice as fast. On a {median} car that gap is {gap} every year.",
+      },
+      orderNote: {
+        es: "Ordenadas por el valor central. Una barra tenue marca un intervalo más ancho que el propio valor: su lugar en la lista es menos seguro.",
+        en: "Ordered by the central value. A faded bar marks an interval wider than the value itself: its place in the list is less certain.",
+      },
+      caption: {
+        es: "{slowBrand} pierde {slowPct} al año y {fastBrand}, {fastPct}.",
+        en: "{slowBrand} loses {slowPct} a year and {fastBrand}, {fastPct}.",
       },
       insightMoto: {
         es: "{refBrand} pierde {refPct} al año y su margen pasa por el cero, así que estos datos no la distinguen de no perder nada. {highBrand} pierde {highPct}. En las marcas que más conservan su valor, la diferencia de precio entre años es pequeña.",
@@ -488,6 +522,15 @@ export const copy = {
         es: "Mostramos la marca que más conserva, la que menos y la de referencia.",
         en: "We show the make that holds most, the one that holds least, and the reference.",
       },
+      originNote: {
+        es: "Cada curva empieza en 100 % a los 0 años: es el punto de partida de la curva, no un precio medido de vehículos nuevos.",
+        en: "Every curve starts at 100 % at age 0: that is the curve's starting point, not a measured price of new vehicles.",
+      },
+      atAge: { es: "A los {age} años", en: "At {age} years" },
+      caption: {
+        es: "{bestBrand} conserva {bestPct} a los {age} años; {worstBrand}, {worstPct}.",
+        en: "{bestBrand} keeps {bestPct} at {age} years; {worstBrand}, {worstPct}.",
+      },
       /** The legend's value at the oldest age drawn, so the number reads with its unit. */
       legendPoint: { es: "{pct} a los {age} años", en: "{pct} at {age} years" },
       axisAge: { es: "Edad (años)", en: "Age (years)" },
@@ -508,7 +551,11 @@ export const copy = {
         es: "En el carro de precio medio 10.000 km valen {median}, y en el cuartil más caro {top}. En {flatCount} de los cuatro cuartiles de carros el efecto no se distingue de cero, así que el kilometraje no explica el precio por sí solo.",
         en: "On the mid-priced car 10,000 km are worth {median}, and in the most expensive quartile {top}. In {flatCount} of the four car quartiles the effect is indistinguishable from zero, so mileage does not explain the price on its own.",
       },
-      segmentAll: { es: "todo el grupo", en: "the whole group" },
+      segmentAll: { es: "Todo el grupo", en: "The whole group" },
+      caption: {
+        es: "En todo el grupo, 10.000 km más cambian el precio pedido en {all}; en el cuartil más caro, en {top}.",
+        en: "Across the group, 10,000 more km change the asking price by {all}; in the most expensive quartile, by {top}.",
+      },
       quartile: { es: "Cuartil {n}", en: "Quartile {n}" },
       medianLabel: { es: "mediana {amount}", en: "median {amount}" },
     },
@@ -534,6 +581,20 @@ export const copy = {
       fewListings: {
         es: "pocos anuncios, estimado menos preciso",
         en: "few listings, less precise estimate",
+      },
+      caption: {
+        es: "Frente a Bogotá, el mismo vehículo se pide {high} en {highDept} y {low} en {lowDept}.",
+        en: "Against Bogotá, the same vehicle is listed {high} in {highDept} and {low} in {lowDept}.",
+      },
+      /*
+       * Mercado's regional figure is the price regression's. The served model also has a
+       * department effect, much smaller, because its trees attribute part of the regional
+       * gap to the make and model mix (ADR 0006). They answer different questions and the
+       * page must not let one pass for the other.
+       */
+      modelNote: {
+        es: "Estas diferencias salen de la regresión de precios, que compara vehículos iguales. El estimado de Valorar usa otro modelo, que atribuye parte de la diferencia regional a la marca y el modelo, así que allí el departamento mueve el precio mucho menos. No son la misma cifra.",
+        en: "These differences come from the price regression, which compares identical vehicles. The estimate on Value uses another model, which attributes part of the regional gap to the make and model, so there the department moves the price much less. They are not the same figure.",
       },
       caveat: {
         es: "El departamento dice dónde se publicó el anuncio, que se parece al lugar donde está el vehículo sin ser lo mismo.",
