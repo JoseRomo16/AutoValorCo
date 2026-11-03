@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
-import { LanguageProvider } from "@/components/LanguageProvider";
+import { LANG_SCRIPT, LanguageProvider } from "@/components/LanguageProvider";
 import { SiteFooter, SiteHeader, SkipLink } from "@/components/SiteChrome";
 import { THEME_SCRIPT, ThemeProvider } from "@/components/ThemeProvider";
 import { SITE_URL } from "@/lib/links";
@@ -95,6 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Before the first paint. React runs after parsing, so a React-based fix flashes. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: LANG_SCRIPT }} />
       </head>
       <body>
         <ThemeProvider>

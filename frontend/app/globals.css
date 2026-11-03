@@ -231,6 +231,11 @@ body {
   }
 }
 
+/* Held until the stored language is rendered; see LANG_SCRIPT in LanguageProvider. */
+html[data-lang-pending] body {
+  visibility: hidden;
+}
+
 /* The translucent header. A named variable because the blur has to sit over it. */
 .veil {
   background: var(--veil);
