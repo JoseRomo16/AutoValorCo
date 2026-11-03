@@ -1679,7 +1679,7 @@ token está mal", y esas dos llevan a conclusiones opuestas.
   bajo la pausa ya no es cierto. **Se corrige en el Bloque 8** por una frase que diga la
   fecha de los datos y que la captura está en pausa.
 
-### Dónde quedó esto el 2026-11-02
+### Dónde quedó esto el 2026-11-03
 
 El trabajo sigue un **plan de Bloques 0 a 9** (lo trae el usuario; no está en el repo), que
 absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por bloque.
@@ -1697,11 +1697,15 @@ absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por blo
 | 6 | Copy ES/EN: textos corregidos, departamentos con pocos anuncios al final de la gráfica regional, pruebas de claves y de textos retirados | [#33](https://github.com/JoseRomo16/AutoValorCo/pull/33) |
 | 7 | Mercado con el diseño nuevo: tokens, pestañas Carros/Motos, tarjetas de hallazgos, tooltips, descripciones y tablas accesibles, y la nota que separa el efecto regional hedónico del de Valorar | [#34](https://github.com/JoseRomo16/AutoValorCo/pull/34), [#35](https://github.com/JoseRomo16/AutoValorCo/pull/35) (móvil, letra ≥ 13 px, favicon) |
 | 7b | Comparar marcas en el valor retenido (hasta 5, el resto en gris de fondo) y lecturas por vehículo en cada gráfica | [#36](https://github.com/JoseRomo16/AutoValorCo/pull/36) |
-| **8** | **Metodología con el diseño nuevo y ajustes de Valorar**: los dos errores del ADR 0006 (c), captura en pausa, índice sticky, términos definidos; enlace compartible, botón visible sin scroll, factores con color y texto | rama `feat/methodology-redesign`, PR abierto |
-| 9 | Verificación final | sin empezar |
+| 8 | Metodología con el diseño nuevo y ajustes de Valorar: los dos errores del ADR 0006 (c), captura en pausa, índice sticky, términos definidos; enlace compartible, botón visible sin scroll, factores con color y texto | [#37](https://github.com/JoseRomo16/AutoValorCo/pull/37) |
+| **9** | **Verificación final**, en dos PR: 9a (pendientes del #37 y pruebas de regresión e2e y de la API en CI) y 9b | en curso |
+| 10 | PWA | después del 9 |
 
-El bundle desplegado es `2026-10-25.12948` (verificado en `/model-info` el 2026-11-02); el
-del Bloque 4, `2026-11-02.12948`, está en `main` y se despliega API primero, sitio después.
+El bundle `2026-11-02.12948` del Bloque 4 ya está desplegado. El #37 agregó `mileage_km` a
+`/catalog`, que el formulario usa para el placeholder y la validación del kilometraje, así que
+su deploy es **la API primero y el sitio después**: un sitio nuevo contra una API vieja no
+muestra ni valida el tope de kilometraje.
+
 Los workflows "Weekly capture" y "Enrich motorcycle details" siguen deshabilitados a mano;
 habilitarlos le toca al usuario.
 

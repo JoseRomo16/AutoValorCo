@@ -26,6 +26,7 @@ import pandas as pd
 
 from autovalor.analysis import (
     catalogue,
+    coverage,
     depreciation,
     figures,
     mileage,
@@ -105,6 +106,7 @@ def collect(
         add("retained_value_by_age", depreciation.depreciation_at_ages(curves))
         add("mileage_effect", mileage.mileage_effects(frame, vehicle_type=vehicle_type))
         add("regional_effect", regional.regional_effects(frame, vehicle_type=vehicle_type))
+        add("feature_coverage", coverage.feature_coverage(frame, vehicle_type=vehicle_type))
 
         if not with_model:
             continue

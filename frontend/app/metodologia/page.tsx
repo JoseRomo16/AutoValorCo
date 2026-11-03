@@ -4,7 +4,7 @@ import { copy } from "@/lib/i18n";
 
 import { Methodology } from "@/components/Methodology";
 import { PageIntro } from "@/components/PageIntro";
-import { labelGate, manifest, segmentError, servedModels } from "@/lib/results";
+import { featureCoverage, labelGate, manifest, segmentError, servedModels } from "@/lib/results";
 
 export const metadata: Metadata = {
   title: "Metodología",
@@ -29,6 +29,7 @@ export default function MethodologyPage() {
         manifest={manifest()}
         segments={segmentError()}
         gate={labelGate()}
+        coverage={featureCoverage()}
       />
       </div>
     </>

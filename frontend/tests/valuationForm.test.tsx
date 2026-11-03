@@ -436,31 +436,67 @@ describe("the field groups", () => {
   });
 });
 
-describe("the field hints", () => {
-  /** The hint under a field, by the field's label. */
-  const hintOf = (label: RegExp) => {
+describe("the field ranges", () => {
+  /** What the screen reader hears under a field besides its label, by the field's label. */
+  const describedText = (label: RegExp) => {
     const input = screen.getByLabelText(label);
     const ids = (input.getAttribute("aria-describedby") ?? "").split(" ").filter(Boolean);
     return ids.map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
   };
 
-  it("quote the car catalogue's ranges, never a typed number", async () => {
+  it("live in the placeholder only, with no hint under any field", async () => {
     show();
     await ready();
-    expect(hintOf(/Año del modelo/)).toBe("Entre 1955 y 2027");
-    expect(hintOf(/Kilometraje/)).toBe("Hasta 2.000.000 km");
-    expect(hintOf(/Cilindrada/)).toBe("Entre 800 y 6.400 cc. Si no la sabes, déjala vacía.");
-    expect(hintOf(/Precio pedido/)).toMatch(/^Desde \$\s5\.000\.000\. Si lo escribes/);
-    expect(hintOf(/Modelo/)).toBe("Si no está en la lista, valoramos con la marca.");
+    expect(screen.getByLabelText(/Año del modelo/)).toHaveAttribute("placeholder", "1955–2027");
+    expect(screen.getByLabelText(/Kilometraje/)).toHaveAttribute("placeholder", "0–2.000.000");
+    expect(screen.getByLabelText(/Cilindrada/)).toHaveAttribute("placeholder", "800–6.400");
+    expect(screen.getByLabelText(/Precio pedido/)).toHaveAttribute("placeholder", "5.000.000");
+    for (const label of [/Año del modelo/, /Kilometraje/, /Cilindrada/, /Precio pedido/, /Modelo/]) {
+      expect(describedText(label)).toBe("");
+    }
+    for (const retired of [
+      /valoramos con la marca/,
+      /^Entre \d/,
+      /^Hasta \d/,
+      /déjala vacía/,
+      /Si lo escribes, lo comparamos/,
+    ]) {
+      expect(screen.queryByText(retired)).toBeNull();
+    }
   });
 
   it("follow the vehicle type", async () => {
     show();
     await ready();
     fireEvent.click(screen.getByRole("button", { name: "Moto" }));
-    expect(hintOf(/Año del modelo/)).toBe("Entre 1958 y 2027");
-    expect(hintOf(/Kilometraje/)).toBe("Hasta 1.500.000 km");
-    expect(hintOf(/Cilindrada/)).toBe("Entre 50 y 2.491 cc. Si no la sabes, déjala vacía.");
+    expect(screen.getByLabelText(/Año del modelo/)).toHaveAttribute("placeholder", "1958–2027");
+    expect(screen.getByLabelText(/Kilometraje/)).toHaveAttribute("placeholder", "0–1.500.000");
+    expect(screen.getByLabelText(/Cilindrada/)).toHaveAttribute("placeholder", "50–2.491");
+  });
+
+  it("refuse a 1930 car when the field is left", async () => {
+    show();
+    await ready();
+    const year = screen.getByLabelText(/Año del modelo/);
+    fireEvent.change(year, { target: { value: "1930" } });
+    fireEvent.blur(year);
+    expect(screen.getByText("El año tiene que estar entre 1955 y 2027.")).toBeInTheDocument();
+    expect(year).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("refuse a 1930 car on submit, without calling the service", async () => {
+    show();
+    await ready();
+    await choose(/Marca/, "Toyota", /Toyota/);
+    fireEvent.change(screen.getByLabelText(/Año del modelo/), { target: { value: "1930" } });
+    fireEvent.change(screen.getByLabelText(/Kilometraje/), { target: { value: "60000" } });
+    await choose(/Departamento/, "Bogot", /Bogot/);
+    fireEvent.click(screen.getByRole("button", { name: "Calcular el precio" }));
+    expect(screen.getByText("El año tiene que estar entre 1955 y 2027.")).toBeInTheDocument();
+    const predicted = vi
+      .mocked(fetch)
+      .mock.calls.filter(([url]) => String(url).endsWith("/predict"));
+    expect(predicted).toHaveLength(0);
   });
 
   it("share their range with the placeholder and the error message", async () => {
@@ -494,7 +530,7 @@ describe("the field hints", () => {
     );
     show();
     await ready();
-    expect(hintOf(/Kilometraje/)).toBe("");
+    expect(screen.getByLabelText(/Kilometraje/)).not.toHaveAttribute("placeholder");
     const km = screen.getByLabelText(/Kilometraje/);
     fireEvent.change(km, { target: { value: "9000000" } });
     fireEvent.blur(km);

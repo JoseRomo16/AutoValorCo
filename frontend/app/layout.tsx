@@ -3,7 +3,7 @@ import { Archivo, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
 import { LanguageProvider } from "@/components/LanguageProvider";
-import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
+import { SiteFooter, SiteHeader, SkipLink } from "@/components/SiteChrome";
 import { THEME_SCRIPT, ThemeProvider } from "@/components/ThemeProvider";
 import { SITE_URL } from "@/lib/links";
 import { manifest, servedModels } from "@/lib/results";
@@ -99,12 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider>
           <LanguageProvider>
-            <a
-              href="#content"
-              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded focus:bg-accent focus:px-3 focus:py-2 focus:font-semibold focus:text-accent-ink"
-            >
-              Saltar al contenido / Skip to content
-            </a>
+            <SkipLink />
             <SiteHeader />
             <main id="content">{children}</main>
             <SiteFooter dataDate={dataDate} modelVersion={modelVersion} />

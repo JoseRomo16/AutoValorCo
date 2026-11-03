@@ -288,7 +288,7 @@ export function ValuationForm() {
   const mileageRange = catalog?.mileage_km ?? null;
 
   /**
-   * Every published limit, rounded and formatted once, so a field's hint, placeholder and
+   * Every published limit, rounded and formatted once, so a field's placeholder and
    * error message cannot quote the same range two ways.
    */
   const limits = useMemo(
@@ -590,7 +590,6 @@ export function ValuationForm() {
             optionalLabel={t(copy.form.optional)}
             disabled={brand === ""}
             disabledHint={t(copy.form.modelAfterBrand)}
-            hint={t(copy.form.modelHint)}
             options={modelOptions}
             value={model}
             onChange={setModel}
@@ -600,7 +599,7 @@ export function ValuationForm() {
 
           {/* Three numbers about the vehicle in one row from `sm` up: the odometer is
               part of the vehicle, not of the listing. `items-start` keeps the inputs on
-              one line however long each field's hint runs underneath. */}
+              one line when one of them shows an error underneath. */}
           <div className="grid items-start gap-[18px] sm:col-span-2 sm:grid-cols-3 min-[960px]:gap-x-5">
             <NumberField
               id="year"
@@ -612,7 +611,6 @@ export function ValuationForm() {
               grouping={false}
               discardedLabel={discardedNotice}
               placeholder={limits.year ? `${limits.year.min}–${limits.year.max}` : undefined}
-              hint={limits.year ? fill(copy.form.yearHint, lang, limits.year) : undefined}
               error={shown("year")}
             />
 
@@ -626,11 +624,6 @@ export function ValuationForm() {
               onBlur={() => touch("mileage")}
               discardedLabel={discardedNotice}
               placeholder={limits.mileage ? `0–${integer(limits.mileage.max, lang)}` : undefined}
-              hint={
-                limits.mileage
-                  ? fill(copy.form.mileageHint, lang, { max: integer(limits.mileage.max, lang) })
-                  : undefined
-              }
               error={shown("mileage")}
             />
 
@@ -648,14 +641,6 @@ export function ValuationForm() {
                 limits.engine
                   ? `${integer(limits.engine.min, lang)}–${integer(limits.engine.max, lang)}`
                   : undefined
-              }
-              hint={
-                limits.engine
-                  ? fill(copy.form.engineHintRange, lang, {
-                      min: integer(limits.engine.min, lang),
-                      max: integer(limits.engine.max, lang),
-                    })
-                  : t(copy.form.engineHint)
               }
               error={shown("engine")}
             />
@@ -699,11 +684,6 @@ export function ValuationForm() {
               onBlur={() => touch("asking")}
               discardedLabel={discardedNotice}
               placeholder={limits.price ? integer(limits.price.min, lang) : undefined}
-              hint={
-                limits.price
-                  ? fill(copy.form.askingPriceHintRange, lang, { min: cop(limits.price.min, lang) })
-                  : t(copy.form.askingPriceHint)
-              }
               error={shown("asking")}
             />
           </div>

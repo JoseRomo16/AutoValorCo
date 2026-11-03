@@ -331,14 +331,22 @@ describe("comparing makes on the retained-value chart", () => {
     expect(coloured()).toEqual([]);
   });
 
-  it("flags a make whose depreciation is indistinguishable from zero", () => {
+  it("keeps the chips to line, make and share, and warns about a flat make in the sentence", () => {
     const flat = depreciation().filter((row) => row.vehicle_type === "motorcycle" && !row.significant);
     expect(flat.length).toBeGreaterThan(0);
     show();
     chooseMotorcycles("valor-retenido");
     for (const row of flat) {
-      expect(chip(row.brand).textContent).toContain(copy.market.notSignificant.es);
+      expect(chip(row.brand).textContent).not.toContain(copy.market.notSignificant.es);
     }
+    const brand = flat[0]!.brand;
+    if (!coloured().includes(brand)) {
+      act(() => fireEvent.click(within(section("valor-retenido")).getByRole("button", { name: "Quitar todas" })));
+      act(() => fireEvent.click(chip(brand)));
+    }
+    expect(section("valor-retenido").textContent).toContain(
+      copy.market.retained.flatNote.es.replace("{brand}", brand),
+    );
   });
 });
 

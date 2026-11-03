@@ -96,6 +96,23 @@ function Segmented<T extends string>({
   );
 }
 
+/**
+ * The first stop for a keyboard, in the visitor's language. It used to be written into the
+ * server layout as "Saltar al contenido / Skip to content", which left Spanish on every
+ * English page and read both languages aloud to a screen reader.
+ */
+export function SkipLink() {
+  const { t } = useLang();
+  return (
+    <a
+      href="#content"
+      className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded focus:bg-accent focus:px-3 focus:py-2 focus:font-semibold focus:text-accent-ink"
+    >
+      {t(copy.nav.skip)}
+    </a>
+  );
+}
+
 export function SiteHeader() {
   const { lang, setLang, t } = useLang();
   const { theme, setTheme } = useTheme();

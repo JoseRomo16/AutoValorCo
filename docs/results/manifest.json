@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-02T23:08:37+00:00",
+  "generated_at": "2026-11-03T17:58:52+00:00",
   "gold_rows": {
     "car": 8443,
     "motorcycle": 4505
@@ -33,6 +33,8 @@
     "catalogue_contrast.json",
     "depreciation_by_brand.csv",
     "depreciation_by_brand.json",
+    "feature_coverage.csv",
+    "feature_coverage.json",
     "mileage_effect.csv",
     "mileage_effect.json",
     "regional_effect.csv",
