@@ -44,13 +44,13 @@ export function ShareBar({ shares }: { shares: Share[] }) {
           <div key={share.label}>
             <div className="mb-2 flex items-baseline justify-between gap-3">
               <span className="font-medium text-ink">{share.label}</span>
-              <span className="font-mono text-sm text-muted tnum">{share.note}</span>
+              <span className="font-mono text-detail text-muted tnum">{share.note}</span>
             </div>
             <div aria-hidden="true" className="flex h-8 overflow-hidden rounded-sm">
               {placed.map((segment) => (
                 <span
                   key={segment.label}
-                  className={`${FILL[segment.tone]} flex items-center justify-center font-mono text-[13px] font-medium tnum`}
+                  className={`${FILL[segment.tone]} flex items-center justify-center font-mono text-caption font-medium tnum`}
                   style={{ width: `${segment.width}%` }}
                 >
                   {segment.width >= MIN_INSIDE_PCT ? segment.valueText : ""}
@@ -62,7 +62,7 @@ export function ShareBar({ shares }: { shares: Share[] }) {
                 {outside.map((segment) => (
                   <span
                     key={segment.label}
-                    className="absolute top-0.5 -translate-x-1/2 whitespace-nowrap font-mono text-[13px] text-muted tnum"
+                    className="absolute top-0.5 -translate-x-1/2 whitespace-nowrap font-mono text-caption text-muted tnum"
                     style={{ left: `${Math.min(Math.max(segment.middle, 6), 94)}%` }}
                   >
                     {segment.valueText}
@@ -70,7 +70,7 @@ export function ShareBar({ shares }: { shares: Share[] }) {
                 ))}
               </div>
             )}
-            <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-muted">
+            <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-caption text-muted">
               {placed.map((segment) => (
                 <li key={segment.label} className="inline-flex items-center gap-1.5">
                   <span

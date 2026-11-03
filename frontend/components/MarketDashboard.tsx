@@ -94,7 +94,7 @@ function Section({
       {children}
       {reading && (
         <div className="max-w-3xl rounded-lg border border-line p-4 sm:p-5">
-          <p className="mb-1.5 font-mono text-xs uppercase tracking-[0.1em] text-accent-text">
+          <p className="mb-1.5 font-mono text-caption uppercase tracking-[0.1em] text-accent-text">
             {readingLabel}
           </p>
           <p className="leading-relaxed text-ink">{reading}</p>
@@ -121,10 +121,10 @@ function FindingCard({
     <li className="flex flex-col rounded-lg border border-line p-5">
       <p className="font-mono text-3xl font-medium text-ink tnum">{figure}</p>
       <h2 className="mt-3 font-semibold leading-snug text-ink">{title}</h2>
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{body}</p>
+      <p className="mt-2 flex-1 text-detail text-muted">{body}</p>
       <a
         href={href}
-        className="mt-4 inline-flex min-h-6 items-center text-sm font-medium text-accent-text underline-offset-4 hover:underline"
+        className="mt-4 inline-flex min-h-6 items-center text-detail font-medium text-accent-text underline-offset-4 hover:underline"
       >
         {link} ›
       </a>
@@ -485,8 +485,10 @@ export function MarketDashboard({
   const sections = copy.market.sections;
 
   return (
-    <div className="space-y-12">
-      <p className="font-mono text-sm text-muted">
+    // No browser scroll anchoring here: VehicleTabs compensates the jump itself, and two
+    // corrections for one change would overshoot.
+    <div className="space-y-12 [overflow-anchor:none]">
+      <p className="font-mono text-detail text-muted">
         {fill(copy.market.measuredOn, lang, {
           cars: integer(manifest.gold_rows.car, lang),
           motorcycles: integer(manifest.gold_rows.motorcycle, lang),
@@ -647,7 +649,7 @@ export function MarketDashboard({
             />
           )}
         </VehicleTabs>
-        <p className="max-w-3xl text-sm leading-relaxed text-muted">
+        <p className="max-w-3xl text-detail text-muted">
           {t(copy.market.regional.modelNote)}
         </p>
       </Section>
