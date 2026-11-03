@@ -20,7 +20,7 @@ cada paso, qué se midió y qué decisiones quedaron abiertas**.
 | 2 | Copy completo de `i18n.ts`, ES y EN | **cerrado** | rama `feat/web-copy` |
 | 3 | Pendientes de API y documentación | **cerrado** | rama `fix/api-and-docs` |
 | 4 | Fundaciones: tokens, fuentes, tema, header y footer | **cerrado** | PR [#21](https://github.com/JoseRomo16/AutoValorCo/pull/21); el tema "Auto" se arregló en [#22](https://github.com/JoseRomo16/AutoValorCo/pull/22) |
-| 5 | Las tres páginas | **en curso** | Valorar: rediseñada en #21 y corregida en los Bloques 2a, 2b y 3 ([#26](https://github.com/JoseRomo16/AutoValorCo/pull/26), [#27](https://github.com/JoseRomo16/AutoValorCo/pull/27), [#28](https://github.com/JoseRomo16/AutoValorCo/pull/28), [#30](https://github.com/JoseRomo16/AutoValorCo/pull/30)). Mercado y Metodología siguen con el diseño viejo: **Bloques 7 y 8** |
+| 5 | Las tres páginas | **en curso** | Valorar: rediseñada en #21 y corregida en los Bloques 2a, 2b y 3 ([#26](https://github.com/JoseRomo16/AutoValorCo/pull/26), [#27](https://github.com/JoseRomo16/AutoValorCo/pull/27), [#28](https://github.com/JoseRomo16/AutoValorCo/pull/28), [#30](https://github.com/JoseRomo16/AutoValorCo/pull/30)). Mercado rediseñado en el Bloque 7. Metodología sigue con el diseño viejo: **Bloque 8** |
 | 6 | Verificación: capturas, Lighthouse, lint y pruebas | **sin empezar** | es el **Bloque 9** del plan de bloques |
 
 Desde el 2026-10-31 el trabajo sigue un plan de Bloques 0 a 9 (no está en el repo: lo trae
@@ -66,7 +66,7 @@ contra `main` el 2026-11-02, dice si ya se resolvió y dónde, o qué bloque lo 
 
 | # | Hallazgo | Archivo | Estado |
 | --- | --- | --- | --- |
-| 1 | Aspecto de plantilla: paleta slate + emerald, fuente del sistema, `max-w-5xl` en todo | `app/globals.css`, `app/layout.tsx` | Parcial: tokens, fuentes y ancho en #21; Mercado y Metodología siguen en slate → Bloques 7 y 8 |
+| 1 | Aspecto de plantilla: paleta slate + emerald, fuente del sistema, `max-w-5xl` en todo | `app/globals.css`, `app/layout.tsx` | Parcial: tokens, fuentes y ancho en #21; Mercado en tokens en el Bloque 7; Metodología sigue en slate → Bloque 8 (un test lo exige) |
 | 2 | Sin interruptor de tema: el oscuro solo sigue al sistema | `app/globals.css`, `components/SiteChrome.tsx` | **Resuelto** en #21 (interruptor) y #22 ("Auto" en oscuro) |
 | 3 | 61 pares `text-slate-… dark:text-slate-…` y cero tokens | nueve componentes | Parcial: quedan en `MarketDashboard`, `Methodology` y `charts/*` → Bloques 7 y 8 |
 | 4 | Header no sticky, y en móvil la navegación salta a una segunda línea | `components/SiteChrome.tsx` | **Resuelto** en #21 (sticky, translúcido); el móvil se verifica en el Bloque 9 |
@@ -80,11 +80,11 @@ contra `main` el 2026-11-02, dice si ya se resolvió y dónde, o qué bloque lo 
 | 12 | Sin enlace compartible de una valoración | `components/ValuationForm.tsx` | Pendiente: el texto `copyLink` existe pero nada lo usa → Bloque 8 |
 | 13 | La barra del rango usa degradado verde→ámbar aunque no haya etiqueta | `components/PriceResult.tsx` | **Resuelto** en #21 (sin degradado) |
 | 14 | El rango no tiene el mismo peso visual que el estimado | `components/PriceResult.tsx` | En #21; se revisa en el Bloque 8 |
-| 15 | Mercado sin tarjetas de hallazgos arriba | `components/MarketDashboard.tsx` | Pendiente → Bloque 7 |
-| 16 | Carros y motos como bloques seguidos en vez de pestañas con la elección recordada | `components/MarketDashboard.tsx` | Pendiente → Bloque 7 |
-| 17 | La depreciación se pinta en verde, que en el resto del sitio significa "ganga" | `components/charts/IntervalBars.tsx` | Pendiente → Bloque 7 |
-| 18 | Eje de las curvas de 0 a 100 %, leyenda en vez de etiqueta al final | `components/charts/RetainedCurves.tsx` | Pendiente → Bloque 7 |
-| 19 | Etiquetas de barra truncadas en móvil y columna de 10 rem desperdiciada | `components/charts/IntervalBars.tsx` | Pendiente → Bloque 7 |
+| 15 | Mercado sin tarjetas de hallazgos arriba | `components/MarketDashboard.tsx` | **Resuelto** en el Bloque 7: cuatro tarjetas enlazadas a su sección |
+| 16 | Carros y motos como bloques seguidos en vez de pestañas con la elección recordada | `components/MarketDashboard.tsx` | **Resuelto** en el Bloque 7: pestañas compartidas entre secciones y recordadas |
+| 17 | La depreciación se pinta en verde, que en el resto del sitio significa "ganga" | `components/charts/IntervalBars.tsx` | **Resuelto** en el Bloque 7: gris de datos; verde y terracota solo en regiones (más barato / más caro que Bogotá) |
+| 18 | Eje de las curvas de 0 a 100 %, leyenda en vez de etiqueta al final | `components/charts/RetainedCurves.tsx` | **Parcial** en el Bloque 7: rótulo directo al final de cada línea. El eje sigue de 0 a 100 % a propósito: las curvas empiezan ahora en el año 0 = 100 % y el eje desde cero muestra la caída a escala |
+| 19 | Etiquetas de barra truncadas en móvil y columna de 10 rem desperdiciada | `components/charts/IntervalBars.tsx` | **Sin cambio** en el Bloque 7: en móvil la etiqueta comparte fila con la cifra y la barra va debajo a todo el ancho; la columna de cifras (10,5 rem) lleva el intervalo o la nota y no se acortó. Queda para la verificación final |
 | 20 | Metodología sin índice lateral sticky | `components/Methodology.tsx` | Pendiente → Bloque 8 |
 | 21 | Términos técnicos sin definición a mano (el copy ya tiene `copy.terms`, nadie lo usa) | `components/Methodology.tsx` | Pendiente → Bloque 8 |
 | 22 | Sin diagrama SVG del flujo (hoy es una lista numerada) | `components/Methodology.tsx` | Pendiente → Bloque 8 |

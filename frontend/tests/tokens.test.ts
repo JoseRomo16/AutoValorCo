@@ -88,6 +88,45 @@ describe("the colour tokens", () => {
     }
   }
 
+  /*
+   * Chart marks: a line, a bar edge or a whisker has to be seen against every surface a
+   * chart can sit on, which is WCAG's 3:1 for non-text graphics. The audit's orange curve
+   * was 2.87:1 on paper.
+   */
+  const MARKS = ["bar", "bar-edge", "good", "bad", "accent-text", "line-strong", "muted"] as const;
+  const CHART_SURFACES = ["ground", "band", "surface"] as const;
+  const GRAPHIC = 3;
+
+  for (const [theme, values] of Object.entries(THEMES)) {
+    for (const mark of MARKS) {
+      it(`draws ${mark} at 3:1 on every chart surface in ${theme}`, () => {
+        for (const surface of CHART_SURFACES) {
+          const ratio = contrast(values[mark] as string, values[surface] as string);
+          expect(
+            Number(ratio.toFixed(2)),
+            `--${mark} on --${surface} in ${theme} is ${ratio.toFixed(2)}:1`,
+          ).toBeGreaterThanOrEqual(GRAPHIC);
+        }
+      });
+    }
+
+    // The share bar prints its numbers inside the segments.
+    const SEGMENT_TEXT = [
+      ["on-seg", "seg-identity"],
+      ["on-seg", "seg-condition"],
+      ["ink", "seg-other"],
+    ] as const;
+    for (const [text, fill] of SEGMENT_TEXT) {
+      it(`reads ${text} on ${fill} at AA in ${theme}`, () => {
+        const ratio = contrast(values[text] as string, values[fill] as string);
+        expect(
+          Number(ratio.toFixed(2)),
+          `--${text} on --${fill} in ${theme} is ${ratio.toFixed(2)}:1`,
+        ).toBeGreaterThanOrEqual(AA);
+      });
+    }
+  }
+
   it("keeps faint visibly fainter than muted in dark", () => {
     // They were #d4cfc2 and #c2bdb0: 1.21:1 apart, which is two names for one colour.
     const ratio = contrast(THEMES.dark.muted as string, THEMES.dark.faint as string);

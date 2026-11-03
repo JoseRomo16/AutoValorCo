@@ -3,56 +3,82 @@
  * condition.
  *
  * Stacked rather than two separate bars because the parts sum to a whole and the question
- * is the proportion. Each segment carries its own percentage as text, so the figure is
- * readable without reading the pixels.
+ * is the proportion. Each segment prints its own percentage at 13 px on a fill measured for
+ * it (`--seg-*` with `--on-seg`, 4.5:1 or better in both themes; `tokens.test.ts`). The
+ * audit had found white 11 px type at 2.71:1. A segment too narrow for its number gets the
+ * number underneath instead of a clipped one inside.
  */
+
+export type ShareTone = "identity" | "condition" | "other";
 
 export type Share = {
   label: string;
-  segments: { label: string; value: number; tone: "identity" | "condition" | "other" }[];
+  segments: { label: string; value: number; valueText: string; tone: ShareTone }[];
   note: string;
 };
 
-const TONES: Record<Share["segments"][number]["tone"], string> = {
-  identity: "bg-emerald-600",
-  condition: "bg-sky-500",
-  other: "bg-slate-300 dark:bg-slate-600",
+const FILL: Record<ShareTone, string> = {
+  identity: "bg-seg-identity text-on-seg",
+  condition: "bg-seg-condition text-on-seg",
+  other: "bg-seg-other text-ink",
 };
+
+/** Under this share of the bar a 13 px "16 %" no longer fits inside its segment. */
+const MIN_INSIDE_PCT = 12;
 
 export function ShareBar({ shares }: { shares: Share[] }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-7">
       {shares.map((share) => {
         const total = share.segments.reduce((sum, segment) => sum + segment.value, 0) || 1;
+        let start = 0;
+        const placed = share.segments.map((segment) => {
+          const width = (segment.value / total) * 100;
+          const entry = { ...segment, width, middle: start + width / 2 };
+          start += width;
+          return entry;
+        });
+        const outside = placed.filter((segment) => segment.width < MIN_INSIDE_PCT);
+
         return (
           <div key={share.label}>
-            <div className="mb-1.5 flex items-baseline justify-between gap-3">
-              <span className="font-medium">{share.label}</span>
-              <span className="text-sm text-slate-600 tnum dark:text-slate-400">{share.note}</span>
+            <div className="mb-2 flex items-baseline justify-between gap-3">
+              <span className="font-medium text-ink">{share.label}</span>
+              <span className="font-mono text-sm text-muted tnum">{share.note}</span>
             </div>
-            <div
-              aria-hidden="true"
-              className="flex h-7 overflow-hidden rounded bg-slate-100 dark:bg-slate-800"
-            >
-              {share.segments.map((segment) => (
+            <div aria-hidden="true" className="flex h-8 overflow-hidden rounded-sm">
+              {placed.map((segment) => (
                 <span
                   key={segment.label}
-                  className={`${TONES[segment.tone]} flex items-center justify-center text-[11px] font-medium text-white`}
-                  style={{ width: `${(segment.value / total) * 100}%` }}
+                  className={`${FILL[segment.tone]} flex items-center justify-center font-mono text-[13px] font-medium tnum`}
+                  style={{ width: `${segment.width}%` }}
                 >
-                  {segment.value >= 12 ? `${Math.round(segment.value)}%` : ""}
+                  {segment.width >= MIN_INSIDE_PCT ? segment.valueText : ""}
                 </span>
               ))}
             </div>
-            <ul className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-600 dark:text-slate-400">
-              {share.segments.map((segment) => (
+            {outside.length > 0 && (
+              <div aria-hidden="true" className="relative h-5">
+                {outside.map((segment) => (
+                  <span
+                    key={segment.label}
+                    className="absolute top-0.5 -translate-x-1/2 whitespace-nowrap font-mono text-[13px] text-muted tnum"
+                    style={{ left: `${Math.min(Math.max(segment.middle, 6), 94)}%` }}
+                  >
+                    {segment.valueText}
+                  </span>
+                ))}
+              </div>
+            )}
+            <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-muted">
+              {placed.map((segment) => (
                 <li key={segment.label} className="inline-flex items-center gap-1.5">
                   <span
                     aria-hidden="true"
-                    className={`inline-block h-2.5 w-2.5 rounded-sm ${TONES[segment.tone]}`}
+                    className={`inline-block h-3 w-3 rounded-sm ${FILL[segment.tone]}`}
                   />
                   <span>
-                    {segment.label} <span className="tnum">{Math.round(segment.value)}%</span>
+                    {segment.label} <span className="font-mono tnum">{segment.valueText}</span>
                   </span>
                 </li>
               ))}
