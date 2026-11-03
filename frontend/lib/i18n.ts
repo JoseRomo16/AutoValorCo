@@ -687,6 +687,15 @@ export const copy = {
       es: "{count} capturas entre el {first} y el {last}",
       en: "{count} captures between {first} and {last}",
     },
+    /** The metadata chips under the heading. */
+    chips: {
+      listings: { es: "{count} anuncios de TuCarro", en: "{count} TuCarro listings" },
+      span: { es: "{days} días de capturas", en: "{days} days of captures" },
+      rebuilt: {
+        es: "Se rehace con cada publicación del sitio",
+        en: "Rebuilt with every release of the site",
+      },
+    },
 
     cards: {
       errorCarLabel: { es: "Error medio en carros", en: "Average error on cars" },
@@ -701,8 +710,13 @@ export const copy = {
       },
       coverageLabel: { es: "Acierto del rango", en: "Range accuracy" },
       coverageCaption: {
-        es: "Carros {car} y motos {motorcycle}, contra el 80 % que el rango promete.",
-        en: "Cars {car} and motorcycles {motorcycle}, against the 80 % the range promises.",
+        es: "Carros / motos. El rango promete 80 %: ocho de cada diez precios dentro.",
+        en: "Cars / motorcycles. The range promises 80 %: eight prices in ten inside it.",
+      },
+      /** Under each error card: the second measurement, per ADR 0006 (c). */
+      temporalLine: {
+        es: "En anuncios más nuevos que los de entrenamiento: {value}.",
+        en: "On listings newer than the training data: {value}.",
       },
       evaluatedLabel: { es: "Anuncios de evaluación", en: "Listings held out" },
       evaluatedCaption: {
@@ -737,6 +751,26 @@ export const copy = {
         en: "Every capture is published in the repository, so any figure can be rebuilt from the start.",
       },
       capturesLink: { es: "Ver las capturas publicadas", en: "See the published captures" },
+      facts: {
+        source: { es: "Fuente", en: "Source" },
+        sourceValue: { es: "TuCarro, una sola plataforma", en: "TuCarro, a single marketplace" },
+        capture: { es: "Captura", en: "Capture" },
+        /*
+         * Not "weekly": the capture is paused (ADR 0005) since TuCarro started answering
+         * GitHub's runners with an account-verification page. The date is the last good
+         * capture, read from the results manifest.
+         */
+        captureValue: {
+          es: "En pausa: TuCarro pide verificar una cuenta a los programas que leen anuncios. La última captura es del {date}.",
+          en: "Paused: TuCarro asks programs that read listings to verify an account. The last capture is from {date}.",
+        },
+        listings: { es: "Anuncios", en: "Listings" },
+        listingsValue: {
+          es: "{cars} carros · {motorcycles} motos",
+          en: "{cars} cars · {motorcycles} motorcycles",
+        },
+        reproducible: { es: "Reproducible", en: "Reproducible" },
+      },
     },
 
     model: {
@@ -746,15 +780,19 @@ export const copy = {
         en: "Cars and motorcycles are valued by separate models because their prices behave differently.",
       },
       detail: {
-        es: "Como referencia usamos una regresión de precios (OLS). El modelo publicado, LightGBM, reduce el error medio {car} en carros y {motorcycle} en motos. Casi toda la mejora viene de usar marca y modelo tal como aparecen, sin agruparlos antes.",
-        en: "As a reference we use a price regression (OLS). The published model, LightGBM, cuts the average error by {car} on cars and {motorcycle} on motorcycles. Nearly all of the gain comes from using make and model as they appear, without grouping them first.",
+        es: "Como referencia usamos una regresión de precios (OLS). El modelo publicado, LightGBM, reduce el {mape} {car} en carros y {motorcycle} en motos. Casi toda la mejora viene de usar marca y modelo tal como aparecen, sin agruparlos antes.",
+        en: "As a reference we use a price regression (OLS). The published model, LightGBM, cuts the {mape} by {car} on cars and {motorcycle} on motorcycles. Nearly all of the gain comes from using make and model as they appear, without grouping them first.",
+      },
+      shap: {
+        es: "Cada estimado trae su explicación: los {shap} dicen cuánto sube o baja el precio cada característica, y Valorar muestra los cinco que más pesan.",
+        en: "Every estimate comes with its explanation: the {shap} say how much each feature raises or lowers the price, and Value shows the five that weigh most.",
       },
       stepsTitle: { es: "De un anuncio a un precio", en: "From a listing to a price" },
       steps: {
         captureTitle: { es: "Captura", en: "Capture" },
         captureBody: {
-          es: "Leemos los anuncios publicados de TuCarro una vez por semana.",
-          en: "We read TuCarro's published listings once a week.",
+          es: "Leemos los anuncios publicados de TuCarro. La captura semanal está en pausa; la última es del {date}.",
+          en: "We read TuCarro's published listings. The weekly capture is paused; the last one is from {date}.",
         },
         rawTitle: { es: "Capa cruda", en: "Raw layer" },
         rawBody: {
@@ -789,20 +827,20 @@ export const copy = {
       },
       bandTitle: { es: "De dónde sale el rango", en: "Where the range comes from" },
       bandBody: {
-        es: "El rango va del precio que supera el 10 % más barato de los anuncios parecidos al que supera el 90 %, lo que deja ocho de cada diez dentro.",
-        en: "The range runs from the price that beats the cheapest 10 % of comparable listings to the one that beats 90 %, which leaves eight in ten inside.",
+        es: "El {range} va del precio que supera el 10 % más barato de los anuncios parecidos al que supera el 90 %, lo que deja ocho de cada diez dentro.",
+        en: "The {range} runs from the price that beats the cheapest 10 % of comparable listings to the one that beats 90 %, which leaves eight in ten inside.",
       },
       bandDetail: {
-        es: "Sin calibrar, ese rango acertaba en {car} de los casos en carros y {motorcycle} en motos, bastante por debajo del 80 % que promete. La calibración mide ese faltante en anuncios apartados y ensancha el rango esa cantidad.",
-        en: "Uncalibrated, that range was right in {car} of cases on cars and {motorcycle} on motorcycles, well under the 80 % it promises. Calibration measures the shortfall on held-out listings and widens the range by it.",
+        es: "Sin calibrar, ese rango acertaba en {car} de los casos en carros y {motorcycle} en motos, bastante por debajo del 80 % que promete. La {conformal} mide ese faltante en los {heldOut} y ensancha el rango esa cantidad.",
+        en: "Uncalibrated, that range was right in {car} of cases on cars and {motorcycle} on motorcycles, well under the 80 % it promises. {conformal} measures the shortfall on the {heldOut} and widens the range by it.",
       },
     },
 
     results: {
       title: { es: "Resultados", en: "Results" },
       lead: {
-        es: "Medimos sobre anuncios que ningún modelo vio al entrenarse ni al afinarse.",
-        en: "We measure on listings no model saw while training or tuning.",
+        es: "Medimos sobre los {heldOut}: el {share} de los anuncios, que ningún modelo vio al entrenarse ni al afinarse.",
+        en: "We measure on the {heldOut}: {share} of the listings, which no model saw while training or tuning.",
       },
       detail: {
         es: "El mismo vehículo se vuelve a publicar con otro identificador, así que esos anuncios se apartan en bloque. Separarlos uno por uno dejaba copias a los dos lados y mejoraba el resultado sin razón.",
@@ -822,14 +860,29 @@ export const copy = {
       published: { es: "Publicada", en: "Published" },
       withheld: { es: "Retenida", en: "Withheld" },
 
-      temporalTitle: { es: "Entrenar con el pasado", en: "Training on the past" },
-      temporalBody: {
-        es: "Medimos también entrenando con los anuncios más antiguos y evaluando con los más recientes. El error sube {car} en carros y {motorcycle} en motos, que es la degradación esperada al estimar una semana hacia adelante.",
-        en: "We also measure by training on the oldest listings and evaluating on the newest. The error rises {car} on cars and {motorcycle} on motorcycles, which is the expected decay when estimating a week ahead.",
+      /*
+       * The two errors, as ADR 0006 (c) decided: the random partition is the headline,
+       * because the band, the gate and every other figure are measured against it; the
+       * temporal one sits beside it with its own definition and its caveat.
+       */
+      errorsTitle: { es: "Dos formas de medir el error", en: "Two ways to measure the error" },
+      errorsCaption: {
+        es: "Error medio de cada tipo de vehículo, medido de las dos formas.",
+        en: "Average error for each kind of vehicle, measured both ways.",
+      },
+      columnRandom: { es: "Partición aleatoria", en: "Random partition" },
+      columnTemporal: { es: "Anuncios más nuevos", en: "Newer listings" },
+      randomDefinition: {
+        es: "Partición aleatoria: apartamos al azar el {share} de los anuncios antes de entrenar. Es la cifra principal, porque con ella se miden el rango, la etiqueta y todo lo demás que publicamos.",
+        en: "Random partition: we set aside {share} of the listings at random before training. It is the headline figure, because the range, the label and everything else we publish are measured against it.",
+      },
+      temporalDefinition: {
+        es: "En anuncios más nuevos que los datos de entrenamiento: entrenamos con los anuncios más antiguos y medimos con el quinto más reciente. Es la pregunta que hace quien valora: cuánto se equivoca con un anuncio publicado después.",
+        en: "On listings newer than the training data: we train on the oldest listings and measure on the most recent fifth. It is the question someone valuing a vehicle asks: how wrong is it on a listing published later.",
       },
       temporalCaveat: {
-        es: "Con {count} capturas el corte no cae en una fecha limpia: una misma captura queda repartida entre entrenamiento y evaluación. Lo que esto mide es el quinto de anuncios visto más recientemente.",
-        en: "With {count} captures the cut does not land on a clean date: one capture ends up split between training and evaluation. What this measures is the most recently seen fifth of the listings.",
+        es: "Hoy las capturas cubren {days} días, así que el corte cae dentro de la misma ventana de captura y esta cifra se separa poco de la otra. Ganará peso cuando la captura se reanude.",
+        en: "Today the captures span {days} days, so the cut falls inside the same capture window and this figure barely differs from the other. It will carry more weight once the capture resumes.",
       },
 
       calibrationTitle: { es: "El rango antes y después de calibrarlo", en: "The range before and after calibration" },
@@ -879,6 +932,12 @@ export const copy = {
         en: "A range wider than that spans almost any price, so a rating based on it carries no information.",
       },
       stateTitle: { es: "Cómo va cada tipo de vehículo", en: "How each vehicle type stands" },
+      coverageDetail: { es: "Medida en {count} anuncios", en: "Measured on {count} listings" },
+      widthDetail: { es: "Relativo al estimado", en: "Relative to the estimate" },
+      widthPending: {
+        es: "Cuando baje de {max}, la etiqueta se publica",
+        en: "Once it drops under {max}, the label is published",
+      },
       statePass: { es: "Cumple", en: "Passes" },
       stateFail: { es: "No cumple", en: "Fails" },
       inArtifact: {
@@ -964,8 +1023,40 @@ export const copy = {
           en: "The figures describe the listings captured up to a date.",
         },
         timeEffect: {
-          es: "Cada captura semanal las mueve, así que cada número viaja con la fecha y el número de anuncios sobre los que se midió.",
-          en: "Every weekly capture moves them, so each number travels with the date and the number of listings it was measured on.",
+          es: "Cada captura nueva las mueve, así que cada número viaja con la fecha y el número de anuncios sobre los que se midió.",
+          en: "Every new capture moves them, so each number travels with the date and the number of listings it was measured on.",
+        },
+        departmentsWhat: {
+          es: "La captura cubre {count} departamentos: {list}.",
+          en: "The capture covers {count} departments: {list}.",
+        },
+        departmentsEffect: {
+          es: "En los que tienen menos de {min} anuncios ({thin}) el estimado es menos preciso, y el formulario lo avisa al elegirlos.",
+          en: "Where there are fewer than {min} listings ({thin}) the estimate is less precise, and the form says so when one is chosen.",
+        },
+        otherWhat: {
+          es: "Un departamento que no está se valora como «Otro departamento».",
+          en: "A department that is not covered is valued as “Another department”.",
+        },
+        otherEffect: {
+          es: "El estimado usa el promedio de los departamentos que sí tenemos, ponderado por cuántos anuncios tiene cada uno, en vez de inventar un efecto regional. La etiqueta se mantiene: el rango medido así cubre lo mismo.",
+          en: "The estimate uses the average of the departments we do have, weighted by how many listings each has, instead of inventing a regional effect. The label stays: the range measured this way covers the same.",
+        },
+        cityWhat: {
+          es: "El modelo usa el departamento, no la ciudad.",
+          en: "The model uses the department, not the city.",
+        },
+        cityEffect: {
+          es: "El formulario no pregunta la ciudad, así que el modelo tampoco la usa. Cuando la usaba, recibía siempre el mismo valor desconocido y el rango publicado cubría menos de lo que decía.",
+          en: "The form does not ask for the city, so the model does not use it either. When it did, it always received the same unknown value and the published range covered less than it claimed.",
+        },
+        unknownModelWhat: {
+          es: "Un modelo que no está en los datos.",
+          en: "A model that is not in the data.",
+        },
+        unknownModelEffect: {
+          es: "Se valora solo con la marca, el año, el kilometraje y el departamento, y el resultado lo dice en un aviso. Una marca que no está no se puede valorar.",
+          en: "It is valued from the make, year, mileage and department alone, and the result says so in a notice. A make that is not in the data cannot be valued.",
         },
         timePlan: {
           es: "Se recalculan cada vez que el modelo se vuelve a publicar.",
@@ -992,14 +1083,14 @@ export const copy = {
    */
   terms: {
     averageError: {
-      term: { es: "error medio", en: "average error" },
+      term: { es: "error medio (MAPE)", en: "average error (MAPE)" },
       definition: {
         es: "Promedio de cuánto se desvía el estimado del precio pedido, en porcentaje. Un 10 % quiere decir que, en promedio, el estimado queda 10 % arriba o abajo.",
         en: "The average distance between the estimate and the asking price, in percent. 10 % means the estimate lands 10 % above or below on average.",
       },
     },
     range: {
-      term: { es: "rango probable", en: "likely range" },
+      term: { es: "rango P10–P90", en: "P10–P90 range" },
       definition: {
         es: "El intervalo donde se piden ocho de cada diez anuncios parecidos. Fuera quedan el 10 % más barato y el 10 % más caro.",
         en: "The interval eight in ten comparable listings are asked within. The cheapest 10 % and the most expensive 10 % fall outside.",
@@ -1013,7 +1104,7 @@ export const copy = {
       },
     },
     calibration: {
-      term: { es: "calibración", en: "calibration" },
+      term: { es: "calibración conformal", en: "Conformal calibration" },
       definition: {
         es: "Ensanchar el rango por lo que le faltaba para acertar el 80 % de las veces, medido en anuncios apartados.",
         en: "Widening the range by what it needed to be right 80 % of the time, measured on held-out listings.",
@@ -1024,6 +1115,13 @@ export const copy = {
       definition: {
         es: "El reparto del precio estimado entre las características del vehículo. Cada factor multiplica el precio base, y el resultado es exacto.",
         en: "How the estimated price splits across the vehicle's features. Each factor multiplies the base price, and the result is exact.",
+      },
+    },
+    shap: {
+      term: { es: "valores SHAP", en: "SHAP values" },
+      definition: {
+        es: "Un método que reparte el estimado entre las características del vehículo, de modo que se ve cuánto sube o baja el precio cada una.",
+        en: "A method that splits the estimate across the vehicle's features, so you can see how much each one raises or lowers the price.",
       },
     },
     priceRegression: {
