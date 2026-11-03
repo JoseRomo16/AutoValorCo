@@ -20,7 +20,8 @@ const SCANNED = ["app", "components", "lib"];
  * so the list cannot outlive its reason.
  */
 const PENDING: Record<string, string> = {
-  "components/Methodology.tsx": "Block 8 (feat/methodology-redesign)",
+  // Empty since Block 8 moved Methodology onto tokens. Add an entry only with the block
+  // that removes it.
 };
 
 /** Class-like usages only: `dark:bg-…`, `text-slate-600`. A comment saying "`dark:`" is not one. */
@@ -52,8 +53,11 @@ describe("legacy colour classes", () => {
     expect(hits).toEqual([]);
   });
 
-  it.each(Object.entries(PENDING))("%s is still pending (%s)", (file) => {
-    // When this fails, the file is clean: drop it from PENDING.
-    expect(LEGACY.test(readFileSync(path.join(ROOT, file), "utf8"))).toBe(true);
+  it("keeps the pending list honest", () => {
+    // A listed file that has come clean must leave the list.
+    const clean = Object.keys(PENDING).filter(
+      (file) => !LEGACY.test(readFileSync(path.join(ROOT, file), "utf8")),
+    );
+    expect(clean).toEqual([]);
   });
 });

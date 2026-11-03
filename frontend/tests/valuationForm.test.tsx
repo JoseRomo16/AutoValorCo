@@ -25,6 +25,7 @@ const catalog: CatalogResponse = {
       model_year: { min: 1955, max: 2027 },
       engine_cc: { min: 800, max: 6400 },
       asking_price_cop: { min: 5_000_000, max: 400_000_000 },
+      mileage_km: { min: 0, max: 2_000_000 },
     },
     {
       vehicle_type: "motorcycle",
@@ -37,6 +38,7 @@ const catalog: CatalogResponse = {
       model_year: { min: 1958, max: 2027 },
       engine_cc: { min: 50, max: 2491 },
       asking_price_cop: { min: 900_000, max: 90_000_000 },
+      mileage_km: { min: 0, max: 1_500_000 },
     },
   ],
 };
@@ -127,6 +129,9 @@ function switchToEnglish() {
 
 beforeEach(() => {
   window.localStorage.clear();
+  // A priced valuation writes itself into the address bar, and a page that opens on such
+  // an address prices it again: each test starts from a clean one.
+  window.history.replaceState(null, "", "/");
   vi.stubGlobal("fetch", stubFetch());
   // The focus move is scheduled on the next frame, so the frame has to actually run.
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
@@ -328,5 +333,171 @@ describe("the displacement error", () => {
 
     // "800-6.400" in both places, rather than a grouped placeholder and a bare 6400.
     expect(await screen.findByText(/6\.400 cc/)).toBeInTheDocument();
+  });
+});
+
+describe("the shareable link", () => {
+  const predictCalls = () =>
+    vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith("/predict"));
+
+  async function priceToyota() {
+    await choose(/Marca/, "Toyota", /Toyota/);
+    fireEvent.change(screen.getByLabelText(/Año del modelo/), { target: { value: "2018" } });
+    fireEvent.change(screen.getByLabelText(/Kilometraje/), { target: { value: "60000" } });
+    await choose(/Departamento/, "Bogot", /Bogot/);
+    fireEvent.click(screen.getByRole("button", { name: "Calcular el precio" }));
+    await screen.findByRole("button", { name: "Copiar enlace" });
+  }
+
+  it("writes the priced request into the address bar", async () => {
+    show();
+    await ready();
+    await priceToyota();
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get("tipo")).toBe("carro");
+    expect(params.get("marca")).toBe("Toyota");
+    expect(params.get("anio")).toBe("2018");
+    expect(params.get("km")).toBe("60000");
+    expect(params.get("depto")).toBe("Bogotá D.C.");
+  });
+
+  it("prices a shared link on arrival, with the form filled in", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/?tipo=carro&marca=Toyota&modelo=corolla&anio=2019&km=45000&depto=Bogot%C3%A1+D.C.",
+    );
+    show();
+    await waitFor(() => expect(predictCalls()).toHaveLength(1));
+    const body = JSON.parse(String(predictCalls()[0]?.[1]?.body));
+    expect(body).toMatchObject({ brand: "Toyota", model: "corolla", model_year: 2019, mileage_km: 45000 });
+    expect(screen.getByLabelText(/Año del modelo/)).toHaveValue("2019");
+  });
+
+  it("ignores a link to a make the catalogue does not have", async () => {
+    window.history.replaceState(null, "", "/?tipo=carro&marca=Lada&anio=2019&km=1&depto=Meta");
+    show();
+    await ready();
+    expect(predictCalls()).toHaveLength(0);
+  });
+
+  it("clears the address bar on 'Valorar otro'", async () => {
+    show();
+    await ready();
+    await priceToyota();
+    fireEvent.click(screen.getByRole("button", { name: "Valorar otro" }));
+    expect(window.location.search).toBe("");
+  });
+});
+
+describe("the waking notice", () => {
+  it("also explains a valuation that takes more than five seconds", async () => {
+    const base = stubFetch();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) =>
+        String(input).endsWith("/predict") || String(input).endsWith("/explain")
+          ? new Promise<Response>(() => {})
+          : base(input),
+      ),
+    );
+    show();
+    await ready();
+    await choose(/Marca/, "Toyota", /Toyota/);
+    fireEvent.change(screen.getByLabelText(/Año del modelo/), { target: { value: "2018" } });
+    fireEvent.change(screen.getByLabelText(/Kilometraje/), { target: { value: "60000" } });
+    await choose(/Departamento/, "Bogot", /Bogot/);
+    // Fake time only from here: the combobox helpers wait on real timers.
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(screen.getByRole("button", { name: "Calcular el precio" }));
+      act(() => vi.advanceTimersByTime(4_000));
+      expect(screen.queryByText("El servicio está arrancando")).toBeNull();
+      act(() => vi.advanceTimersByTime(1_500));
+      expect(screen.getByText("El servicio está arrancando")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("the field groups", () => {
+  it("keeps the odometer with the vehicle and the listing to department and price", async () => {
+    show();
+    await ready();
+    const vehicle = screen.getByRole("group", { name: "El vehículo" });
+    const listing = screen.getByRole("group", { name: "El anuncio" });
+    for (const label of [/Marca/, /Año del modelo/, /Kilometraje/, /Cilindrada/]) {
+      expect(vehicle.contains(screen.getByLabelText(label))).toBe(true);
+    }
+    for (const label of [/Departamento/, /Precio pedido/]) {
+      expect(listing.contains(screen.getByLabelText(label))).toBe(true);
+    }
+  });
+});
+
+describe("the field hints", () => {
+  /** The hint under a field, by the field's label. */
+  const hintOf = (label: RegExp) => {
+    const input = screen.getByLabelText(label);
+    const ids = (input.getAttribute("aria-describedby") ?? "").split(" ").filter(Boolean);
+    return ids.map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
+  };
+
+  it("quote the car catalogue's ranges, never a typed number", async () => {
+    show();
+    await ready();
+    expect(hintOf(/Año del modelo/)).toBe("Entre 1955 y 2027");
+    expect(hintOf(/Kilometraje/)).toBe("Hasta 2.000.000 km");
+    expect(hintOf(/Cilindrada/)).toBe("Entre 800 y 6.400 cc. Si no la sabes, déjala vacía.");
+    expect(hintOf(/Precio pedido/)).toMatch(/^Desde \$\s5\.000\.000\. Si lo escribes/);
+    expect(hintOf(/Modelo/)).toBe("Si no está en la lista, valoramos con la marca.");
+  });
+
+  it("follow the vehicle type", async () => {
+    show();
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: "Moto" }));
+    expect(hintOf(/Año del modelo/)).toBe("Entre 1958 y 2027");
+    expect(hintOf(/Kilometraje/)).toBe("Hasta 1.500.000 km");
+    expect(hintOf(/Cilindrada/)).toBe("Entre 50 y 2.491 cc. Si no la sabes, déjala vacía.");
+  });
+
+  it("share their range with the placeholder and the error message", async () => {
+    show();
+    await ready();
+    const year = screen.getByLabelText(/Año del modelo/);
+    expect(year).toHaveAttribute("placeholder", "1955–2027");
+    fireEvent.change(year, { target: { value: "1900" } });
+    fireEvent.blur(year);
+    expect(screen.getByText("El año tiene que estar entre 1955 y 2027.")).toBeInTheDocument();
+
+    const km = screen.getByLabelText(/Kilometraje/);
+    expect(km).toHaveAttribute("placeholder", "0–2.000.000");
+    fireEvent.change(km, { target: { value: "2000001" } });
+    fireEvent.blur(km);
+    expect(screen.getByText("Escribe un kilometraje entre 0 y 2.000.000 km.")).toBeInTheDocument();
+  });
+
+  it("show no odometer limit when the service does not publish one", async () => {
+    const withoutMileage: CatalogResponse = {
+      verticals: catalog.verticals.map(({ mileage_km: _drop, ...rest }) => rest),
+    };
+    const base = stubFetch();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) =>
+        String(input).endsWith("/catalog")
+          ? Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(withoutMileage) } as Response)
+          : base(input),
+      ),
+    );
+    show();
+    await ready();
+    expect(hintOf(/Kilometraje/)).toBe("");
+    const km = screen.getByLabelText(/Kilometraje/);
+    fireEvent.change(km, { target: { value: "9000000" } });
+    fireEvent.blur(km);
+    expect(screen.queryByText(/Escribe un kilometraje entre/)).toBeNull();
   });
 });

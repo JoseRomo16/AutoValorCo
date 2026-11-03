@@ -25,7 +25,7 @@
  * say what is wrong in the reader's language.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 
 import { useLang } from "./LanguageProvider";
 import { PriceResult } from "./PriceResult";
@@ -53,6 +53,7 @@ import type { Localized } from "@/lib/i18n";
  * service at all, which costs more than telling them the estimate is thinner.
  */
 import { LOW_DATA_LISTINGS } from "@/lib/listings";
+import { fromQuery, toQuery } from "@/lib/shareLink";
 
 /**
  * The lake's unresolved-make bucket, which must never be offered as a make.
@@ -73,7 +74,6 @@ const UNKNOWN_LEVEL = "Desconocida";
  */
 const OTHER_DEPARTMENT = "Otro departamento";
 
-const MAX_MILEAGE_KM = 2_000_000;
 
 type Status = "loading-catalog" | "ready" | "submitting" | "failed";
 type FieldName = "brand" | "year" | "mileage" | "department" | "engine" | "asking";
@@ -85,7 +85,7 @@ type FieldName = "brand" | "year" | "mileage" | "department" | "engine" | "askin
  * field — make or year — off the top of the screen, so the form looked like it had simply
  * refused. Focus follows this list to the first field with a problem.
  */
-const FIELD_ORDER: FieldName[] = ["brand", "year", "engine", "mileage", "department", "asking"];
+const FIELD_ORDER: FieldName[] = ["brand", "year", "mileage", "engine", "department", "asking"];
 
 /**
  * What was priced, kept as values rather than as a finished sentence.
@@ -135,11 +135,11 @@ function Fieldset({
   disabled: boolean;
 }) {
   return (
-    <fieldset disabled={disabled} className="mb-7 min-w-0 border-0 p-0 last:mb-0">
-      <legend className="mb-3.5 p-0 font-mono text-xs uppercase tracking-[0.1em] text-accent-text">
+    <fieldset disabled={disabled} className="mb-7 min-w-0 border-0 p-0 last:mb-0 min-[960px]:mb-5">
+      <legend className="mb-3.5 min-[960px]:mb-2.5 p-0 font-mono text-caption uppercase tracking-[0.1em] text-accent-text">
         {legend}
       </legend>
-      <div className="grid gap-[18px] sm:grid-cols-2">{children}</div>
+      <div className="grid gap-[18px] sm:grid-cols-2 min-[960px]:gap-x-5 min-[960px]:gap-y-3.5">{children}</div>
     </fieldset>
   );
 }
@@ -165,14 +165,17 @@ export function ValuationForm() {
   const [explanation, setExplanation] = useState<ExplainResponse | null>(null);
   const [predictedFor, setPredictedFor] = useState<PricedSpec | null>(null);
   const [reloads, setReloads] = useState(0);
-  const [slowStart, setSlowStart] = useState(false);
+  /** The request that has been waiting past the line, if any: "slow" belongs to one status. */
+  const [slowFor, setSlowFor] = useState<Status | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   // Five seconds is the line between "loading" and "the instance was asleep". Under it the
-  // indicator next to the button is enough; over it the wait needs explaining.
+  // indicator next to the button is enough; over it the wait needs explaining. It covers a
+  // valuation too, not only the first load: Render puts the API back to sleep after a
+  // quiet spell, so a request made later can be the one that wakes it.
   useEffect(() => {
-    if (status !== "loading-catalog") return;
-    const timer = window.setTimeout(() => setSlowStart(true), 5_000);
+    if (status !== "loading-catalog" && status !== "submitting") return;
+    const timer = window.setTimeout(() => setSlowFor(status), 5_000);
     return () => window.clearTimeout(timer);
   }, [status]);
 
@@ -281,6 +284,24 @@ export function ValuationForm() {
   // Null against a service older than this range, which is what the deployed one serves
   // until the next export: no floor published means no floor to enforce.
   const priceRange = catalog?.asking_price_cop ?? null;
+  // The same for the odometer cap, published by /catalog since it stopped living here.
+  const mileageRange = catalog?.mileage_km ?? null;
+
+  /**
+   * Every published limit, rounded and formatted once, so a field's hint, placeholder and
+   * error message cannot quote the same range two ways.
+   */
+  const limits = useMemo(
+    () => ({
+      year: yearRange ? { min: Math.round(yearRange.min), max: Math.round(yearRange.max) } : null,
+      mileage: mileageRange ? { max: Math.floor(mileageRange.max) } : null,
+      engine: engineRange
+        ? { min: Math.round(engineRange.min), max: Math.round(engineRange.max) }
+        : null,
+      price: priceRange ? { min: Math.floor(priceRange.min) } : null,
+    }),
+    [yearRange, mileageRange, engineRange, priceRange],
+  );
 
   /** Every rule, in one place, so a field and its message cannot disagree. */
   const problems = useMemo(() => {
@@ -288,9 +309,8 @@ export function ValuationForm() {
     if (brand === "") found.brand = t(copy.form.errors.brand);
     if (department === "") found.department = t(copy.form.errors.department);
 
-    if (yearRange) {
-      const min = Math.round(yearRange.min);
-      const max = Math.round(yearRange.max);
+    if (limits.year) {
+      const { min, max } = limits.year;
       const value = Number(year);
       if (year === "" || value < min || value > max) {
         found.year = fill(copy.form.errors.year, lang, { min, max });
@@ -299,16 +319,15 @@ export function ValuationForm() {
 
     if (mileage === "") {
       found.mileage = t(copy.form.errors.mileageMissing);
-    } else if (Number(mileage) > MAX_MILEAGE_KM) {
+    } else if (limits.mileage && Number(mileage) > limits.mileage.max) {
       found.mileage = fill(copy.form.errors.mileageRange, lang, {
-        max: integer(MAX_MILEAGE_KM, lang),
+        max: integer(limits.mileage.max, lang),
       });
     }
 
-    if (engineCc !== "" && engineRange) {
+    if (engineCc !== "" && limits.engine) {
       const value = Number(engineCc);
-      const min = Math.round(engineRange.min);
-      const max = Math.round(engineRange.max);
+      const { min, max } = limits.engine;
       if (value < min || value > max) {
         // Grouped, so the message and the placeholder read the same: "800-6.400".
         found.engine = fill(copy.form.errors.engineRange, lang, {
@@ -322,11 +341,11 @@ export function ValuationForm() {
       const value = Number(askingPrice);
       if (value < 1) {
         found.asking = t(copy.form.errors.price);
-      } else if (priceRange && value < Math.floor(priceRange.min)) {
+      } else if (limits.price && value < limits.price.min) {
         // The floor the service enforces, so the form rejects what the API would reject --
         // inline, rather than letting the request come back as an unexplained error.
         found.asking = fill(copy.form.errors.priceBelowMin, lang, {
-          min: cop(Math.floor(priceRange.min), lang),
+          min: cop(limits.price.min, lang),
         });
       }
     }
@@ -338,9 +357,7 @@ export function ValuationForm() {
     mileage,
     engineCc,
     askingPrice,
-    yearRange,
-    engineRange,
-    priceRange,
+    limits,
     lang,
     t,
   ]);
@@ -384,6 +401,15 @@ export function ValuationForm() {
       asking_price_cop: askingPrice === "" ? null : Number(askingPrice),
     };
 
+    run(body);
+  }
+
+  /**
+   * Price one request. The form calls it on submit and a shared link calls it on load, so
+   * both go through the same success and failure handling, and a success writes the
+   * request into the address bar: reloading or sharing the page repeats it.
+   */
+  function run(body: PredictRequest, verticals: VerticalCatalog[] = catalogs) {
     setStatus("submitting");
     setError(null);
     // Both at once: they describe the same estimate, and two round trips in sequence would
@@ -392,8 +418,9 @@ export function ValuationForm() {
       .then(([predicted, explained]) => {
         setPrediction(predicted);
         setExplanation(explained);
-        setPredictedFor(describe());
+        setPredictedFor(describe(body, verticals));
         setStatus("ready");
+        window.history.replaceState(null, "", `${window.location.pathname}${toQuery(body)}`);
       })
       .catch((cause: unknown) => {
         setError(cause instanceof ApiError ? cause.message : String(cause));
@@ -401,15 +428,65 @@ export function ValuationForm() {
       });
   }
 
+  /**
+   * Fill the form from a shared link and price it, once the lists have loaded.
+   *
+   * The link's shape is checked by `fromQuery`; the catalogue decides the rest. A make
+   * that is not in it leaves the form empty rather than asking the API for a 422, and a
+   * department that is not listed becomes "Otro departamento", which is what the form
+   * would have offered.
+   */
+  function restoreFromLink(verticals: VerticalCatalog[]) {
+    const request = fromQuery(window.location.search);
+    if (!request) return;
+    const vertical = verticals.find((entry) => entry.vehicle_type === request.vehicle_type);
+    const make = vertical?.brands.find((entry) => entry.name === request.brand);
+    if (!vertical || !make) return;
+    const known = make.models.some((entry) => entry.name === request.model);
+    const department = vertical.departments.some((entry) => entry.name === request.department)
+      ? request.department
+      : OTHER_DEPARTMENT;
+    const body: PredictRequest = {
+      ...request,
+      model: known ? request.model : null,
+      department,
+    };
+    setVehicleType(body.vehicle_type);
+    setBrand(body.brand);
+    setModel(body.model ?? "");
+    setYear(String(body.model_year));
+    setMileage(String(body.mileage_km));
+    setDepartment(body.department);
+    setEngineCc(body.engine_cc == null ? "" : String(body.engine_cc));
+    setAskingPrice(body.asking_price_cop == null ? "" : String(body.asking_price_cop));
+    run(body, verticals);
+  }
+
+  // A shared link is priced once, when the lists first land. An effect event, so the
+  // effect depends on the lists alone and not on a function recreated every render.
+  const restoreOnce = useEffectEvent((verticals: VerticalCatalog[]) => restoreFromLink(verticals));
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current || catalogs.length === 0) return;
+    restored.current = true;
+    restoreOnce(catalogs);
+  }, [catalogs]);
+
   /** What was priced, captured at submit time; the wording happens on render. */
-  function describe(): PricedSpec {
+  function describe(body: PredictRequest, verticals: VerticalCatalog[]): PricedSpec {
+    const vertical = verticals.find((entry) => entry.vehicle_type === body.vehicle_type);
+    const make = vertical?.brands.find((entry) => entry.name === body.brand);
+    const modelEntry = make?.models.find((entry) => entry.name === body.model);
+    const departmentEntry = vertical?.departments.find((entry) => entry.name === body.department);
     return {
-      brandLabel: brandOptions.find((option) => option.value === brand)?.label ?? brand,
-      modelLabel: modelOptions.find((option) => option.value === model)?.label,
-      year,
-      mileageKm: Number(mileage),
+      brandLabel: make?.display_name ?? body.brand,
+      modelLabel: modelEntry ? (modelEntry.display_name ?? modelEntry.name) : undefined,
+      year: String(body.model_year),
+      mileageKm: body.mileage_km,
       departmentLabel:
-        departmentOptions.find((option) => option.value === department)?.label ?? department,
+        body.department === OTHER_DEPARTMENT
+          ? t(copy.form.departmentOther)
+          : (departmentEntry?.display_name ?? body.department),
     };
   }
 
@@ -425,6 +502,8 @@ export function ValuationForm() {
     setExplanation(null);
     setPredictedFor(null);
     setTouched(new Set());
+    // The address bar stops promising a valuation that is no longer on screen.
+    window.history.replaceState(null, "", window.location.pathname);
   }
 
   const failure = classify(error, catalogs.length === 0);
@@ -462,14 +541,14 @@ export function ValuationForm() {
       <form
         onSubmit={submit}
         noValidate
-        className="rounded-lg border border-line bg-surface p-5 sm:p-7"
+        className="rounded-lg border border-line bg-surface p-5 sm:max-[959px]:p-7 min-[960px]:p-6"
       >
         {/* The first decision, and the largest control on the page: everything below it
             depends on which vertical answers. */}
         <div
           role="group"
           aria-label={t(copy.form.vehicleType)}
-          className="mb-7 grid grid-cols-2 rounded-lg border border-line p-[3px]"
+          className="mb-7 grid grid-cols-2 rounded-lg border border-line p-[3px] min-[960px]:mb-5"
         >
           {(["car", "motorcycle"] as const).map((candidate) => (
             <button
@@ -477,7 +556,7 @@ export function ValuationForm() {
               type="button"
               onClick={() => chooseVehicleType(candidate)}
               aria-pressed={vehicleType === candidate}
-              className={`min-h-13 rounded-md font-display text-lg font-bold transition-colors duration-200 [font-stretch:112%] ${
+              className={`min-h-13 rounded-md font-display text-lg font-bold min-[960px]:min-h-11 transition-colors duration-200 [font-stretch:112%] ${
                 vehicleType === candidate ? "bg-ink text-ground" : "text-muted hover:text-ink"
               }`}
             >
@@ -511,6 +590,7 @@ export function ValuationForm() {
             optionalLabel={t(copy.form.optional)}
             disabled={brand === ""}
             disabledHint={t(copy.form.modelAfterBrand)}
+            hint={t(copy.form.modelHint)}
             options={modelOptions}
             value={model}
             onChange={setModel}
@@ -518,56 +598,71 @@ export function ValuationForm() {
             countLabel={listingCount}
           />
 
-          <NumberField
-            id="year"
-            lang={lang}
-            label={t(copy.form.year)}
-            value={year}
-            onChange={setYear}
-            onBlur={() => touch("year")}
-            grouping={false}
-            discardedLabel={discardedNotice}
-            placeholder={
-              yearRange
-                ? `${Math.round(yearRange.min)}–${Math.round(yearRange.max)}`
-                : undefined
-            }
-            error={shown("year")}
-          />
+          {/* Three numbers about the vehicle in one row from `sm` up: the odometer is
+              part of the vehicle, not of the listing. `items-start` keeps the inputs on
+              one line however long each field's hint runs underneath. */}
+          <div className="grid items-start gap-[18px] sm:col-span-2 sm:grid-cols-3 min-[960px]:gap-x-5">
+            <NumberField
+              id="year"
+              lang={lang}
+              label={t(copy.form.year)}
+              value={year}
+              onChange={setYear}
+              onBlur={() => touch("year")}
+              grouping={false}
+              discardedLabel={discardedNotice}
+              placeholder={limits.year ? `${limits.year.min}–${limits.year.max}` : undefined}
+              hint={limits.year ? fill(copy.form.yearHint, lang, limits.year) : undefined}
+              error={shown("year")}
+            />
 
-          <NumberField
-            id="engine"
-            lang={lang}
-            label={t(copy.form.engine)}
-            optionalLabel={t(copy.form.optional)}
-            unit={t(copy.form.engineUnit)}
-            value={engineCc}
-            onChange={setEngineCc}
-            onBlur={() => touch("engine")}
-            discardedLabel={discardedNotice}
-            placeholder={
-              engineRange
-                ? `${integer(engineRange.min, lang)}–${integer(engineRange.max, lang)}`
-                : undefined
-            }
-            hint={t(copy.form.engineHint)}
-            error={shown("engine")}
-          />
+            <NumberField
+              id="mileage"
+              lang={lang}
+              label={t(copy.form.mileage)}
+              unit={t(copy.form.mileageUnit)}
+              value={mileage}
+              onChange={setMileage}
+              onBlur={() => touch("mileage")}
+              discardedLabel={discardedNotice}
+              placeholder={limits.mileage ? `0–${integer(limits.mileage.max, lang)}` : undefined}
+              hint={
+                limits.mileage
+                  ? fill(copy.form.mileageHint, lang, { max: integer(limits.mileage.max, lang) })
+                  : undefined
+              }
+              error={shown("mileage")}
+            />
+
+            <NumberField
+              id="engine"
+              lang={lang}
+              label={t(copy.form.engine)}
+              optionalLabel={t(copy.form.optional)}
+              unit={t(copy.form.engineUnit)}
+              value={engineCc}
+              onChange={setEngineCc}
+              onBlur={() => touch("engine")}
+              discardedLabel={discardedNotice}
+              placeholder={
+                limits.engine
+                  ? `${integer(limits.engine.min, lang)}–${integer(limits.engine.max, lang)}`
+                  : undefined
+              }
+              hint={
+                limits.engine
+                  ? fill(copy.form.engineHintRange, lang, {
+                      min: integer(limits.engine.min, lang),
+                      max: integer(limits.engine.max, lang),
+                    })
+                  : t(copy.form.engineHint)
+              }
+              error={shown("engine")}
+            />
+          </div>
         </Fieldset>
 
         <Fieldset legend={t(copy.form.groupListing)} disabled={loading || busy}>
-          <NumberField
-            id="mileage"
-            lang={lang}
-            label={t(copy.form.mileage)}
-            unit={t(copy.form.mileageUnit)}
-            value={mileage}
-            onChange={setMileage}
-            onBlur={() => touch("mileage")}
-            discardedLabel={discardedNotice}
-            error={shown("mileage")}
-          />
-
           <Combobox
             id="department"
             required
@@ -592,7 +687,7 @@ export function ValuationForm() {
             error={shown("department")}
           />
 
-          <div className="sm:col-span-2">
+          <div>
             <NumberField
               id="asking"
               lang={lang}
@@ -603,13 +698,18 @@ export function ValuationForm() {
               onChange={setAskingPrice}
               onBlur={() => touch("asking")}
               discardedLabel={discardedNotice}
-              hint={t(copy.form.askingPriceHint)}
+              placeholder={limits.price ? integer(limits.price.min, lang) : undefined}
+              hint={
+                limits.price
+                  ? fill(copy.form.askingPriceHintRange, lang, { min: cop(limits.price.min, lang) })
+                  : t(copy.form.askingPriceHint)
+              }
               error={shown("asking")}
             />
           </div>
         </Fieldset>
 
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-6">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-6 min-[960px]:pt-5">
           <button
             type="submit"
             disabled={busy || loading}
@@ -624,7 +724,7 @@ export function ValuationForm() {
           {status !== "failed" && (
             <span
               role="status"
-              className="inline-flex items-center gap-2 font-mono text-xs text-muted"
+              className="inline-flex items-center gap-2 font-mono text-caption text-muted"
             >
               <i aria-hidden className={`size-2 rounded-full ${loading ? "bg-faint" : "bg-good"}`} />
               {loading ? t(copy.status.connecting) : t(copy.status.ready)}
@@ -642,7 +742,7 @@ export function ValuationForm() {
           )}
         </div>
 
-        {loading && slowStart && (
+        {(loading || busy) && slowFor === status && (
           <div className="mt-5 border-l-2 border-accent pl-4 text-sm">
             <p className="font-semibold">{t(copy.status.wakingTitle)}</p>
             <p className="mt-1 text-muted">{t(copy.status.wakingBody)}</p>
@@ -655,7 +755,7 @@ export function ValuationForm() {
           <div role="alert" className="rounded-lg border border-bad bg-bad-bg p-5 text-sm">
             <p className="font-semibold">{t(failure.title)}</p>
             <p className="mt-1 text-muted">{t(failure.body)}</p>
-            <details className="mt-3 text-xs text-muted">
+            <details className="mt-3 text-caption text-muted">
               <summary className="cursor-pointer">{t(copy.result.errors.detail)}</summary>
               <p className="mt-1 break-words font-mono">{error}</p>
             </details>
@@ -666,7 +766,7 @@ export function ValuationForm() {
                 if (catalogs.length === 0) {
                   // The lists never arrived, so retry means fetching them again.
                   setStatus("loading-catalog");
-                  setSlowStart(false);
+                  setSlowFor(null);
                   setReloads((count) => count + 1);
                 } else {
                   setStatus("ready");

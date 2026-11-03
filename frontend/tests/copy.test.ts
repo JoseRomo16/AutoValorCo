@@ -66,7 +66,13 @@ describe("copy", () => {
    * "dearest" is archaic for prices, and "asked at more" is not English. Both were in five
    * places before anyone read the English page aloud.
    */
-  const RETIRED = [/\bdearest\b/i, /\basked at more\b/i];
+  const RETIRED = [
+    /\bdearest\b/i,
+    /\basked at more\b/i,
+    // The capture is paused (ADR 0005): a weekly claim is false until it resumes.
+    /una vez por semana/i,
+    /once a week/i,
+  ];
 
   it.each(RETIRED)("never says %s", (pattern) => {
     const hits = ALL.filter(({ text }) => pattern.test(text.en ?? "") || pattern.test(text.es ?? ""))

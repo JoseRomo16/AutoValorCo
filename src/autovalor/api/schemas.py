@@ -374,6 +374,14 @@ class VerticalCatalog(BaseModel):
     engine_cc: CatalogRange | None = Field(
         default=None, description="Null when the vertical records no displacement."
     )
+    mileage_km: CatalogRange | None = Field(
+        default=None,
+        description=(
+            "What `/predict` accepts for the odometer: from zero to the same cap its "
+            "request schema enforces. Published so a form shows and checks the limit the "
+            "service applies instead of keeping its own copy of the number."
+        ),
+    )
     asking_price_cop: CatalogRange | None = Field(
         default=None,
         description=(

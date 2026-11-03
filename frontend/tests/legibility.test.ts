@@ -9,12 +9,19 @@ import { describe, expect, it } from "vitest";
  * cero", the medians, the intervals) and the tooltips until the copy review read them on a
  * phone. The data sizes are tokens in `globals.css` (`text-caption` 13, `text-detail` 14,
  * `text-label` 15, `text-value` 16); this fails on anything smaller in the files that draw
- * the page. Block 8 adds Methodology's files to the list.
+ * the market, methodology and valuation pages.
  */
 
 const ROOT = process.cwd();
 const FILES = [
   "components/MarketDashboard.tsx",
+  "components/Methodology.tsx",
+  "components/Term.tsx",
+  "components/ValuationForm.tsx",
+  "components/PriceResult.tsx",
+  "components/ValueHero.tsx",
+  "components/ui/NumberField.tsx",
+  "components/ui/Combobox.tsx",
   "components/VehicleTabs.tsx",
   "components/charts/BrandPicker.tsx",
   "components/charts/IntervalBars.tsx",

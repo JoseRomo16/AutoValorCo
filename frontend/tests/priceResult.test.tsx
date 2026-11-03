@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { PriceResult } from "@/components/PriceResult";
 import type { ExplainResponse, PredictResponse } from "@/lib/api";
+import { copy } from "@/lib/i18n";
 
 /**
  * The figures of the audit's worked example, so the assertions read against something
@@ -174,5 +175,32 @@ describe("the warning notices", () => {
     });
     expect(screen.queryByRole("list", { name: "Avisos sobre este estimado" })).toBeNull();
     expect(document.body.textContent).not.toContain("something_new_entirely");
+  });
+});
+
+describe("before the first valuation", () => {
+  it("shows the shape of a result, marked as an example", () => {
+    show({ prediction: null, explanation: null });
+    expect(screen.getByText(copy.result.exampleBadge.es)).toBeInTheDocument();
+    expect(screen.getByText(copy.result.emptyTitle.es)).toBeInTheDocument();
+  });
+});
+
+describe("the factors", () => {
+  it("say the direction in words and colour, not colour alone", () => {
+    show();
+    const word = screen.getByText(copy.result.raises.es);
+    expect(word.className).toContain("text-good");
+  });
+});
+
+describe("the share button", () => {
+  it("copies the address bar and confirms it", async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.assign(navigator, { clipboard: { writeText } });
+    show();
+    fireEvent.click(screen.getByRole("button", { name: copy.result.copyLink.es }));
+    expect(writeText).toHaveBeenCalledWith(window.location.href);
+    expect(await screen.findByText(copy.result.copied.es)).toBeInTheDocument();
   });
 });

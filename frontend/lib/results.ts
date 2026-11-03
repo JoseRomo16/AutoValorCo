@@ -165,6 +165,8 @@ export type ServedModelInfo = {
   trained_on_rows: number;
   n_train: number;
   catalogue_makes: number;
+  /** The departments the model knows, with their training listings, from the catalogue. */
+  departments: { name: string; listings: number }[];
 };
 
 type BundleManifest = {
@@ -193,7 +195,7 @@ type BundleManifest = {
   lake: { rows: number; n_train: number };
 };
 
-type BundleCatalog = { brands: unknown[] };
+type BundleCatalog = { brands: unknown[]; departments?: { name: string; listings: number }[] };
 
 export function manifest(): Manifest {
   return readJson<Manifest>(path.join(RESULTS_DIR, "manifest.json"));
@@ -266,6 +268,7 @@ export function servedModels(): ServedModelInfo[] {
       trained_on_rows: bundle.lake.rows,
       n_train: bundle.lake.n_train,
       catalogue_makes: catalog.brands.length,
+      departments: catalog.departments ?? [],
     };
   });
 }

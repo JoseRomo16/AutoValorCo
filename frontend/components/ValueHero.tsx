@@ -28,7 +28,7 @@ export type HeroFacts = {
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="border-line py-1 sm:border-l sm:pl-6 sm:first:border-l-0 sm:first:pl-0">
-      <dt className="text-xs text-muted">{label}</dt>
+      <dt className="text-caption text-muted">{label}</dt>
       <dd className="mt-1 font-mono text-sm tabular-nums">{children}</dd>
     </div>
   );
@@ -38,7 +38,9 @@ export function ValueHero({ facts }: { facts: HeroFacts }) {
   const { lang, t } = useLang();
 
   return (
-    <section className={`${WRAP} pb-10 pt-14 sm:pt-20`}>
+    // Only the top padding is tighter than before; the title, the lead and the facts keep
+    // their size, leading and spacing.
+    <section className={`${WRAP} pb-10 pt-10 sm:pt-14`}>
       {/* The one eyebrow on the page. It names the section, mirroring the active nav item,
           so it is orientation rather than decoration. */}
       <p className="mb-4 font-mono text-sm uppercase tracking-[0.12em] text-accent-text">
