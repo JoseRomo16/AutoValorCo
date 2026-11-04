@@ -86,7 +86,15 @@ export const metadata: Metadata = {
   // The installable app (ADR 0007). Manifest and icons are written by
   // scripts/pwa-assets.mjs before every build, from the same tokens as below.
   manifest: "/manifest.webmanifest",
-  icons: { apple: "/icons/apple-touch-icon.png" },
+  // Declaring `icons` replaces the file convention, so app/icon.svg has to be listed here
+  // too or the tab loses its favicon (it did, in #40).
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: { capable: true, title: "AutoValor", statusBarStyle: "black-translucent" },
 };
 

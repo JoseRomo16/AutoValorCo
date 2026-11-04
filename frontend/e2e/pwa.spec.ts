@@ -87,6 +87,14 @@ test.describe("the manifest", () => {
         "href",
         "/icons/apple-touch-icon.png",
       );
+      // The favicon: an SVG first, a PNG for browsers without SVG favicons, both served.
+      const icons = page.locator('link[rel="icon"]');
+      await expect(icons.first()).toHaveAttribute("href", "/icon.svg");
+      for (const href of await icons.evaluateAll((links) => links.map((l) => l.getAttribute("href")))) {
+        const response = await page.request.get(href!);
+        expect(response.ok(), href!).toBe(true);
+        expect(response.headers()["content-type"]).toMatch(/^image\//);
+      }
       await expect(page.locator('meta[name="apple-mobile-web-app-capable"], meta[name="mobile-web-app-capable"]').first()).toHaveAttribute("content", "yes");
       expect(await page.locator('meta[name="theme-color"]').count()).toBe(2);
     }
