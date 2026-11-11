@@ -2,7 +2,7 @@
  * Write `out/sw.js` after `next build` (the `postbuild` script).
  *
  * The precache list is read from the export itself: every file under `out/` except the
- * service worker, the social card and source maps. That is the shell (the four pages, the
+ * service worker, the social card, the crawler files and source maps. That is the shell (the four pages, the
  * offline page and their navigation payloads), the hashed `/_next/static` assets, the
  * icons and the manifest. The version is a hash of those files' contents, so any change
  * to the build produces a new worker and a new cache, and an identical build does not.
@@ -18,7 +18,8 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(process.argv[2] ?? path.join(HERE, "..", "out"));
-const SKIP = new Set(["sw.js", "og.png"]);
+// Crawler files are never needed offline, so they stay out of the precache.
+const SKIP = new Set(["sw.js", "og.png", "robots.txt", "sitemap.xml"]);
 
 /** The API's origin, as the bundle was built with it (`lib/api.ts` reads the same variable). */
 function apiOrigin() {
