@@ -1,8 +1,14 @@
 # Weekly, grouped, and few at a time: one PR per ecosystem per week at most, so a closed
-# project gets security and version bumps without a queue of PRs to triage.
+# project gets patches and security fixes without a queue of PRs to triage.
+#
+# Minor and patch only. The project is closed on a fixed dataset and the served model is
+# not retrained, so a major version (duckdb 2, numpy, TypeScript 7, ESLint 10) is a
+# migration to plan, not a bump to merge: in a single group it also fails the whole PR,
+# which is what happened with the first run (#45, #47). Linters and type stubs are left out
+# too, because their minors add rules and checks rather than fixes.
 #
 # uv is a native Dependabot ecosystem: it reads pyproject.toml and updates uv.lock.
-# CI (ci.yml) is what decides whether a bump is safe to merge.
+# CI (ci.yml) is still what decides whether a bump is safe to merge.
 version: 2
 updates:
   - package-ecosystem: "uv"
@@ -14,6 +20,16 @@ updates:
     groups:
       python:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "ruff"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "mypy"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "pandas-stubs"
+        update-types: ["version-update:semver-minor"]
     commit-message:
       prefix: "chore(deps)"
 
@@ -26,6 +42,16 @@ updates:
     groups:
       frontend:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint*"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "@types/*"
+        update-types: ["version-update:semver-minor"]
     commit-message:
       prefix: "chore(deps)"
 
