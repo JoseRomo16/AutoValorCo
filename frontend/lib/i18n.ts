@@ -771,13 +771,13 @@ export const copy = {
         sourceValue: { es: "TuCarro, una sola plataforma", en: "TuCarro, a single marketplace" },
         capture: { es: "Captura", en: "Capture" },
         /*
-         * Not "weekly": the capture is paused (ADR 0005) since TuCarro started answering
-         * GitHub's runners with an account-verification page. The date is the last good
-         * capture, read from the results manifest.
+         * A fixed cut (ADR 0005): the capture closed when TuCarro started asking for account
+         * verification, and the project does not get around that. The dates are read from
+         * the results manifest, never typed here.
          */
         captureValue: {
-          es: "En pausa: TuCarro pide verificar una cuenta a los programas que leen anuncios. La última captura es del {date}.",
-          en: "Paused: TuCarro asks programs that read listings to verify an account. The last capture is from {date}.",
+          es: "Corte fijo: {count} capturas, del {first} al {last}. La captura se cerró cuando TuCarro empezó a pedir verificar una cuenta, y el modelo no se reentrena con datos nuevos.",
+          en: "A fixed cut: {count} captures, from {first} to {last}. The capture closed when TuCarro started asking for account verification, and the model is not retrained on new data.",
         },
         listings: { es: "Anuncios en total", en: "Listings in total" },
         listingsValue: {
@@ -806,8 +806,8 @@ export const copy = {
       steps: {
         captureTitle: { es: "Captura", en: "Capture" },
         captureBody: {
-          es: "Leemos los anuncios publicados de TuCarro. La captura semanal está en pausa; la última es del {date}.",
-          en: "We read TuCarro's published listings. The weekly capture is paused; the last one is from {date}.",
+          es: "Leímos los anuncios publicados de TuCarro entre el {first} y el {last}. Es un corte fijo: la captura está cerrada.",
+          en: "We read TuCarro's published listings between {first} and {last}. It is a fixed cut: the capture is closed.",
         },
         rawTitle: { es: "Capa cruda", en: "Raw layer" },
         rawBody: {
@@ -1038,16 +1038,16 @@ export const copy = {
           en: "There is no way to see whether the market rises or falls month to month.",
         },
         indexPlan: {
-          es: "Está escrito y probado. Se publica cuando las capturas semanales acumulen seis meses de historia, hacia {date}.",
-          en: "It is written and tested. It gets published once the weekly captures have six months of history, around {date}.",
+          es: "Está escrito y probado, pero necesita unos seis meses de historia y la captura está cerrada, así que queda fuera de alcance.",
+          en: "It is written and tested, but it needs about six months of history and the capture is closed, so it is out of scope.",
         },
         timeWhat: {
-          es: "Las cifras describen los anuncios capturados hasta una fecha.",
-          en: "The figures describe the listings captured up to a date.",
+          es: "Las cifras describen un corte fijo de anuncios, del {first} al {last}.",
+          en: "The figures describe a fixed cut of listings, from {first} to {last}.",
         },
         timeEffect: {
-          es: "Cada captura nueva las mueve, así que cada número viaja con la fecha y el número de anuncios sobre los que se midió.",
-          en: "Every new capture moves them, so each number travels with the date and the number of listings it was measured on.",
+          es: "No se actualizan con el mercado: los precios de hoy pueden haberse movido, y cada número viaja con la fecha y el número de anuncios sobre los que se midió.",
+          en: "They do not follow the market: today's prices may have moved, and each number travels with the date and the number of listings it was measured on.",
         },
         departmentsWhat: {
           es: "La captura cubre {count} departamentos: {list}.",
@@ -1082,8 +1082,8 @@ export const copy = {
           en: "It is valued from the make, year, mileage and department alone, and the result says so in a notice. A make that is not in the data cannot be valued.",
         },
         timePlan: {
-          es: "Se recalculan cada vez que el modelo se vuelve a publicar.",
-          en: "They are recomputed every time the model is published again.",
+          es: "El modelo no se reentrena con datos nuevos: no los hay.",
+          en: "The model is not retrained on new data: there is none.",
         },
       },
     },

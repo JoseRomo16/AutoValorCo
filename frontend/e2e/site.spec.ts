@@ -4,7 +4,7 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 
 import { copy } from "../lib/i18n";
-import { LINKEDIN_URL } from "../lib/links";
+import { LINKEDIN_URL, SITE_URL } from "../lib/links";
 import { bodyLuminance, estimate, fillCar, openValorar, PAGES, remember, submit } from "./helpers";
 
 type Leaf = { es: string; en: string };
@@ -79,6 +79,21 @@ test("og:image is a 1200×630 PNG that the build wrote", async ({ page }) => {
   // The PNG signature, then the IHDR chunk's width and height, big-endian.
   expect(file.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
   expect([file.readUInt32BE(16), file.readUInt32BE(20)]).toEqual([1200, 630]);
+});
+
+test("the export ships robots.txt and a sitemap of the three pages, without the offline one", async ({
+  request,
+}) => {
+  const robots = await request.get("/robots.txt");
+  expect(robots.status()).toBe(200);
+  const rules = await robots.text();
+  expect(rules).toContain("Disallow: /offline/");
+  expect(rules).toContain(`Sitemap: ${new URL("/sitemap.xml", SITE_URL)}`);
+
+  const sitemap = await request.get("/sitemap.xml");
+  expect(sitemap.status()).toBe(200);
+  const urls = [...(await sitemap.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  expect(urls).toEqual(PAGES.map((route) => new URL(route, SITE_URL).toString()));
 });
 
 test("every LinkedIn link on the site points at the same profile", async ({ page }) => {

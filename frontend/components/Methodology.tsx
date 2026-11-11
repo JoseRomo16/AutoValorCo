@@ -39,7 +39,7 @@ import {
 import { copy, fill } from "@/lib/i18n";
 import type { Lang, Localized } from "@/lib/i18n";
 import { LOW_DATA_LISTINGS, isThin } from "@/lib/listings";
-import { decimal, integer, isoDay, isoMonth, modelDate, percent, points } from "@/lib/format";
+import { decimal, integer, isoDay, modelDate, percent, points } from "@/lib/format";
 
 /** Section anchors, in page order; the table of contents is built from this list. */
 const SECTIONS = [
@@ -292,9 +292,12 @@ export function Methodology({
     .sort((a, b) => b.mape_pct - a.mape_pct);
   const worstCarBrand = carBrandErrors.at(0);
 
-  const indexReadyOn =
-    manifest.skipped_codes["price_index.car"]?.ready_on ??
-    manifest.skipped_codes["price_index.motorcycle"]?.ready_on;
+  // The cut's own dates, for every sentence that names them (ADR 0005: a fixed dataset).
+  const cut = {
+    count: manifest.capture_dates.length,
+    first: firstCapture ? isoDay(firstCapture, lang) : "—",
+    last: lastCaptureText,
+  };
 
   // Departments: the union of both catalogues, the thin ones by the form's own line.
   const departments = [
@@ -318,7 +321,7 @@ export function Methodology({
   const steps: { title: Localized; body: string }[] = [
     {
       title: copy.method.model.steps.captureTitle,
-      body: fill(copy.method.model.steps.captureBody, lang, { date: lastCaptureText }),
+      body: fill(copy.method.model.steps.captureBody, lang, cut),
     },
     { title: copy.method.model.steps.rawTitle, body: t(copy.method.model.steps.rawBody) },
     { title: copy.method.model.steps.featuresTitle, body: t(copy.method.model.steps.featuresBody) },
@@ -462,7 +465,7 @@ export function Methodology({
                 },
                 {
                   term: copy.method.data.facts.capture,
-                  value: fill(copy.method.data.facts.captureValue, lang, { date: lastCaptureText }),
+                  value: fill(copy.method.data.facts.captureValue, lang, cut),
                 },
                 {
                   term: copy.method.data.facts.listings,
@@ -903,17 +906,13 @@ export function Methodology({
                 effect={t(copy.method.scope.items.fasecoldaEffect)}
                 plan={t(copy.method.scope.items.fasecoldaPlan)}
               />
-              {indexReadyOn && (
-                <ScopeCard
-                  what={t(copy.method.scope.items.indexWhat)}
-                  effect={t(copy.method.scope.items.indexEffect)}
-                  plan={fill(copy.method.scope.items.indexPlan, lang, {
-                    date: isoMonth(indexReadyOn, lang),
-                  })}
-                />
-              )}
               <ScopeCard
-                what={t(copy.method.scope.items.timeWhat)}
+                what={t(copy.method.scope.items.indexWhat)}
+                effect={t(copy.method.scope.items.indexEffect)}
+                plan={t(copy.method.scope.items.indexPlan)}
+              />
+              <ScopeCard
+                what={fill(copy.method.scope.items.timeWhat, lang, cut)}
                 effect={t(copy.method.scope.items.timeEffect)}
                 plan={t(copy.method.scope.items.timePlan)}
               />

@@ -1,8 +1,10 @@
 # ADR 0005 - Where the listings come from after the verification wall
 
-- Status: **accepted** — B, pause the capture. C rejected as evasion, A still open.
-- Date: 2026-11-01
-- Decided: 2026-11-01 by the owner
+- Status: **closed** — A discarded after measuring it with a valid token (2026-11-11), C
+  rejected as evasion, and the project closes on the current captures as a **fixed
+  dataset**. See [Final decision](#final-decision-2026-11-11).
+- Date: 2026-11-01, closed 2026-11-11
+- Decided: 2026-11-01 and 2026-11-11 by the owner
 
 ## Context
 
@@ -52,6 +54,10 @@ excluded: it is paid, and it is exactly the evasion the rule above forbids.
 ## The three candidates
 
 ### A. The official Mercado Libre API
+
+> **Discarded on 2026-11-11** after the authenticated measurement this section asked for;
+> the result is in [Option A, measured with a token](#option-a-measured-with-a-token). What
+> follows is the reasoning as it stood on 2026-11-01.
 
 **Measured, not assumed.** Three unauthenticated requests from this machine on
 2026-11-01, user-agent `AutoValorCO-ADR-check/1.0`:
@@ -149,6 +155,9 @@ reintroduces the gap this option existed to prevent.
 
 ## Decision
 
+> Superseded on 2026-11-11 by the [final decision](#final-decision-2026-11-11): A was
+> measured and discarded, and the pause became the end of the capture. Kept as written.
+
 **B — the capture is paused as of 2026-11-01.** C is **rejected**, A stays **open** and is
 being measured.
 
@@ -184,6 +193,9 @@ Two things stay true regardless: the one-request-and-stop behaviour is correct u
 source, and nothing here authorises getting around the verification screen.
 
 ## Consequences
+
+> As of 2026-11-11 the "stay enabled" consequence below no longer holds: with the capture
+> closed, both workflows are disabled from the Actions tab (see the final decision).
 
 Under **B**:
 
@@ -229,3 +241,77 @@ Under **A**, if the probe succeeds:
   market.
 - The scraper is not deleted. It is the fallback, and it is also the only thing that can
   confirm the wall ever came down.
+
+## Final decision, 2026-11-11
+
+### Option A, measured with a token
+
+On 2026-11-11 the owner registered an application at developers.mercadolibre.com.co
+("AutoValor CO probe": personal use, 1–10 users, Mercado Libre + VIS business units,
+Authorization Code flow, redirect `https://autovalor-web.onrender.com/`).
+
+What it cost, now known rather than estimated:
+
+- **Money: zero.** No card, no tax id (NIT) and no company data.
+- **Identity:** Mercado Pago's identity validation (KYC) before any application could be
+  created, and again (a selfie) to delete it.
+- **Permissions cannot be narrowed.** "Usuarios" is fixed at read-and-write, and every other
+  scope offers "read" as its minimum; "no access" is not an option.
+
+A valid access token was obtained through OAuth (`authorization_code` → `/oauth/token`),
+and `scripts/probe_mercadolibre.py` plus a few manual calls ran with it. **The token was
+valid in every case** — `/users/me` proves it:
+
+| Request (token valid in all) | Status | What came back |
+| --- | --- | --- |
+| `GET /users/me` | `200` | the account: the token works |
+| `GET /sites/MCO/search?category=MCO1744&limit=1` | **`403`** | `{"message":"forbidden","error":"forbidden","status":403,"cause":[]}` |
+| `GET /highlights/MCO/category/MCO1744` | **`403`** | forbidden |
+| `GET /products/search?status=active&site_id=MCO&q=mazda%203` | `200` | 2 results, both domain `MCO-VEHICLE_WINDSHIELD_WIPERS` (wiper blades) |
+| `GET /products/MCO51852363/items` | `404` | not found |
+| `GET /categories/MCO1744` | `200` | the category tree |
+| `GET /categories/MCO1744/attributes` | `200` | brand, model, year, mileage, …; **no prices** |
+
+The vehicle search answers authenticated callers exactly as it answered anonymous ones:
+`403` with the same body. Vehicles are not products in Mercado Libre's catalogue — they
+exist only as listings — so the product endpoints do not reach them either. **With a valid
+token, the official API gives no access to vehicle listings or prices in Colombia.**
+
+The only way left to reach listings through the API would be to obtain listing ids by
+scraping or by enumerating them, and then query items one by one. That is contrary to
+Mercado Libre's terms and to this project's rule against getting around the site's
+checks, so it is **not attempted**. **Option A is discarded.**
+
+**No secret was committed.** The application id, client secret and token lived only in a
+PowerShell session that is closed, and the application was deleted from the portal.
+
+### The project closes on a fixed dataset
+
+With A discarded and C rejected, there is no remaining source, and **no alternative
+sources are sought**. The project closes with the current cut as a **fixed dataset**:
+
+- **Four captures, 2026-09-30 to 2026-10-19** (2026-09-30, 10-05, 10-12 and 10-19), plus
+  the **motorcycle detail enrichment of 2026-10-25**. Their dates are in
+  [`docs/results/manifest.json`](../results/manifest.json) (`capture_dates`), which is
+  where the site reads them from.
+- **The served model is not retrained** with new data: there is none. Its published
+  figures are the ones measured on this cut.
+- **The monthly price index is out of scope.** It needs about six months of history and the
+  capture is closed. `src/autovalor/analysis/price_index.py` stays as written and tested,
+  documented as **not published**; `make results` keeps skipping it because the span is
+  under its 180-day minimum. The `skipped` note in the committed manifest predates this
+  decision and still names 2027-03-29; it is the record of that run, and the site no
+  longer reads a date from it.
+- **The temporal split** stays as published (a second measurement next to the random one,
+  ADR 0006), measured over the 19.5 days the cut spans.
+- **`capture.yml` and `enrich.yml`** are disabled from the Actions tab. The files stay, so
+  the capture code path and its wall detection remain readable and reversible.
+
+### A finding worth keeping: the attributes catalogue
+
+`GET /categories/MCO1744/attributes` answers `200` and lists the category's attributes and
+their allowed values — brand, model, year, mileage and more — independent of any price
+source. That could serve as a **reference catalogue to normalize and validate
+brand/model/year** (for example the one-letter BMW and Yamaha models that Block 4 had to
+fix by hand). It is recorded as **possible future work only**: nothing is built on it, and
+using it would still need the application and token this decision closes.
