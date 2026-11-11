@@ -16,7 +16,7 @@ divergir: **JSON** para la app y **CSV** para un cuaderno o una hoja de cálculo
 | `regional_effect` | Diferencia de precio por departamento para un vehículo comparable |
 | `segment_error` | MAPE del modelo servido por marca, segmento de precio y departamento, sobre el holdout |
 | `catalogue_contrast` | El contraste identidad/estado de SHAP frente a la depreciación del hedónico |
-| `price_index` | Índice hedónico mensual de calidad constante — **todavía no se genera**, ver abajo |
+| `price_index` | Índice hedónico mensual de calidad constante — **no se publica: fuera de alcance**, ver abajo |
 | `manifest.json` | Sobre qué lago se midió todo: filas, cobertura de detalle, span de capturas, umbrales vigentes y lo que la corrida **no** pudo producir |
 
 **Lee `manifest.json` antes de citar una cifra.** Un número sin saber sobre cuántas filas
@@ -52,9 +52,13 @@ period,cpi
 
 El nivel puede venir en cualquier base; solo se usan razones entre periodos.
 
-**El índice todavía no corre, y no por falta del IPC:** el lago abarca 5,5 días y un índice
-mensual necesita 180. `check_publishable` se niega y dice en qué fecha el histórico semanal
-llega solo —**2027-03-29**—, y esa negativa es la que aparece en `skipped`.
+**El índice no corre, y no por falta del IPC:** un índice mensual necesita 180 días de
+histórico y el corte fijo del proyecto abarca ~19,5. `check_publishable` se niega y esa
+negativa es la que aparece en `skipped`. La fecha que ese texto todavía nombra
+(2027-03-29) suponía una captura semanal que ya no existe: la captura está cerrada y el
+índice queda **fuera de alcance**
+([ADR 0005](../adr/0005-capture-source-after-verification-wall.md#final-decision-2026-11-11)).
+El código se conserva probado y no publicado.
 
 ## Cómo se regeneran
 
