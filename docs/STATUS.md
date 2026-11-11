@@ -1230,7 +1230,7 @@ Tres decisiones que vale la pena no deshacer:
 
 Verificado con Playwright contra la API local: las tres vistas, el camino de carros (con
 etiqueta) y el de motos (con aviso y sin etiqueta), el cambio de idioma, cero errores de
-consola y cero desbordamiento horizontal a 390 px. Las capturas de `docs/screenshots/`
+consola y cero desbordamiento horizontal a 390 px. Las capturas de entonces, en `docs/screenshots/` (hoy reemplazadas por `docs/design/screens/`),
 salieron de esa misma corrida. Dos cosas que encontró y que no se habrían visto leyendo el
 código: un `step` en los campos numéricos hacía que el navegador rechazara en silencio
 precios como 78.000.000 —la validación nativa bloquea el submit antes de que corra el
