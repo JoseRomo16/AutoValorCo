@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { Methodology } from "@/components/Methodology";
-import { decimal, isoDay, percent } from "@/lib/format";
+import { decimal, isoDay, isoMonth, percent } from "@/lib/format";
 import { copy, fill } from "@/lib/i18n";
 import { isThin } from "@/lib/listings";
 import { featureCoverage, labelGate, manifest, segmentError, servedModels } from "@/lib/results";
@@ -56,11 +56,23 @@ describe("the published error (ADR 0006, c)", () => {
 });
 
 describe("data and privacy", () => {
-  it("says the capture is paused, with the last capture's date, and never 'once a week'", () => {
+  it("calls the data a fixed cut, with both ends read from the manifest, and never 'once a week'", () => {
     show();
-    const last = results.capture_dates.at(-1)!;
-    expect(document.getElementById("datos")!.textContent).toContain(isoDay(last, "es"));
-    expect(text()).not.toMatch(/una vez por semana/i);
+    const data = document.getElementById("datos")!.textContent ?? "";
+    expect(data).toContain("Corte fijo");
+    expect(data).toContain(isoDay(results.capture_dates.at(0)!, "es"));
+    expect(data).toContain(isoDay(results.capture_dates.at(-1)!, "es"));
+    expect(data).toContain("no se reentrena");
+    expect(text()).not.toMatch(/una vez por semana|captura semanal/i);
+  });
+
+  it("puts the price index out of scope without promising a date (ADR 0005)", () => {
+    show();
+    expect(text()).toContain(copy.method.scope.items.indexWhat.es);
+    expect(text()).toContain(copy.method.scope.items.indexPlan.es);
+    expect(copy.method.scope.items.indexPlan.es).not.toMatch(/\{date\}|hacia/);
+    const readyOn = results.skipped_codes["price_index.car"]?.ready_on;
+    if (readyOn) expect(text()).not.toContain(isoMonth(readyOn, "es"));
   });
 });
 
