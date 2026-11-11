@@ -24,7 +24,7 @@ src/autovalor/
   api/         # FastAPI
 dbt/           # modelos silver y gold
 data/          # bronze/ silver/ gold/ (en .gitignore)
-notebooks/     # solo exploración: 01_eda, 02_modelo_hedonico, 03_comparacion_modelos
+notebooks/     # solo exploración: 04_resultados_economicos (lee docs/results; sin lógica propia)
 frontend/      # Next.js + Tailwind
 tests/
 docs/          # ADRs, diccionario de datos, results/ (JSON y CSV versionados) y figures/
