@@ -1,32 +1,35 @@
 # Estado del proyecto / Project status
 
-Última actualización: **2026-10-31** · Fase actual: **F4**, con la API y el sitio
-desplegados en Render, y el rediseño del frontend en curso sobre el modelo reentrenado. F2 y F3 cerradas salvo el índice de precios, que espera histórico;
-la comparación con Fasecolda quedó **fuera de alcance**. (Carros cumplen la meta de
-MAPE ≤ 15 % y publican etiqueta; motos publican precio y rango sin etiqueta, por la regla
-de calidad de banda.)
+Última actualización: **2026-11-11** · **Proyecto cerrado.** F0 a F4 cerradas, con la API y
+el sitio desplegados en Render y el plan de Bloques 0 a 10 terminado. Los datos son un
+**corte fijo** (4 capturas, del 2026-09-30 al 2026-10-19, más el detalle de motos del
+2026-10-25) y el modelo no se reentrena; el índice mensual de precios y la comparación con
+Fasecolda quedan **fuera de alcance**
+([ADR 0005](adr/0005-capture-source-after-verification-wall.md#final-decision-2026-11-11)).
+Carros cumplen la meta de MAPE ≤ 15 % y publican etiqueta; motos publican precio y rango
+sin etiqueta, por la regla de calidad de banda. Ver [Cierre del proyecto](#cierre-del-proyecto).
 
-Este documento es el punto de retorno: dice qué funciona, qué falta, qué está decidido y
-qué no. Se actualiza al cerrar cada bloque de trabajo.
+**Las cifras vigentes no se escriben en este documento**: están en el
+[bloque generado del README](../README.md#las-cifras-del-modelo-servido), que `make readme`
+genera desde `model.json` y `docs/results/`. Las que aparecen abajo son **históricas**: se
+midieron en la fecha de su sección y quedan como registro de cómo se llegó aquí.
 
 ---
 
 ## Resumen en una línea
 
 El pipeline completo funciona de punta a punta —captura → bronze → silver → gold,
-validado— con **8.443 carros y 4.505 motos**, y las capturas ya no se pierden: viven en la
-rama `data`. Tres modelos entrenados y medidos **fuera de muestra**: el mejor es LightGBM
-con **10,3 % MAPE en carros** y **22,0 % en motos** (con 2.812 motos enriquecidas, 62,4 %
-de la vertical, y la marca resuelta en 91,9 % de los títulos tras el arreglo de parseo y la
-limpieza del catálogo: eran 24,1 % con 80,4 %). Sobre una partición temporal, que se mide
-al lado y nunca reemplaza a la publicada, son 11,6 % y 23,5 %. Carros cumple la meta de
-F2 (≤ 15 %); motos no. **F2 queda cerrada** con
+validado— y las capturas viven en la rama `data`. Tres modelos entrenados y medidos
+**fuera de muestra**; el servido es LightGBM, con el error de la partición aleatoria como
+cifra principal y el de la partición temporal al lado (ADR 0006, c). Las cifras están en el
+[bloque generado del README](../README.md#las-cifras-del-modelo-servido). Carros cumple la
+meta de F2 (≤ 15 %); motos no. **F2 queda cerrada** con
 una regla explícita que decide qué se publica en cada vertical: la etiqueta
 ganga/justo/caro exige una banda con cobertura entre 78 % y 82 % y ancho medio ≤ 60 % del
 estimado, y motos no la alcanza, así que sale con precio estimado, rango y aviso de
 precisión. Lo que SHAP dejó claro es por qué motos falla —el modelo pesa identidad y casi
-no pesa estado— y el hedónico de F3 lo confirmó por otra vía: una moto pierde entre 0,9 % y
-6,5 % de valor al año, contra 4,8 %–9,6 % en carros.
+no pesa estado— y el hedónico de F3 lo confirmó por otra vía: las motos se deprecian mucho
+menos por año que los carros (los rangos por marca, en el bloque generado del README).
 
 ---
 
@@ -212,9 +215,10 @@ es una decisión aparte y no un paso de higiene.
 ### El reentrenamiento del 2026-10-25
 
 Entran tres cosas a la vez: las capturas del 12 y el 19 de octubre, el enriquecimiento de
-las motos que esas capturas trajeron, y la limpieza del catálogo de arriba. **Estas son las
-cifras vigentes**; las de [Re-medición sobre el lago completo](#re-medición-sobre-el-lago-completo-final)
-quedan como registro.
+las motos que esas capturas trajeron, y la limpieza del catálogo de arriba. Fueron las
+cifras vigentes hasta el modelo sin ciudad del Bloque 4 (bundle `2026-11-02.12948`); hoy
+son **históricas**, como las de [Re-medición sobre el lago completo](#re-medición-sobre-el-lago-completo-final).
+Las vigentes están en el [bloque generado del README](../README.md#las-cifras-del-modelo-servido).
 
 | | Carros | Motos |
 | --- | --- | --- |
@@ -1139,11 +1143,18 @@ muestra; `analysis/` explica y se juzga por si un efecto se distingue de cero. P
 precio, y los errores clásicos saldrían demasiado angostos— y no los ensambles, que
 predicen bien y no dicen cuánto vale un año.
 
-Falta publicar el **índice mensual de precios** —implementado, probado y deliberadamente
-sin correr, ver abajo— y la **comparación con Fasecolda**, que queda fuera de alcance (ver
-decisiones abiertas).
+**F3 está cerrada.** El **índice mensual de precios** —implementado y probado, ver abajo—
+y la **comparación con Fasecolda** quedan **fuera de alcance**: el índice necesita unos seis
+meses de histórico y la captura está cerrada
+([ADR 0005](adr/0005-capture-source-after-verification-wall.md#final-decision-2026-11-11)).
 
-#### El índice de precios está hecho y no se publica hasta ~2027-03-29
+#### El índice de precios está hecho y no se publica
+
+> **Fuera de alcance desde el 2026-11-11.** `analysis/price_index.py` se queda como está,
+> probado y **no publicado**: con el corte fijo de ~19,5 días nunca llega a los 180 que
+> exige. La fecha ~2027-03-29 de abajo suponía una captura semanal que ya no existe; el
+> `skipped` de `docs/results/manifest.json` la conserva porque es el registro de esa
+> corrida, y el sitio ya no la lee.
 
 `autovalor.analysis.price_index` implementa el índice hedónico con **efectos fijos de
 periodo**: una regresión de `log(precio)` sobre los atributos del vehículo más una dummy por
@@ -1177,7 +1188,7 @@ inventaron valores** para dejar el archivo completo: cualquier cifra real que de
 ellos heredaría números que nadie puede verificar. Sin el archivo el índice nominal igual
 funciona y el real queda indefinido, que es lo correcto.
 
-### F4 — Producto: la API está desplegada, el frontend está en curso
+### F4 — Producto (cerrada): API y sitio desplegados
 
 | Entregable | Estado |
 | --- | --- |
@@ -1190,7 +1201,7 @@ funciona y el real queda indefinido, que es lo correcto.
 | `Dockerfile.api` multi-stage con solo el runtime | hecho, **construido y arrancado en CI** |
 | `render.yaml` + [pasos de despliegue](deploy-render.md) | hecho; **desplegado y probado por el usuario el 2026-10-07** |
 | Tests de contrato de los endpoints | hecho |
-| App Next.js: export estático, ES/EN, tres vistas | hecho; **falta que el usuario la despliegue** |
+| App Next.js: export estático, ES/EN, tres vistas, PWA | hecho; **desplegada** en `autovalor-web.onrender.com` |
 | `autovalor-web` en `render.yaml` + CI de frontend | hecho |
 
 #### El frontend
@@ -1481,16 +1492,14 @@ Queda abierto solo si aparece **un export manual** que consigas por tu cuenta. M
 tanto los resultados de F3 se publican diciendo que no hay comparación externa, en vez de
 inventar una.
 
-### 3. De dónde salen los anuncios después del muro — decidido, pausa
+### 3. De dónde salen los anuncios después del muro — cerrada, corte fijo
 
-Cerrada el **2026-11-01** en
-[ADR 0005](adr/0005-capture-source-after-verification-wall.md): **la captura queda en
-pausa** (opción B), **C descartada por evasión**, y **A abierta y en medición** con
-`scripts/probe_mercadolibre.py`. El detalle, y qué cuesta la pausa, está en
-[Fuente de datos](#fuente-de-datos-decidido-la-captura-queda-en-pausa).
-
-**Lo único que sigue abierto aquí es A**, y depende de un dato que todavía no existe: qué
-responde `/sites/MCO/search` con un token válido.
+Cerrada del todo el **2026-11-11** en
+[ADR 0005](adr/0005-capture-source-after-verification-wall.md#final-decision-2026-11-11):
+**C descartada por evasión**, y **A descartada** tras medirla con un token válido —la
+búsqueda de vehículos de MCO responde `403` igual que sin token—. El proyecto cierra con
+las capturas actuales como **dataset fijo** y no busca otras fuentes. El detalle está en
+[Fuente de datos](#fuente-de-datos-cerrada-corte-fijo).
 
 ### De dónde sale la cilindrada, con número
 
@@ -1532,12 +1541,9 @@ supuestos", desde aquí y no tecleadas a mano.
   CI construye `Dockerfile.api`, imprime el tamaño, falla por encima de 900 MB y
   **arranca el contenedor** para comprobar que `/health` y `/model-info` responden. Eso
   es lo que destapó dos fallos que llevaban desde F0 sin verse.
-- **La captura semanal sigue construyendo silver y gold solo con su propia corrida**, no
-  con el histórico acumulado. Eso basta para validar que la captura salió bien, pero el
-  `gold_listings` del workflow no es el lago completo. `enrich.yml` ya hace lo correcto
-  —`pull-history` antes de dbt— y ese es el patrón que el índice mensual de F3 tendrá que
-  copiar si va a correr en CI. La captura semanal se dejó como está a propósito: volverla
-  acumulativa cambia qué valida y qué sube como artefacto.
+- **La captura semanal construía silver y gold solo con su propia corrida**, no con el
+  histórico acumulado; `enrich.yml` sí hace `pull-history` antes de dbt. Con la captura
+  cerrada ya no importa, pero es lo primero que habría que cambiar si se reabriera.
 - **La rama `data` crece para siempre.** ~1 MB hoy con las 8 capturas más el detalle,
   ~25 MB al año. Quitar algo publicado por error exige reescribir la rama. Cuando empiece
   a apretar hay que **avisar, no migrar**: el proyecto corre a costo cero y pasar a
@@ -1561,27 +1567,30 @@ supuestos", desde aquí y no tecleadas a mano.
 - **Las tarjetas patrocinadas se filtran entre regiones**, así que `department` no es un
   marco de muestreo limpio.
 - **GitHub desactiva los workflows programados** tras 60 días sin actividad en el repo.
-- **La validación temporal ya es posible, pero sobre un lago que todavía no se ha
-  reconstruido.** El lago medido abarca **5,54 días** (2026-09-29 21:48 → 2026-10-05 10:49)
+- *(Histórico: resuelto en el reentrenamiento del 2026-10-25, que publica la partición
+  temporal al lado de la aleatoria.)* **La validación temporal ya es posible, pero sobre un
+  lago que todavía no se ha reconstruido.** El lago medido abarca **5,54 días** (2026-09-29 21:48 → 2026-10-05 10:49)
   contra los **14** que exige `MIN_TEMPORAL_SPAN_DAYS`, así que `--split temporal` falla hoy
   a propósito. Las dos capturas semanales que faltaban **ya llegaron solas** —2026-10-12 y
   2026-10-19, en la rama `data`—, de modo que un `pull-history` llevaría el span a ~20 días.
   Conviene repetir la medición con `temporal` cuando se haga, porque es la partición que
   exige el índice mensual de F3.
-- **La cobertura de la banda ya no queda corta — ahora se pasa, y en motos lo bastante
-  para costarle la etiqueta.** Era 76,5 % y 76,8 % contra el nominal de 80 %; con el lago
-  completo es 81,0 % en carros y **83,6 % en motos**. La hipótesis vieja (filas no
-  intercambiables por reposteo) no explica un cambio de signo. Lo que sí: el ensanche
+- **La cobertura de la banda es inestable entre reentrenamientos.** Pasó de quedarse corta
+  (por debajo del nominal de 80 %) a pasarse, y después volvió a entrar en la ventana; la
+  vigente está en el [bloque generado del README](../README.md#las-cifras-del-modelo-servido).
+  La hipótesis vieja (filas no intercambiables por reposteo) no explica un cambio de signo.
+  Lo que sí: el ensanche
   conformal se estima sobre el cuantil empírico de un residuo de cola pesada, y ese
   estimador es inestable en los dos sentidos según cuántas filas de calibración haya. El
   arreglo sigue siendo conformal consciente de grupos o calibración anidada, ahora con el
   objetivo de **estabilizar**, no de subir. **No** bajar el nivel hasta que el holdout
   cuadre: eso sería ajustar contra el holdout.
-- **Los cuantiles se cruzan en 5,4 % de carros y 12,0 % de motos.** Se ordenan por fila, que
-  es correcto, pero un cruce alto significa que los tres niveles no concuerdan sobre la
-  forma de la superficie de precios. En motos subió de 8,4 % a 12,0 % y es la pista más
-  concreta de por qué esa banda sigue midiendo 84 % de ancho. Ajustar los tres con un
-  objetivo multicuantil, o con monotonicidad impuesta, es el siguiente intento.
+- **Los cuantiles se cruzan**, más en motos que en carros (12,0 % contra 5,4 % en la
+  medición del 2026-10-06). Se ordenan por fila, que es correcto, pero un cruce alto
+  significa que los tres niveles no concuerdan sobre la forma de la superficie de precios,
+  y es la pista más concreta de por qué la banda de motos falla el ancho. **Ajustar los tres
+  con un objetivo multicuantil, o con monotonicidad impuesta, es el siguiente intento** y
+  queda como trabajo futuro.
 - **La banda entrena con 25 % menos filas** que el modelo puntual, porque esa parte se
   aparta para calibrar. El modelo puntual no paga ese costo; la banda sí.
 - **CatBoost se exploró con la mitad del presupuesto que LightGBM** (20 trials contra 40),
@@ -1606,6 +1615,10 @@ supuestos", desde aquí y no tecleadas a mano.
 
 ### Registro de capturas bloqueadas
 
+> **La captura está cerrada desde el 2026-11-11** (ADR 0005, decisión final): el corte de
+> abajo es el dataset fijo del proyecto, y "Weekly capture" y "Enrich motorcycle details"
+> se deshabilitan desde la pestaña Actions. Lo que sigue es el registro de cómo se llegó.
+
 La última captura buena es la del **2026-10-19**. Desde entonces el lago sigue en
 **4 capturas, del 2026-09-30 al 2026-10-19**, y esta tabla es el registro del hueco, para
 que no haya que inferirlo de archivos que faltan.
@@ -1624,7 +1637,8 @@ en la primera, escriben lo que ya hubieran capturado y salen con código **3**; 
 verificación", saltan validación, dbt y publicación, y **no ponen el run en rojo**. Una
 semana bloqueada cuesta ahora **una petición**.
 
-Por eso los dos workflows **se vuelven a habilitar** con este cambio: deshabilitarlos era
+Por eso los dos workflows **se volvieron a habilitar** el 2026-11-01 (y se deshabilitan
+otra vez al cerrar la captura, el 2026-11-11): deshabilitarlos era
 la única forma de no gastar 72 peticiones, y ya no lo es. El run semanal pasa a ser además
 la sonda más barata posible: la primera semana que salga verde es la que dice que el muro
 se levantó.
@@ -1643,7 +1657,14 @@ parseaba como "no hay reglas publicadas" —es decir, el muro se leía como un r
 permisivo y la parada ocurría una petición más tarde. La detección ahora corre también en
 el fetch de robots, que es lo que vuelve cierto el "una sola petición".
 
-### Fuente de datos: decidido, la captura queda en pausa
+### Fuente de datos: cerrada, corte fijo
+
+> **Decisión final, 2026-11-11.** La opción A se midió con un token válido y se
+> **descartó**: `/users/me` responde 200, pero `/sites/MCO/search` y `/highlights` responden
+> `403` y los vehículos no están en el catálogo de productos. La tabla de endpoints está en
+> el [ADR 0005](adr/0005-capture-source-after-verification-wall.md#option-a-measured-with-a-token).
+> El proyecto cierra con las 4 capturas como **dataset fijo**, el modelo no se reentrena y
+> el índice mensual queda fuera de alcance. Lo que sigue es el registro del 2026-11-01.
 
 [ADR 0005](adr/0005-capture-source-after-verification-wall.md), decidido el **2026-11-01**:
 
@@ -1702,8 +1723,9 @@ absorbió los Pasos 5 y 6 del [rediseño](redesign.md). Una rama y un PR por blo
 | 9b | Cierre: auditoría de legibilidad, contraste, desbordamiento y áreas de toque en CI, comportamiento global, Lighthouse, nombres canónicos, capturas y README | [#39](https://github.com/JoseRomo16/AutoValorCo/pull/39) |
 | 10 | PWA: manifiesto e íconos desde los tokens, service worker escrito a mano, sin conexión, aviso de actualización, worker de emergencia ([ADR 0007](adr/0007-pwa-cache-strategy.md)) | [#40](https://github.com/JoseRomo16/AutoValorCo/pull/40) |
 
-**El plan de Bloques 0 a 10 está cerrado con la PWA del Bloque 10.** Lo que queda abierto
-está en "Decisiones abiertas" y en los pendientes del usuario (los workflows de captura). El bundle servido es `2026-11-02.12948`. Cuando un PR toca a la vez la API y el
+**El plan de Bloques 0 a 10 está cerrado con la PWA del Bloque 10** (y el arreglo del
+favicon, [#41](https://github.com/JoseRomo16/AutoValorCo/pull/41)). El proyecto se cerró
+después; ver [Cierre del proyecto](#cierre-del-proyecto). El bundle servido es `2026-11-02.12948`. Cuando un PR toca a la vez la API y el
 sitio, el orden de despliegue es **la API primero y el sitio después**: el sitio lee de
 `/catalog` los rangos que valida.
 
@@ -1770,7 +1792,8 @@ el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el
   el registro de cómo se llegó aquí. Cuando una de ellas afirma algo que ya no se cumple —como
   "motos fallan las dos condiciones"— lleva una nota que dice qué cambió.
 
-**Lo que sigue:**
+**Lo que seguía el 2026-10-26** (histórico: todo esto quedó resuelto o cerrado, ver
+[Cierre del proyecto](#cierre-del-proyecto)):
 
 1. **El Bloque 4** (modelo sin ciudad), y su despliegue: la API primero, el sitio después.
    Pasos en [`deploy-render.md`](deploy-render.md); el despliegue no se automatiza desde aquí.
@@ -1786,12 +1809,12 @@ el reentrenamiento del 2026-10-25 dejó nueve de ellas falsas de golpe. Desde el
    del 2026-11-01: [ADR 0005](adr/0005-capture-source-after-verification-wall.md). Correrla
    desde una IP residencial se descartó por contar como evadir el bloqueo. Lo único abierto
    es la API oficial, y está en medición.
-4. **Opcional, de producto**: el índice mensual cuando haya histórico (~2027-03-29), y que
-   motos bajen de 22,0 %, que sigue siendo señal de estado y no más identidad.
+4. **Opcional, de producto**: el índice mensual cuando hubiera histórico (hoy fuera de
+   alcance), y que motos bajen su error, que sigue siendo señal de estado y no más identidad.
 
-Lo que **no** está hecho y no es un olvido: el índice mensual de precios (espera a
-~2027-03-29 por histórico), la comparación con Fasecolda (fuera de alcance por decisión) y
-que motos lleguen a 15 % (faltan 7 puntos y la ruta es señal de estado, no más identidad).
+Lo que **no** está hecho y no es un olvido: el índice mensual de precios y la comparación
+con Fasecolda (los dos fuera de alcance por decisión) y que motos lleguen a 15 % (la ruta
+es señal de estado, no más identidad).
 
 **Decisión abierta que dejó el reentrenamiento**: si la partición temporal debe cortar por
 fecha en vez de tomar el quinto más reciente, lo que hoy repartiría el mismo día de captura
@@ -1834,11 +1857,12 @@ tener el lago:
 .\make.ps1 transform      # reconstruye silver y gold desde ahí
 ```
 
-**La re-medición está completa** y F2 cerrada; no hay nada a medias esperando. Lo que
-sigue es F3: queda el índice mensual (implementado, no publicable hasta ~2027-03) y la
-comparación con Fasecolda (bloqueada).
+**La re-medición está completa** y F2 y F3 cerradas; no hay nada a medias esperando. El
+índice mensual (implementado, no publicado) y la comparación con Fasecolda quedan fuera de
+alcance.
 
-Para seguir enriqueciendo motos —**detenido por decisión, no reanudar sin que lo pidan**—
+Para seguir enriqueciendo motos —**cerrado con la captura; lo de abajo solo sirve si el
+proyecto se reabre**—
 el camino preferido es GitHub Actions: es gratis, no
 depende de una máquina encendida y ya trae el histórico por sí solo. Lanza
 `Enrich motorcycle details` desde la pestaña Actions con el presupuesto que quieras
@@ -1869,16 +1893,15 @@ silver y gold se derivan. `pull-history` nunca sobrescribe un archivo local —b
 inmutable y el nombre lleva el instante UTC, así que una colisión es la misma captura— y
 correrlo dos veces no hace nada la segunda vez.
 
-A partir de ahora la captura semanal publica sola: `capture.yml` corre
+Mientras la captura estuvo activa publicaba sola: `capture.yml` corre
 `autovalor.ingest.history push` con `contents: write`, y lo hace con `if: !cancelled()`
 por la misma razón que la subida del artefacto —la captura es la parte irremplazable—. El
 artefacto sigue subiéndose como red de seguridad; los dos caminos son independientes a
 propósito.
 
-**Ojo con los números al reconstruir.** El lago local ya está sincronizado con la rama: 8
-capturas de bronze y los dos Parquet de detalle, 11.691 filas de gold, que es donde se
-midió todo lo de arriba. La próxima captura semanal lo hará crecer otra vez, y entonces
-**las métricas hay que volver a medirlas** —no son constantes del proyecto, son medidas
+**Ojo con los números al reconstruir.** Con la captura cerrada el lago ya no crece: la rama
+`data` tiene el corte fijo completo, y `pull-history` + `transform` lo reconstruyen tal
+cual. Si alguna vez se reabriera, **las métricas habría que volver a medirlas** —no son constantes del proyecto, son medidas
 sobre un lago con fecha—. El `manifest.json` de `docs/results/` existe justamente para que
 una cifra publicada diga sobre cuántas filas se tomó.
 
@@ -1889,3 +1912,44 @@ $env:AUTOVALOR_USE_SYSTEM_CERTS = 'true'
 .\make.ps1 scrape -Pages 25   # ~35 min, seis departamentos, ambas verticales
 .\make.ps1 transform
 ```
+
+---
+
+## Cierre del proyecto
+
+**2026-11-11.** El proyecto está completo y cerrado con un **dataset fijo**.
+
+**Qué se entregó**
+
+- Pipeline de datos reproducible: captura educada de TuCarro → bronze inmutable en la rama
+  `data` → dbt silver/gold validados con Pandera.
+- Dos modelos LightGBM (carros y motos) sobre `log(precio)`, con banda P10–P90 calibrada
+  por conformal y una regla de publicación de la etiqueta ganga/justo/caro que se evalúa en
+  el holdout. Carros publican etiqueta; motos, precio y rango sin etiqueta. Cifras: el
+  [bloque generado del README](../README.md#las-cifras-del-modelo-servido).
+- Resultados económicos de F3 (depreciación, kilometraje, efecto regional, error por
+  segmento, contraste del catálogo) en [`docs/results/`](results/README.md).
+- API FastAPI en Docker (`/predict`, `/explain`, `/catalog`, `/market`, `/health`,
+  `/model-info`) y sitio estático Next.js instalable como PWA, los dos en el plan gratuito
+  de Render.
+- Pruebas: pytest, vitest y e2e con Playwright contra la API real, con auditoría de
+  contraste, tamaño de texto y áreas de toque en CI.
+
+**Decisiones clave**
+
+- [ADR 0005](adr/0005-capture-source-after-verification-wall.md): la captura se detuvo ante
+  la verificación de TuCarro **sin evadirla**; la API oficial de Mercado Libre se midió con
+  token y no da anuncios de vehículos; el proyecto cierra con un corte fijo (4 capturas,
+  2026-09-30 a 2026-10-19, más el detalle de motos del 2026-10-25), sin reentrenar, y el
+  índice mensual queda fuera de alcance.
+- [ADR 0006](adr/0006-drop-city-feature.md): el modelo no usa ciudad, y las cifras
+  publicadas se miden con los valores que envía `/predict` (paridad entrenamiento-servicio).
+- [ADR 0007](adr/0007-pwa-cache-strategy.md): PWA con un service worker escrito a mano, sin
+  dependencias, con interruptor de emergencia.
+
+**Captura**: cerrada. "Weekly capture" y "Enrich motorcycle details" quedan deshabilitados
+desde la pestaña Actions; los archivos se conservan.
+
+**Deuda conocida** (detalle en [Deuda conocida](#deuda-conocida)): intento multicuantil o
+monotonicidad de cuantiles en motos; gráfico de barras de SHAP; `vehicle_age` implementado
+en tres lugares; CatBoost explorado con la mitad del presupuesto de LightGBM.

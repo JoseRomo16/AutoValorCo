@@ -1,6 +1,8 @@
 # AutoValor CO
 
-Sistema de valoración de carros y motos usados en Colombia. Estima el precio de mercado con intervalo P10–P90, clasifica anuncios como ganga / justo / caro (donde la banda lo sostiene), explica cada predicción (SHAP) y publica curvas de depreciación y un índice mensual de precios de usados. La comparación contra Fasecolda queda **fuera de alcance** (ver "Decisiones abiertas" en `docs/STATUS.md`).
+Sistema de valoración de carros y motos usados en Colombia. Estima el precio de mercado con intervalo P10–P90, clasifica anuncios como ganga / justo / caro (donde la banda lo sostiene), explica cada predicción (SHAP) y publica curvas de depreciación y otros resultados económicos. El índice mensual de precios y la comparación contra Fasecolda quedan **fuera de alcance** ([ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md), "Decisiones abiertas" en `docs/STATUS.md`).
+
+**El proyecto está cerrado** (2026-11-11) con un **dataset fijo**: 4 capturas de TuCarro, del 2026-09-30 al 2026-10-19, más el detalle de motos del 2026-10-25. El modelo no se reentrena con datos nuevos. Resumen en "Cierre del proyecto" de `docs/STATUS.md`.
 
 API desplegada: https://autovalor-api.onrender.com/docs
 
@@ -10,7 +12,7 @@ Documento de requerimientos completo: https://claude.ai/code/artifact/cbe0b762-b
 
 - Backend y datos: Python 3.12, uv, Playwright/httpx + BeautifulSoup, Parquet + DuckDB, dbt-duckdb, Pandera, scikit-learn, statsmodels, LightGBM, CatBoost, Optuna, SHAP, MLflow, FastAPI + Pydantic.
 - Frontend: Next.js (App Router) + TypeScript + Tailwind CSS, en `frontend/`.
-- Infra: Docker + docker compose, GitHub Actions (CI y captura semanal), despliegue en Render.
+- Infra: Docker + docker compose, GitHub Actions (CI; los workflows de captura se conservan pero están deshabilitados), Dependabot, despliegue en Render.
 
 ## Estructura
 
@@ -74,7 +76,7 @@ Restricción de diseño, no una preferencia: **el proyecto opera sin ningún cos
 - Scraping educado: respetar robots.txt, pausas aleatorias entre requests, user-agent identificable, sin paralelismo agresivo.
 - Nunca guardar datos personales de vendedores (nombres, teléfonos, correos). Ley 1581 de 2012.
 - La capa bronze es inmutable: se escribe una vez por captura, con `captured_at` y `source_url`.
-- **La captura está en pausa** desde el 2026-10-26 ([ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md)): TuCarro pide verificar cuenta y esquivarla (proxies, rotar IP o user-agent, navegador sin cabeza) es evasión, descartada. La captura se detiene en la primera verificación. Última captura buena: 2026-10-19.
+- **La captura está cerrada** ([ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md)): desde el 2026-10-26 TuCarro pide verificar cuenta, y esquivarla (proxies, rotar IP o user-agent, navegador sin cabeza, correrla desde una IP residencial) es evasión, descartada. La API oficial de Mercado Libre se midió con token el 2026-11-11 y no da anuncios de vehículos (403), así que también quedó descartada. Los datos son un corte fijo; no se buscan fuentes alternativas. "Weekly capture" y "Enrich motorcycle details" quedan deshabilitados en Actions. El código conserva la parada en la primera verificación.
 - **El modelo no usa ciudad** ([ADR 0006](docs/adr/0006-drop-city-feature.md)): el formulario pide departamento, y "Otro departamento" o uno desconocido se valora como promedio ponderado con `warnings: ["department_not_covered"]`. Las cifras publicadas se miden con los valores que `/predict` envía (`as_served` en `models/serving.py`); la prueba de paridad lo exige.
 - **Las reglas de validación salen de `/catalog`**: año, cilindrada, kilometraje y piso de precio. `/predict` las aplica (422) y el formulario las lee para placeholder y error en línea; ningún rango se teclea en el frontend.
 - `valor_fasecolda` no se usa como feature del modelo base (fuga de información). Era solo un benchmark y ese benchmark quedó fuera de alcance; la regla se mantiene por si alguna vez entra un export manual.
@@ -104,11 +106,12 @@ generado del README** (`make readme`); no las copies a mano a ningún documento.
 ## Fases y criterios de cierre
 
 - F0 Requisitos: repo inicial, CI verde, estructura y Makefile. (cerrada)
-- F1 Datos: piloto de 1.000 anuncios para medir σ del error; cierre con ≥ 6.000 carros y ≥ 2.600 motos limpios (captura bruta ~7.500 y ~3.500). Captura semanal activa desde aquí. (cerrada)
+- F1 Datos: piloto de 1.000 anuncios para medir σ del error; cierre con ≥ 6.000 carros y ≥ 2.600 motos limpios (captura bruta ~7.500 y ~3.500). Captura semanal activa desde aquí, hasta el muro de verificación. (cerrada)
 - F2 Modelación: hedónico OLS como línea base; los ensambles deben superarlo en MAPE. Meta MAPE ≤ 15 %. (**cerrada**: carros cumplen la meta y publican etiqueta; motos no llegan y publican precio + rango sin etiqueta, por la regla de arriba. El modelo servido es LightGBM. Cifras vigentes: bloque generado del README.)
-- F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, efectos regionales y costo del kilometraje. (**cerrada** salvo el índice mensual, que espera histórico hasta ~2027-03-29. La comparación con Fasecolda quedó **fuera de alcance**: la guía no se obtiene por HTTP público y la suscripción la descarta la regla de costo cero.)
+- F3 Resultados: métricas por segmento, SHAP, curvas de depreciación, efectos regionales y costo del kilometraje. (**cerrada**. El índice mensual queda **fuera de alcance**: necesita ~6 meses de histórico y la captura está cerrada; `analysis/price_index.py` se conserva probado y no publicado. La comparación con Fasecolda también: la guía no se obtiene por HTTP público y la suscripción la descarta la regla de costo cero.)
 - F4 Producto: API (/predict, /explain, /catalog, /market, /health, /model-info), app Next.js, Docker, despliegue en Render. (**cerrada**: API y sitio desplegados; rediseño y Bloque 9 de verificación cerrados, checklists en `docs/STATUS.md`.)
 - Bloque 10, PWA ([ADR 0007](docs/adr/0007-pwa-cache-strategy.md)): el sitio es instalable. Cuando un cambio toca API y sitio, se despliega la API primero.
+- **Proyecto cerrado** el 2026-11-11 con el corte actual como dataset fijo. La deuda conocida está en `docs/STATUS.md`; nada de ella es un compromiso.
 
 ## Forma de trabajo
 
