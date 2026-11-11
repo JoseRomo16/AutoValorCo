@@ -1,181 +1,80 @@
 # AutoValor CO
 
-**Valoración de carros y motos usados en Colombia** ·
-_Used car and motorcycle valuation for the Colombian market_
+**Cuánto vale un carro o una moto usada en Colombia, con su rango y por qué** ·
+_What a used car or motorcycle is worth in Colombia, with its range and the reasons why_
 
 [![CI](https://github.com/JoseRomo16/AutoValorCo/actions/workflows/ci.yml/badge.svg)](https://github.com/JoseRomo16/AutoValorCo/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
-![Status](https://img.shields.io/badge/F4-cerrada-green)
+[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-blue)](LICENSE)
+![Estado: completo](https://img.shields.io/badge/estado-completo-brightgreen)
 
 **Sitio · _Site_: [autovalor-web.onrender.com](https://autovalor-web.onrender.com)** ·
 **API: [autovalor-api.onrender.com/docs](https://autovalor-api.onrender.com/docs)** ·
 **Decisiones · _Decisions_: [docs/adr](docs/adr/)**
 
-Primera consulta ~1 min: el plan gratuito de Render duerme el servicio y el arranque en
-frío carga los dos modelos. _First request takes ~1 min: Render's free plan sleeps the
-service and a cold start loads both models._
+> La primera valoración puede tardar ~1 min: el plan gratuito de Render duerme la API y el
+> arranque en frío carga los dos modelos. Mercado y Metodología son estáticas y abren al
+> instante. · _The first valuation can take ~1 min: Render's free plan puts the API to sleep
+> and a cold start loads both models. Market and Methodology are static and open at once._
 
 ![Valorar: marca, año, kilometraje y departamento, y el precio con su rango](docs/design/valorar.gif)
 
-| Valorar · _Value_ | Mercado · _Market_ |
-| --- | --- |
-| [![Resultado de una valoración](docs/design/screens/readme_valorar-resultado_claro.jpg)](https://autovalor-web.onrender.com) | [![Hallazgos del mercado](docs/design/screens/readme_mercado_claro.jpg)](https://autovalor-web.onrender.com/mercado/) |
-| Precio, rango P10–P90, etiqueta cuando la banda la sostiene, y los factores que mueven el estimado. | Depreciación por marca con intervalos, costo del kilometraje y diferencias regionales, cada uno con su lectura económica. |
+| | Claro · _Light_ | Oscuro · _Dark_ |
+| --- | --- | --- |
+| **Valorar** · _Value_ | [![Valorar con resultado, tema claro](docs/design/screens/readme_valorar-resultado_claro.jpg)](https://autovalor-web.onrender.com) | [![Valorar con resultado, tema oscuro](docs/design/screens/readme_valorar-resultado_oscuro.jpg)](https://autovalor-web.onrender.com) |
+| **Mercado** · _Market_ | [![Mercado, tema claro](docs/design/screens/readme_mercado_claro.jpg)](https://autovalor-web.onrender.com/mercado/) | [![Mercado, tema oscuro](docs/design/screens/readme_mercado_oscuro.jpg)](https://autovalor-web.onrender.com/mercado/) |
+| **Metodología** · _Methodology_ | [![Metodología, tema claro](docs/design/screens/readme_metodologia_claro.jpg)](https://autovalor-web.onrender.com/metodologia/) | [![Metodología, tema oscuro](docs/design/screens/readme_metodologia_oscuro.jpg)](https://autovalor-web.onrender.com/metodologia/) |
+
+**[Español](#español)** · **[English](#english)**
 
 ---
 
 ## Español
 
-### ¿Qué hace?
+### Qué hace y para quién
 
-AutoValor CO estima el precio de mercado de un carro o una moto usada en Colombia y
-entrega, además del valor puntual, un intervalo de predicción **P10–P90**. Con eso:
+Comprar o vender un usado en Colombia es negociar a ciegas: los anuncios piden lo que
+quieren y la referencia habitual, la guía de Fasecolda, es de suscripción. AutoValor CO es
+para quien va a comprar, vender o simplemente comparar: le dice cuánto se pide en el mercado
+por un vehículo como el suyo, qué tan seguro está de esa cifra y qué la mueve.
 
-- **Clasifica anuncios** como _ganga_, _justo_ o _caro_ según dónde cae el precio pedido
-  dentro del intervalo.
-- **Explica cada predicción** con SHAP: cuánto aportan el año, el kilometraje, la marca,
-  el modelo o el departamento al precio estimado.
-- **Publica curvas de depreciación** por marca y segmento, y un **índice mensual** de
-  precios de usados.
+Lo que entrega:
 
-La etiqueta ganga/justo/caro solo se publica donde la banda P10–P90 medida fuera de muestra
-la sostiene: hoy en carros sí, y en motos sale el precio con su rango y un aviso de
-precisión. La comparación contra la guía **Fasecolda queda fuera de alcance** —no se
-obtiene por HTTP público y la suscripción está descartada por la regla de costo cero—; ver
-[`docs/STATUS.md`](docs/STATUS.md).
+- **Precio estimado** a partir de marca, modelo, año, kilometraje, cilindrada y
+  departamento.
+- **Rango P10–P90**: dónde se publican ocho de cada diez vehículos comparables, calibrado
+  para que esa promesa se cumpla fuera de muestra.
+- **Etiqueta ganga / justo / caro** para un precio pedido, **solo donde la banda la
+  sostiene**: se publica si la cobertura y el ancho del rango, medidos en el holdout,
+  pasan una regla escrita en el código.
+- **Factores SHAP**: cuánto sube o baja el precio cada característica de ese vehículo.
+- **Mercado**: depreciación por marca, costo del kilometraje, diferencias regionales y
+  dónde se equivoca el modelo, cada gráfico con su lectura económica.
+- **Metodología**: datos, modelos, métricas fuera de muestra, la regla de la etiqueta y las
+  limitaciones, sin suavizarlas.
 
-### Arquitectura
+Sus límites, dichos de frente:
 
-```
-TuCarro
-        │  scraping educado (robots.txt, pausas aleatorias, UA identificable)
-        ▼
-┌──────────────┐   dbt + Pandera   ┌──────────────┐   dbt    ┌────────────┐
-│    BRONZE    │ ────────────────► │    SILVER    │ ───────► │    GOLD    │
-│ Parquet CRUDO│   validación      │ limpio, sin  │ features │ listo para │
-│  inmutable   │   de esquema      │  duplicados  │          │  modelar   │
-└──────────────┘                   └──────────────┘          └─────┬──────┘
-                                                                   │
-                      ┌────────────────────────────────────────────┘
-                      ▼
-        ┌─────────────────────────────┐        ┌──────────────────────────┐
-        │  MODELOS (log del precio)   │  MLflow│  API FastAPI             │
-        │  hedónico OLS  (línea base) │ ─────► │  /predict  /explain      │
-        │  LightGBM / CatBoost        │        │  /catalog  /market       │
-        │  + SHAP, intervalos P10–P90 │        │  /health   /model-info   │
-        └─────────────────────────────┘        └───────────┬──────────────┘
-                                                           │
-                                                           ▼
-                                              App Next.js + Tailwind
-```
+- **Son precios pedidos, no de cierre.** En un mercado donde se regatea, lo que se pide
+  queda por encima de lo que se paga, y esa diferencia no está medida.
+- **Los datos son un corte fijo**: 4 capturas de TuCarro, del 2026-09-30 al 2026-10-19
+  (más el detalle de motos del 2026-10-25). El modelo no se reentrena con datos nuevos, así
+  que las cifras describen el mercado de esas semanas.
+- **Las motos no llevan etiqueta.** Su rango cubre lo que promete, pero es demasiado ancho
+  para separar una ganga de un precio justo; se publican con precio, rango y aviso de
+  precisión.
+- **Fuera de alcance**: la comparación con Fasecolda (la guía no es pública y la suscripción
+  choca con la regla de costo cero) y el índice mensual de precios, que necesita meses de
+  histórico que un corte fijo no tiene
+  ([ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md)).
+- Las estimaciones son informativas y no constituyen un avalúo comercial.
 
-Carros y motos se modelan por separado y el objetivo siempre es `log(precio)`.
+### Resultados
 
-```
-src/autovalor/
-  ingest/      # scrapers TuCarro (carros y motos)
-  quality/     # esquemas Pandera
-  features/    # features derivadas
-  models/      # train.py, export.py, bundle.py, explain.py
-  analysis/    # hedónico con errores HC3 (resultados de F3)
-  api/         # FastAPI
-dbt/           # modelos silver y gold
-data/          # bronze/ silver/ gold/ (en .gitignore)
-notebooks/     # solo exploración
-frontend/      # Next.js + Tailwind
-tests/
-docs/          # ADRs, diccionario de datos, results/ y figures/
-```
-
-### Stack
-
-| Capa        | Herramientas                                                                 |
-| ----------- | ---------------------------------------------------------------------------- |
-| Captura     | Playwright, httpx, BeautifulSoup, tenacity                                   |
-| Almacén     | Parquet, DuckDB, dbt-duckdb                                                  |
-| Calidad     | Pandera                                                                      |
-| Modelación  | scikit-learn, statsmodels, LightGBM, CatBoost, Optuna, SHAP, MLflow          |
-| Servicio    | FastAPI, Pydantic, Uvicorn                                                   |
-| Frontend    | Next.js (App Router), TypeScript, Tailwind CSS                               |
-| Infra       | uv, Docker, docker compose, GitHub Actions, Render                           |
-
-### Arranque
-
-Requisitos: Python 3.12 y [uv](https://docs.astral.sh/uv/).
-
-```bash
-git clone https://github.com/JoseRomo16/AutoValorCo.git
-cd AutoValorCo
-cp .env.example .env     # ajusta lo que necesites
-make setup               # uv sync + playwright + pre-commit (+ npm en F4)
-make test
-```
-
-En **Windows** no hay GNU make; usa el script equivalente:
-
-```powershell
-Copy-Item .env.example .env
-.\make.ps1 setup
-.\make.ps1 test
-```
-
-### Comandos
-
-| Comando          | Qué hace                                             | Disponible |
-| ---------------- | ---------------------------------------------------- | ---------- |
-| `make setup`     | Instala dependencias de Python, navegador y frontend | F0         |
-| `make scrape`    | Captura anuncios de TuCarro en `data/bronze`         | F1         |
-| `make transform` | Corre dbt (silver y gold) + validaciones Pandera     | F1         |
-| `make train`     | Entrena y registra modelos en MLflow                 | F2         |
-| `make results`   | Estima los resultados económicos y los exporta a `docs/` | F3     |
-| `make readme`    | Regenera las cifras de este README desde los archivos | F3        |
-| `make export-model` | Entrena el modelo servido en `artifacts/models/`   | F4         |
-| `make serve`     | Levanta la API en local (`:8000`)                    | F0         |
-| `make web`       | Levanta el frontend en local (`:3000`)               | F4         |
-| `make web-build` | Construye el sitio estático en `frontend/out`        | F4         |
-| `make web-lint`  | ESLint + TypeScript del frontend                     | F4         |
-| `make test`      | pytest con cobertura (mínimo 70 %)                   | F0         |
-| `make lint`      | ruff + mypy                                          | F0         |
-
-La captura también se puede afinar desde el CLI:
-
-```bash
-# Barrido nacional, 10 páginas por vertical
-uv run python -m autovalor.ingest.cli --vehicle-type all --pages 10
-
-# Por ciudad (la primera página del sitio está geolocalizada por IP)
-uv run python -m autovalor.ingest.cli --vehicle-type car \
-  --location bogota-dc --location medellin --pages 20
-
-# Ver cuántos anuncios saldrían, sin escribir en bronze
-uv run python -m autovalor.ingest.cli --vehicle-type car --pages 1 --dry-run
-```
-
-En redes que inspeccionan TLS (proxy corporativo, algunos antivirus) hay que poner
-`AUTOVALOR_USE_SYSTEM_CERTS=true` en el `.env` para validar contra el almacén de
-certificados del sistema.
-
-**Captura semanal, en pausa.** El workflow `.github/workflows/capture.yml` corría los
-lunes a las 07:00 UTC, barría seis departamentos, transformaba, validaba y guardaba el
-histórico en la rama `data` ([ADR 0004](docs/adr/0004-capture-history-storage.md)). Desde
-el 2026-10-26 TuCarro pide verificar una cuenta a los programas que leen anuncios, y la
-captura está en pausa en vez de esquivar esa verificación
-([ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md)). La última captura
-buena es la del 2026-10-19.
-
-Con Docker:
-
-```bash
-docker compose up -d api                    # API en http://localhost:8000
-docker compose --profile ml up -d mlflow    # UI de MLflow en http://localhost:5000
-```
-
-### Resultados económicos
-
-Salen del hedónico con errores robustos (HC3), no de los ensambles: un ensamble predice
-bien y no dice cuánto vale un año. Las tablas completas, con intervalos de confianza y el
-manifiesto de sobre qué lago se midieron, están en
-[`docs/results/`](docs/results/README.md); se regeneran con `make results`.
+Error medido **fuera de muestra**, sobre anuncios que el modelo nunca vio, y con los mismos
+valores que la API envía al valorar ([ADR 0006](docs/adr/0006-drop-city-feature.md)).
+Las cifras se generan con `make readme` desde los archivos del modelo y de
+[`docs/results/`](docs/results/README.md); nada de este bloque está escrito a mano.
 
 <!-- results:start:es -->
 
@@ -205,184 +104,230 @@ Generado por `make readme` desde `artifacts/models/*/model.json` y `docs/results
 
 <!-- results:end:es -->
 
-**Lo que más sorprende: las motos casi no se deprecian con la edad.** La marca que menos
-pierde tiene un intervalo de confianza que incluye el cero, así que estos datos no la
-distinguen de no perder nada. En carros la folk theory se sostiene: las japonesas y
-coreanas aguantan, las premium alemanas y Ford caen al doble de velocidad.
-
-![Depreciación anual por marca, carros](docs/figures/depreciation-car.png)
+**Cómo leerlo.** Carros cumplen con holgura la meta del proyecto (MAPE ≤ 15 %) y su rango
+pasa la regla, así que publican etiqueta. En motos el modelo le gana por mucho a la
+referencia OLS, pero el rango es demasiado ancho para calificar un precio: la etiqueta se
+retiene aunque la cobertura esté en su sitio. La partición temporal, que evalúa en los
+anuncios más nuevos, se publica al lado como segunda medición y nunca en lugar de la
+principal.
 
 ![Valor retenido con la edad, motos](docs/figures/retained-value-motorcycle.png)
 
-Esa es la misma historia que SHAP contó desde el otro lado —el modelo de motos pesa
-identidad y casi no pesa estado— pero medida con un método independiente, que es lo que la
-vuelve una conclusión en vez de una lectura.
+Las tablas completas con intervalos de confianza y las demás figuras están en
+[`docs/results/`](docs/results/README.md) y [`docs/figures/`](docs/figures/).
 
-**Y el hallazgo que más cambió el plan:** el error en motos no se repartía parejo. Estaba
-concentrado en los anuncios cuya marca no se extraía del título, que tenían más del doble
-del error de las marcas que sí resuelven. Resolver esa marca con un mapa modelo → marca
-bajó el error de la vertical sin una sola petición nueva: salió de títulos ya capturados.
-Es la mejora más grande que ha dado una sola intervención en el proyecto, y no vino del
-modelado. Las cifras de cada corrida están en [`docs/STATUS.md`](docs/STATUS.md).
+### Arquitectura
 
-![Error por marca, motos](docs/figures/segment-error-motorcycle.png)
-
-Dos matices que las cifras de arriba no cuentan solas:
-
-- **El kilometraje no se cobra igual en todos los segmentos.** El efecto escala con el
-  valor del vehículo, y en las motos más baratas no es distinguible de cero: ese mercado no
-  cobra el kilometraje.
-- **`department` dice dónde se publica el anuncio**, que no es exactamente dónde está el
-  mercado: las tarjetas patrocinadas se filtran entre regiones.
-
-![Diferencias regionales, motos](docs/figures/regional-motorcycle.png)
-
-### La app
-
-Next.js (App Router) + TypeScript + Tailwind en `frontend/`, publicada como **sitio
-estático** —`output: "export"`— porque es lo único que cabe gratis en Render. Español por
-defecto con cambio a inglés, y tres vistas:
-
-- **Valorar** — formulario cuyas listas salen de `GET /catalog`, es decir de las filas con
-  las que se entrenó el modelo servido. No es un detalle: los árboles llevan niveles
-  categóricos congelados, así que una marca que el modelo nunca vio saldría por la rama de
-  faltante y devolvería un número igual de confiado. El resultado trae precio, rango
-  P10–P90, etiqueta cuando la vertical la tiene, y los cinco factores de `/explain` como
-  barras de sube/baja.
-- **Mercado** — los resultados de F3, cada gráfico con una frase de lectura económica.
-- **Metodología** — datos, modelos, métricas fuera de muestra, la regla de la etiqueta y
-  las limitaciones, sin suavizarlas.
-
-**Mercado y Metodología no llaman a la API**: leen `docs/results/` y
-`artifacts/models/*/model.json` **en tiempo de construcción**, así que renderizan al
-instante y no pueden citar una cifra distinta a la del commit del que salieron. Solo
-Valorar habla con el servicio, y por eso el aviso del arranque en frío está en pantalla
-antes de que nadie pulse el botón.
-
-| | Claro | Oscuro |
-| --- | --- | --- |
-| **Valorar** | ![Valorar con resultado, tema claro](docs/design/screens/readme_valorar-resultado_claro.jpg) | ![Valorar con resultado, tema oscuro](docs/design/screens/readme_valorar-resultado_oscuro.jpg) |
-| **Mercado** | ![Mercado, tema claro](docs/design/screens/readme_mercado_claro.jpg) | ![Mercado, tema oscuro](docs/design/screens/readme_mercado_oscuro.jpg) |
-| **Metodología** | ![Metodología, tema claro](docs/design/screens/readme_metodologia_claro.jpg) | ![Metodología, tema oscuro](docs/design/screens/readme_metodologia_oscuro.jpg) |
-
-Cada página a 1440 y 375 px en los dos temas está en
-[`docs/design/screens/`](docs/design/screens/); el juego completo (cinco vistas, cuatro
-temas, cuatro anchos) lo genera `frontend/screens/` y la CI lo sube como artefacto en cada
-pull request.
-
-En local, contra la API desplegada o contra una local:
-
-```bash
-make serve                                    # opcional: la API en :8000
-echo "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > frontend/.env.local
-make web                                      # http://localhost:3000
+```mermaid
+flowchart LR
+    A["TuCarro<br/>captura educada"] --> B[("Bronze<br/>Parquet inmutable<br/>rama data")]
+    B --> C["dbt silver / gold<br/>+ Pandera"]
+    C --> D["Entrenamiento<br/>LightGBM + OLS<br/>calibración conformal"]
+    D --> E[("Bundle<br/>artifacts/models")]
+    E --> F["API FastAPI<br/>en Docker"]
+    C --> G[("docs/results<br/>make results")]
+    E --> H["Sitio estático<br/>Next.js + PWA"]
+    G --> H
+    F -- "/predict /explain /catalog" --> H
+    F --> R["Render<br/>plan gratuito"]
+    H --> R
 ```
 
-Sin `.env.local` el frontend apunta a `https://autovalor-api.onrender.com`.
+Carros y motos son modelos separados y el objetivo es siempre `log(precio)`. Mercado y
+Metodología leen `docs/results/` y `model.json` **al construir el sitio**, no por HTTP;
+solo el formulario de Valorar llama a la API.
 
-**Se instala como app.** Chrome (escritorio y Android) ofrece instalarla y en iOS se
-agrega a la pantalla de inicio. Mercado y Metodología funcionan sin conexión; Valorar
-carga el formulario con las últimas listas guardadas y avisa que calcular necesita red.
-Un aviso discreto ofrece actualizar cuando hay una versión nueva
-([ADR 0007](docs/adr/0007-pwa-cache-strategy.md)).
+| Capa | Herramientas |
+| --- | --- |
+| Captura | httpx, BeautifulSoup, Playwright, tenacity |
+| Almacén | Parquet, DuckDB, dbt-duckdb, rama `data` de git |
+| Calidad de datos | Pandera |
+| Modelación | scikit-learn, statsmodels (OLS con HC3), LightGBM, CatBoost, Optuna, SHAP, MLflow |
+| Servicio | FastAPI, Pydantic, Uvicorn, Docker |
+| Frontend | Next.js (App Router, export estático), TypeScript, Tailwind CSS, service worker propio |
+| Infra | uv, GitHub Actions, Dependabot, Render (plan gratuito) |
 
 ### Decisiones de ingeniería
 
-Las decisiones que cambian la forma del sistema quedan como ADR en [`docs/adr/`](docs/adr/).
-Tres de ellas explican el estado actual:
+Cada decisión que cambia la forma del sistema queda como ADR en [`docs/adr/`](docs/adr/).
 
-- **[ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md), captura en
-  pausa.** Cuando TuCarro empezó a pedir verificación de cuenta, rotar IPs, user-agents o
-  navegadores sin cabeza se descartó por ser evasión. La captura se detiene en la primera
-  verificación, guarda lo que ya tenía y reporta "bloqueado"; el modelo sigue sirviendo
-  con el lago hasta el 2026-10-19.
-- **[ADR 0006](docs/adr/0006-drop-city-feature.md), modelo sin ciudad.** El formulario
-  pide el departamento, no la ciudad, así que el servicio mandaba siempre el mismo valor y
-  cada valoración cargaba el efecto de un grupo que no aparece en la evaluación. Esa
-  variable salió del modelo, y las cifras publicadas se miden con los valores que
-  `/predict` envía de verdad (paridad entrenamiento/servicio), con el error en partición
-  aleatoria y en partición temporal.
-- **[ADR 0007](docs/adr/0007-pwa-cache-strategy.md), la app instalable.** Un service
-  worker escrito a mano, sin dependencias: las páginas van primero a la red, los
-  archivos con hash salen del caché, la API nunca se sirve desde caché (salvo `/catalog`
-  como respaldo sin conexión, marcado como tal), y hay un worker de emergencia para
-  retirarlo si causa problemas.
+- **[0001](docs/adr/0001-record-architecture-decisions.md), registrar decisiones.** Toda
+  decisión no trivial se escribe con contexto, decisión y consecuencias; un cambio de rumbo
+  es un ADR nuevo, no una edición.
+- **[0002](docs/adr/0002-weekly-capture-storage.md), dónde guardar las capturas.** Primero
+  como artefactos de Actions, con 90 días de vida, aceptando ese plazo como límite para
+  migrar.
+- **[0003](docs/adr/0003-tree-model-validation.md), cómo se validan los árboles.** Los
+  ensambles reciben las categóricas crudas y se ajustan con K-fold agrupado por vehículo,
+  porque el mismo carro reaparece con otro ID y partir por filas filtraba el holdout.
+- **[0004](docs/adr/0004-capture-history-storage.md), el histórico en una rama.** Las
+  capturas viven en la rama huérfana `data` del propio repositorio: sin cuentas, sin
+  secretos y sin costo, en vez de un almacenamiento de objetos que pide tarjeta.
+- **[0005](docs/adr/0005-capture-source-after-verification-wall.md), detener la captura
+  sin evadir el bloqueo.** Cuando TuCarro empezó a pedir verificación de cuenta, la captura
+  se detuvo en la primera respuesta en vez de rotar IP, user-agent o navegador. Correrla
+  desde una IP residencial se descartó por ser evasión, y la API oficial de Mercado Libre
+  se midió con un token válido: responde `403` a la búsqueda de vehículos. El proyecto
+  cierra con un corte fijo.
+- **[0006](docs/adr/0006-drop-city-feature.md), modelo sin ciudad y paridad
+  entrenamiento–servicio.** El formulario pide departamento, así que la API mandaba
+  siempre la misma ciudad y el rango publicado cubría menos de lo que decía. La ciudad
+  salió del modelo, las cifras se miden con los valores que `/predict` envía de verdad y una
+  prueba de paridad impide que esa brecha vuelva a abrirse.
+- **[0007](docs/adr/0007-pwa-cache-strategy.md), una PWA sin dependencias.** Un service
+  worker de ~150 líneas escrito a mano y generado tras el build: páginas primero desde la
+  red, archivos con hash desde caché, la API nunca desde caché (salvo `/catalog` como
+  respaldo marcado sin conexión) y un worker de emergencia para retirarlo.
 
-### Roadmap
+### Calidad
 
-Estado detallado, decisiones abiertas y cómo retomar: **[`docs/STATUS.md`](docs/STATUS.md)**.
+| Qué | Cómo | Comando |
+| --- | --- | --- |
+| Python: pruebas y cobertura | pytest, cobertura mínima del 70 % en `src/` (falla por debajo) | `make test` |
+| Python: lint y tipos | ruff (lint y formato) y mypy sobre `src/` y `tests/` | `make lint` |
+| Frontend: unidades | vitest con Testing Library, incluidas pruebas de textos ES/EN | `npm test` |
+| Frontend: lint y tipos | ESLint y `tsc --noEmit` | `npm run lint`, `npx tsc --noEmit` |
+| End-to-end | Playwright sobre el export estático **contra la API real** levantada en local: regresiones, PWA, sin conexión y comportamiento global | `npm run e2e` |
+| Accesibilidad visual | auditoría en CI de contraste, tamaño mínimo de texto y áreas de toque, con su propia autoprueba (`e2e/audit.ts`) | parte de `npm run e2e` |
+| Imagen de la API | CI construye `Dockerfile.api`, vigila su tamaño y la arranca con el entorno de `render.yaml` | GitHub Actions |
+| Cifras publicadas | `tests/test_readme.py` falla si este README no coincide con los archivos del modelo | `make readme` |
 
-| Fase   | Objetivo    | Criterio de cierre                                                                                    | Estado      |
-| ------ | ----------- | ----------------------------------------------------------------------------------------------------- | ----------- |
-| **F0** | Requisitos  | Repo inicial, estructura, Makefile y CI en verde                                                      | cerrada     |
-| **F1** | Datos       | Piloto para medir σ del error; ≥ 6.000 carros y ≥ 2.600 motos limpios; captura semanal activa          | cerrada; el lago de hoy, en las cifras de arriba |
-| **F2** | Modelación  | Hedónico OLS como línea base; los ensambles deben superarlo. Meta **MAPE ≤ 15 %**                      | cerrada; carros cumplen la meta, motos no (cifras arriba) |
-| **F3** | Resultados  | Métricas por segmento, SHAP, curvas de depreciación y efectos regionales (Fasecolda: fuera de alcance) | cerrada salvo el índice (necesita 6 meses de histórico) |
-| **F4** | Producto    | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), app Next.js, Docker y despliegue en Render | cerrada; la app es instalable (PWA, Bloque 10) |
+Los comandos de `npm` se corren en `frontend/`. Antes de `npm run e2e`, construye el sitio
+contra la API local: `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 npm run build`.
 
-### Datos y ética
+### Cómo correrlo en local
 
-- Scraping educado: se respeta `robots.txt`, hay pausas aleatorias entre peticiones, el
-  user-agent es identificable y no se usa paralelismo agresivo.
-- **Nunca** se almacenan datos personales de vendedores (nombres, teléfonos, correos),
-  conforme a la **Ley 1581 de 2012**.
-- La capa bronze es inmutable: se escribe una vez por captura, con `captured_at` y
-  `source_url`.
-- Las estimaciones son informativas y no constituyen un avalúo comercial.
-
----
-
-## English
-
-### What it does
-
-AutoValor CO estimates the market price of a used car or motorcycle in Colombia and
-returns, besides the point estimate, a **P10–P90** prediction interval. On top of that it:
-
-- **Classifies listings** as _bargain_, _fair_ or _overpriced_, depending on where the
-  asking price falls inside the interval.
-- **Explains every prediction** with SHAP: how much the model year, mileage, make, model
-  or department contribute to the estimate.
-- **Publishes depreciation curves** by brand and segment, plus a **monthly used-price
-  index**.
-
-The bargain/fair/expensive label ships only where the out-of-sample P10–P90 band supports
-it — today that is cars; motorcycles ship the price with its range and a precision notice.
-Benchmarking against the **Fasecolda guide is out of scope**: it is not available over plain
-HTTP and a subscription is ruled out by the project's zero-cost constraint. See
-[`docs/STATUS.md`](docs/STATUS.md).
-
-### Architecture
-
-Medallion data lake (bronze → silver → gold) built with Parquet, DuckDB and dbt, with
-Pandera validating each layer. Cars and motorcycles get separate models and the target is
-always `log(price)`: a hedonic OLS regression is the baseline any gradient-boosting
-ensemble must beat. Models are tracked in MLflow and served by a FastAPI app, consumed by
-a Next.js + Tailwind frontend. See the Spanish diagram above.
-
-### Getting started
-
-Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
+Requisitos: Python 3.12, [uv](https://docs.astral.sh/uv/) y Node.js 22.
 
 ```bash
 git clone https://github.com/JoseRomo16/AutoValorCo.git
 cd AutoValorCo
 cp .env.example .env
-make setup      # on Windows: .\make.ps1 setup
-make test
+make setup            # uv sync + navegador de Playwright + npm install en frontend/
+
+# Pipeline (el lago se reconstruye desde la rama data, sin volver a capturar)
+make pull-history     # trae las capturas publicadas a data/bronze
+make transform        # dbt silver y gold + validaciones Pandera
+make export-model     # entrena el modelo servido en artifacts/models/ (~15 min)
+make results          # resultados económicos a docs/results y docs/figures (~17 min)
+make readme           # regenera las cifras de este README
+
+# Servicio y sitio
+make serve            # API en http://localhost:8000/docs
+make web              # sitio en http://localhost:3000
 ```
 
-`make lint` runs ruff and mypy; `make serve` starts the API on `:8000`. Targets that
-belong to a later phase (`scrape`, `transform`, `train`) print a notice until that phase
-is implemented.
+En **Windows**, sin GNU make, el mismo flujo con el script equivalente:
 
-### Economic results
+```powershell
+Copy-Item .env.example .env
+.\make.ps1 setup
+.\make.ps1 transform
+.\make.ps1 serve
+```
 
-Estimated with the hedonic model and heteroskedasticity-robust (HC3) errors rather than
-with the ensembles: an ensemble predicts well and says nothing about how much a year is
-worth. Full tables with confidence intervals, plus the manifest recording which lake they
-were measured on, live in [`docs/results/`](docs/results/README.md); `make results`
-regenerates them.
+El sitio usa la API desplegada salvo que `frontend/.env.local` diga
+`NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. En redes que inspeccionan TLS hay que
+poner `AUTOVALOR_USE_SYSTEM_CERTS=true` en el `.env`. El despliegue en Render se describe
+paso a paso en [`docs/deploy-render.md`](docs/deploy-render.md): primero la API, después el
+sitio.
+
+### Estructura del repositorio
+
+```text
+src/autovalor/
+  ingest/       capturador educado de TuCarro y páginas de detalle
+  quality/      esquemas Pandera
+  features/     variables derivadas
+  models/       entrenamiento, banda conformal, regla de la etiqueta, bundle servido
+  analysis/     hedónico OLS con HC3: resultados económicos (y el índice, no publicado)
+  api/          FastAPI
+  readme.py     el bloque de cifras de este README
+dbt/            modelos silver y gold
+artifacts/      modelos servidos (van dentro de la imagen de la API)
+frontend/       Next.js + Tailwind: app/, components/, lib/, tests/, e2e/
+notebooks/      04_resultados_economicos (solo exploración)
+scripts/        GIF de Valorar y sonda de la API de Mercado Libre
+tests/          pytest
+docs/           adr/, results/, figures/, design/, reports/, STATUS.md, deploy-render.md
+.github/        CI, Dependabot y los workflows de captura (deshabilitados)
+```
+
+### Datos y ética
+
+- **Fuente**: anuncios públicos de TuCarro. Corte fijo de 4 capturas, del 2026-09-30 al
+  2026-10-19, más el detalle de motos del 2026-10-25. Las capturas están publicadas en la
+  rama [`data`](https://github.com/JoseRomo16/AutoValorCo/tree/data), así que cualquier
+  cifra se puede rehacer desde el principio.
+- **Scraping educado**: se respeta `robots.txt`, hay pausas aleatorias entre peticiones, el
+  user-agent es identificable y no hay paralelismo agresivo. Ante la verificación de cuenta
+  la captura se detuvo; no se esquivó.
+- **Sin datos personales**: nunca se guardan nombres, teléfonos ni correos de vendedores,
+  conforme a la **Ley 1581 de 2012**. La capa bronze es inmutable, con `captured_at` y
+  `source_url` en cada fila.
+- **Costo cero** como restricción de diseño: plan gratuito de Render, sitio estático, el
+  histórico en una rama de git y el repositorio público, que es lo que hace gratis a GitHub
+  Actions.
+
+### Estado y trabajo futuro
+
+**Proyecto completo.** Las fases F0 a F4 están cerradas, la API y el sitio están
+desplegados, y el estado detallado y la deuda conocida están en
+[`docs/STATUS.md`](docs/STATUS.md). Trabajo futuro posible, sin fechas:
+
+- Usar el catálogo de atributos de Mercado Libre (`/categories/MCO1744/attributes`) para
+  normalizar y validar marca, modelo y año.
+- Un objetivo multicuantil, o cuantiles con monotonicidad impuesta, para angostar la banda
+  de motos.
+- El gráfico de barras de SHAP en los resultados.
+
+---
+
+## English
+
+### What it does and for whom
+
+Buying or selling a used vehicle in Colombia means negotiating blind: listings ask what
+they like, and the usual reference, the Fasecolda guide, is behind a subscription.
+AutoValor CO is for anyone about to buy, sell or just compare: it says what the market asks
+for a vehicle like theirs, how sure it is of that figure and what moves it.
+
+What it delivers:
+
+- **An estimated price** from make, model, year, mileage, engine size and department.
+- **A P10–P90 range**: where eight in ten comparable vehicles are listed, calibrated so that
+  promise holds out of sample.
+- **A bargain / fair / expensive label** for an asking price, **only where the band supports
+  it**: it is published if the range's coverage and width, measured on the holdout, pass a
+  rule written in code.
+- **SHAP factors**: how much each feature of that vehicle raises or lowers the price.
+- **Market**: depreciation by make, what mileage costs, regional differences and where the
+  model errs, each chart with its economic reading.
+- **Methodology**: data, models, out-of-sample metrics, the label rule and the limitations,
+  unsoftened.
+
+Its limits, stated plainly:
+
+- **These are asking prices, not sale prices.** In a market where people haggle, what is
+  asked sits above what is paid, and that gap is not measured.
+- **The data is a fixed cut**: 4 TuCarro captures, 2026-09-30 to 2026-10-19 (plus the
+  motorcycle detail pages of 2026-10-25). The model is not retrained on new data, so the
+  figures describe the market of those weeks.
+- **Motorcycles carry no label.** Their range covers what it promises but is too wide to
+  tell a bargain from a fair price; they are published with a price, a range and a
+  precision notice.
+- **Out of scope**: the Fasecolda comparison (the guide is not public and a subscription
+  breaks the zero-cost rule) and the monthly price index, which needs months of history a
+  fixed cut does not have
+  ([ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md)).
+- Estimates are informational and are not a commercial appraisal.
+
+### Results
+
+Error measured **out of sample**, on listings the model never saw, and with the same values
+the API sends when it values a vehicle ([ADR 0006](docs/adr/0006-drop-city-feature.md)).
+`make readme` generates these figures from the model files and
+[`docs/results/`](docs/results/README.md); nothing in this block is typed by hand.
 
 <!-- results:start:en -->
 
@@ -412,108 +357,188 @@ Generated by `make readme` from `artifacts/models/*/model.json` and `docs/result
 
 <!-- results:end:en -->
 
-**The surprise is that motorcycles barely depreciate with age.** The slowest-depreciating
-brand has a confidence interval that includes zero, so this data cannot tell it apart from
-losing nothing. Cars behave the way folk theory says: the Japanese and Korean makes hold
-their value and the German premium brands and Ford fall about twice as fast. That is the
-same story SHAP told from the other side, that the motorcycle model leans on identity and
-barely on condition, but measured by an independent method.
+**How to read it.** Cars meet the project's target (MAPE ≤ 15 %) with room to spare and
+their range passes the rule, so they carry the label. On motorcycles the model beats the
+OLS reference by a wide margin, but the range is too wide to rate a price: the label is
+withheld even though coverage is where it should be. The time-ordered split, which
+evaluates on the newest listings, is published beside the headline figure as a second
+measurement, never in its place.
 
-Breaking the served model's error down by segment turned up the most actionable result:
-the motorcycle error was concentrated in the listings whose brand could not be parsed out
-of the title, which carried more than double the error of the brands that did resolve.
-Mapping model names back to their make brought the error down with no new requests: it all
-came out of titles already captured. The largest single improvement the project has had,
-and it did not come from modeling. Run-by-run figures are in
-[`docs/STATUS.md`](docs/STATUS.md).
+![Retained value with age, motorcycles](docs/figures/retained-value-motorcycle.png)
 
-Two caveats the figures above do not carry on their own:
+Full tables with confidence intervals and the remaining figures are in
+[`docs/results/`](docs/results/README.md) and [`docs/figures/`](docs/figures/).
 
-- **Mileage is not priced the same across segments.** The effect scales with the vehicle's
-  value and is indistinguishable from zero on the cheapest motorcycles: that market does
-  not charge for mileage.
-- **`department` records where a listing is published**, which is not quite where the
-  market is: sponsored cards leak across regions.
+### Architecture
 
-### The app
-
-Next.js (App Router) + TypeScript + Tailwind in `frontend/`, published as a **static
-export**, which is the only front end that is free on Render. Spanish by default with an
-English switch, and three views: **Value** (a form whose lists come from `GET /catalog` —
-the served model's own training rows, because the trees carry frozen categorical levels and
-a make they never saw would still get a confident-looking answer), **Market** (the F3
-results, every chart with the sentence that says what it means in money) and
-**Methodology** (data, models, out-of-sample metrics, the label rule and the limitations).
-
-Market and Methodology **never call the API**: they read `docs/results/` and the served
-bundles' manifests at build time, so they render instantly, work with the service asleep,
-and cannot quote a figure that disagrees with the commit they were built from. Only the
-valuation form talks to the service, which is why the cold-start notice is on screen before
-anyone presses the button.
-
-| | Light | Dark |
-| --- | --- | --- |
-| **Value** | ![Value with a result, light theme](docs/design/screens/readme_valorar-resultado_claro.jpg) | ![Value with a result, dark theme](docs/design/screens/readme_valorar-resultado_oscuro.jpg) |
-| **Market** | ![Market, light theme](docs/design/screens/readme_mercado_claro.jpg) | ![Market, dark theme](docs/design/screens/readme_mercado_oscuro.jpg) |
-| **Methodology** | ![Methodology, light theme](docs/design/screens/readme_metodologia_claro.jpg) | ![Methodology, dark theme](docs/design/screens/readme_metodologia_oscuro.jpg) |
-
-Every page at 1440 and 375 px in both themes is in
-[`docs/design/screens/`](docs/design/screens/); the full set (five views, four themes,
-four widths) is generated by `frontend/screens/` and uploaded by CI on every pull request.
-
-```bash
-make serve                                    # optional: the API on :8000
-echo "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > frontend/.env.local
-make web                                      # http://localhost:3000
+```mermaid
+flowchart LR
+    A["TuCarro<br/>polite capture"] --> B[("Bronze<br/>immutable Parquet<br/>data branch")]
+    B --> C["dbt silver / gold<br/>+ Pandera"]
+    C --> D["Training<br/>LightGBM + OLS<br/>conformal calibration"]
+    D --> E[("Bundle<br/>artifacts/models")]
+    E --> F["FastAPI<br/>in Docker"]
+    C --> G[("docs/results<br/>make results")]
+    E --> H["Static site<br/>Next.js + PWA"]
+    G --> H
+    F -- "/predict /explain /catalog" --> H
+    F --> R["Render<br/>free plan"]
+    H --> R
 ```
 
-**It installs as an app.** Chrome (desktop and Android) offers to install it and iOS adds it
-to the home screen. Market and Methodology work offline; Value loads its form from the last
-saved lists and says a price needs a connection. A small notice offers to update when a new
-version is out ([ADR 0007](docs/adr/0007-pwa-cache-strategy.md)).
+Cars and motorcycles are separate models and the target is always `log(price)`. Market and
+Methodology read `docs/results/` and `model.json` **when the site is built**, not over
+HTTP; only the Value form calls the API.
+
+| Layer | Tools |
+| --- | --- |
+| Capture | httpx, BeautifulSoup, Playwright, tenacity |
+| Storage | Parquet, DuckDB, dbt-duckdb, a git `data` branch |
+| Data quality | Pandera |
+| Modeling | scikit-learn, statsmodels (OLS with HC3), LightGBM, CatBoost, Optuna, SHAP, MLflow |
+| Serving | FastAPI, Pydantic, Uvicorn, Docker |
+| Front end | Next.js (App Router, static export), TypeScript, Tailwind CSS, a hand-written service worker |
+| Infra | uv, GitHub Actions, Dependabot, Render (free plan) |
 
 ### Engineering decisions
 
-Decisions that change the shape of the system are recorded as ADRs in
-[`docs/adr/`](docs/adr/). Three of them explain where things stand:
+Every decision that changes the shape of the system is an ADR in [`docs/adr/`](docs/adr/).
 
-- **[ADR 0005](docs/adr/0005-capture-source-after-verification-wall.md), capture paused.**
-  When TuCarro began asking for account verification, rotating IPs, user-agents or
-  headless browsers was ruled out as evasion. The capture stops at the first check, keeps
-  what it had and reports "blocked"; the model keeps serving the lake up to 2026-10-19.
-- **[ADR 0006](docs/adr/0006-drop-city-feature.md), a model without city.** The form asks
-  for the department, not the city, so the service always sent the same value and every
-  valuation carried the effect of a group absent from evaluation. That variable left the
-  model, and the published figures are measured with the values `/predict` actually sends
-  (training/serving parity), with the error on a random and on a temporal partition.
-- **[ADR 0007](docs/adr/0007-pwa-cache-strategy.md), the installable app.** A
-  hand-written service worker, no dependency: pages network first, hashed assets from
-  the cache, the API never answered from a cache (except `/catalog` as a marked
-  offline fallback), and an emergency worker to retire it if it misbehaves. Market and
-  Methodology work offline; Value says a price needs a connection.
+- **[0001](docs/adr/0001-record-architecture-decisions.md), record decisions.** Every
+  non-trivial decision is written down with context, decision and consequences; a change of
+  course is a new ADR, not an edit.
+- **[0002](docs/adr/0002-weekly-capture-storage.md), where captures go.** First as Actions
+  artifacts with a 90-day life, taking that window as the deadline to move.
+- **[0003](docs/adr/0003-tree-model-validation.md), how the trees are validated.** The
+  ensembles get raw categoricals and are tuned with K-fold grouped by vehicle, because the
+  same car reappears under a new id and a row split leaked into the holdout.
+- **[0004](docs/adr/0004-capture-history-storage.md), history on a branch.** Captures live
+  on the repository's own orphan `data` branch: no accounts, no secrets and no cost, instead
+  of object storage that asks for a card.
+- **[0005](docs/adr/0005-capture-source-after-verification-wall.md), stop the capture
+  without evading the block.** When TuCarro started asking for account verification, the
+  capture stopped at the first answer instead of rotating IPs, user-agents or browsers.
+  Running it from a residential IP was rejected as evasion, and Mercado Libre's official API
+  was measured with a valid token: it answers `403` to the vehicle search. The project
+  closes on a fixed cut.
+- **[0006](docs/adr/0006-drop-city-feature.md), no city in the model, and training–serving
+  parity.** The form asks for the department, so the API always sent the same city and the
+  published range covered less than it claimed. City left the model, the figures are
+  measured with the values `/predict` really sends, and a parity test keeps that gap from
+  reopening.
+- **[0007](docs/adr/0007-pwa-cache-strategy.md), a PWA with no dependencies.** A ~150-line
+  hand-written service worker generated after the build: pages network-first, hashed files
+  from cache, the API never from cache (except `/catalog` as a flagged offline fallback),
+  and an emergency worker to retire it.
 
-### Roadmap
+### Quality
 
-Detailed status, open decisions and how to resume: **[`docs/STATUS.md`](docs/STATUS.md)**.
+| What | How | Command |
+| --- | --- | --- |
+| Python: tests and coverage | pytest, 70 % minimum coverage on `src/` (fails below) | `make test` |
+| Python: lint and types | ruff (lint and format) and mypy over `src/` and `tests/` | `make lint` |
+| Front end: units | vitest with Testing Library, including ES/EN copy tests | `npm test` |
+| Front end: lint and types | ESLint and `tsc --noEmit` | `npm run lint`, `npx tsc --noEmit` |
+| End-to-end | Playwright over the static export **against the real API** started locally: regressions, PWA, offline and global behaviour | `npm run e2e` |
+| Visual accessibility | a CI audit of contrast, minimum text size and touch targets, with its own self-test (`e2e/audit.ts`) | part of `npm run e2e` |
+| API image | CI builds `Dockerfile.api`, checks its size and starts it with `render.yaml`'s environment | GitHub Actions |
+| Published figures | `tests/test_readme.py` fails if this README does not match the model files | `make readme` |
 
-| Phase  | Goal        | Exit criteria                                                                                              | Status      |
-| ------ | ----------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
-| **F0** | Requirements| Initial repo, structure, Makefile and green CI                                                             | closed      |
-| **F1** | Data        | Pilot to measure error σ; ≥ 6,000 clean cars and ≥ 2,600 clean motorcycles; weekly capture on               | closed; today's lake is in the figures above |
-| **F2** | Modeling    | Hedonic OLS baseline; ensembles must beat it. Target **MAPE ≤ 15 %**                                        | closed; cars meet the target, motorcycles do not (figures above) |
-| **F3** | Results     | Per-segment metrics, SHAP, depreciation curves, regional effects (Fasecolda: out of scope)                  | closed but the index |
-| **F4** | Product     | API (`/predict`, `/explain`, `/catalog`, `/market`, `/health`, `/model-info`), Next.js app, Docker, Render deployment | closed; the app is installable (PWA, Block 10) |
+The `npm` commands run in `frontend/`. Before `npm run e2e`, build the site against the
+local API: `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 npm run build`.
+
+### Running it locally
+
+Requirements: Python 3.12, [uv](https://docs.astral.sh/uv/) and Node.js 22.
+
+```bash
+git clone https://github.com/JoseRomo16/AutoValorCo.git
+cd AutoValorCo
+cp .env.example .env
+make setup            # uv sync + Playwright's browser + npm install in frontend/
+
+# Pipeline (the lake is rebuilt from the data branch, no new capture needed)
+make pull-history     # bring the published captures into data/bronze
+make transform        # dbt silver and gold + Pandera validations
+make export-model     # train the served model into artifacts/models/ (~15 min)
+make results          # economic results into docs/results and docs/figures (~17 min)
+make readme           # regenerate this README's figures
+
+# Service and site
+make serve            # API at http://localhost:8000/docs
+make web              # site at http://localhost:3000
+```
+
+On **Windows**, without GNU make, the same flow through the equivalent script:
+
+```powershell
+Copy-Item .env.example .env
+.\make.ps1 setup
+.\make.ps1 transform
+.\make.ps1 serve
+```
+
+The site uses the deployed API unless `frontend/.env.local` sets
+`NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. On networks that intercept TLS, set
+`AUTOVALOR_USE_SYSTEM_CERTS=true` in `.env`. Deploying to Render is described step by step
+in [`docs/deploy-render.md`](docs/deploy-render.md): the API first, then the site.
+
+### Repository layout
+
+```text
+src/autovalor/
+  ingest/       polite TuCarro capture and detail pages
+  quality/      Pandera schemas
+  features/     derived features
+  models/       training, conformal band, label rule, served bundle
+  analysis/     hedonic OLS with HC3: economic results (and the unpublished index)
+  api/          FastAPI
+  readme.py     this README's figures block
+dbt/            silver and gold models
+artifacts/      served models (shipped inside the API image)
+frontend/       Next.js + Tailwind: app/, components/, lib/, tests/, e2e/
+notebooks/      04_resultados_economicos (exploration only)
+scripts/        the Value GIF and the Mercado Libre API probe
+tests/          pytest
+docs/           adr/, results/, figures/, design/, reports/, STATUS.md, deploy-render.md
+.github/        CI, Dependabot and the capture workflows (disabled)
+```
 
 ### Data and ethics
 
-Scraping is deliberately polite (robots.txt, randomized delays, identifiable user-agent,
-no aggressive parallelism). No personal seller data is ever stored — names, phone numbers
-or e-mail addresses — in line with Colombian data protection law (Ley 1581 de 2012). The
-bronze layer is immutable: written once per capture, with `captured_at` and `source_url`.
-Estimates are informational and are not a commercial appraisal.
+- **Source**: public TuCarro listings. A fixed cut of 4 captures, 2026-09-30 to
+  2026-10-19, plus the motorcycle detail pages of 2026-10-25. The captures are published on
+  the [`data`](https://github.com/JoseRomo16/AutoValorCo/tree/data) branch, so any figure
+  can be rebuilt from scratch.
+- **Polite scraping**: `robots.txt` is respected, requests are spaced by random pauses, the
+  user-agent is identifiable and there is no aggressive parallelism. Faced with account
+  verification the capture stopped; it was not worked around.
+- **No personal data**: seller names, phone numbers and e-mail addresses are never stored,
+  as Colombia's **Ley 1581 de 2012** requires. The bronze layer is immutable, with
+  `captured_at` and `source_url` on every row.
+- **Zero cost** as a design constraint: Render's free plan, a static site, the history on a
+  git branch and a public repository, which is what makes GitHub Actions free.
+
+### Status and future work
+
+**The project is complete.** Phases F0 to F4 are closed, the API and the site are deployed,
+and the detailed status and known debt are in [`docs/STATUS.md`](docs/STATUS.md) (in
+Spanish). Possible future work, with no dates:
+
+- Use Mercado Libre's attribute catalogue (`/categories/MCO1744/attributes`) to normalize
+  and validate make, model and year.
+- A multi-quantile objective, or quantiles with enforced monotonicity, to narrow the
+  motorcycle band.
+- The SHAP bar chart in the results.
 
 ---
 
-## Licencia / License
+## Autor · Author
 
-MIT. See [`LICENSE`](LICENSE).
+**Jose Luis Romo Melo** ·
+[LinkedIn](https://www.linkedin.com/in/jose-luis-romo-dev-data) ·
+[GitHub](https://github.com/JoseRomo16)
+
+## Licencia · License
+
+MIT. Ver · _See_ [`LICENSE`](LICENSE).
