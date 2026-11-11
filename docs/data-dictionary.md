@@ -127,7 +127,9 @@ and `Tipo de cargador` after the first trial run.
 
 Built by `dbt/models/silver/`. One row per **listing and asking price**: a listing
 re-captured unchanged collapses into one row, while a price change becomes a new row,
-which is what the monthly price index needs.
+which is what a monthly price index would need. The index is out of scope: the project
+closed on a fixed cut of four captures
+([ADR 0005](adr/0005-capture-source-after-verification-wall.md#final-decision-2026-11-11)).
 
 Implausible rows are **kept and flagged**, not dropped, so data quality stays
 measurable over time.

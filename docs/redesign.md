@@ -11,8 +11,9 @@ cada paso, qué se midió y qué decisiones quedaron abiertas**.
 
 **El rediseño está cerrado (2026-11-03).** Los siete pasos terminaron con el Bloque 9b
 ([#39](https://github.com/JoseRomo16/AutoValorCo/pull/39)); lo que queda abajo es el
-registro de cómo se llegó aquí. Lo siguiente es el Bloque 10 (PWA), que no es parte de este
-documento.
+registro de cómo se llegó aquí. Después vino el Bloque 10 (PWA), que no es parte de este
+documento, y el proyecto quedó cerrado el 2026-11-11 (ver
+[Cierre del proyecto](STATUS.md#cierre-del-proyecto)).
 
 ## Estado de los pasos
 
